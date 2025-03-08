@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link href="stock-chart.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="chart1" style="max-width:1000px; height:500px;"></div>
+    <div id="chart2" style="max-width:1000px; height:500px;"></div>
+    <script src="stock-chart.js"></script>
+    <script>
+        (function () {
+            // Helper function for demo purposes only.
+            function generateRandomStockData(count = 300, timeframe = 'day') {
+                const data = [];
+                const now = new Date();
+                let price = 100 + Math.random() * 100;
+                const volatility = 1.5;
+                let timeIncrement = 24 * 60 * 60 * 1000;
+                switch (timeframe) {
+                    case '1min': timeIncrement = 60 * 1000; break;
+                    case '5min': timeIncrement = 5 * 60 * 1000; break;
+                    case '15min': timeIncrement = 15 * 60 * 1000; break;
+                    case 'hour': timeIncrement = 60 * 60 * 1000; break;
+                    case '4hour': timeIncrement = 4 * 60 * 60 * 1000; break;
+                    case 'week': timeIncrement = 7 * 24 * 60 * 60 * 1000; break;
+                }
+                for (let i = 0; i < count; i++) {
+                    const t = now.getTime() - (count - i) * timeIncrement;
+                    const change = (Math.random() - 0.5) * volatility;
+                    const open = price;
+                    price = price * (1 + change / 100);
+                    const close = price;
+                    const high = Math.max(open, close) * (1 + Math.random() * 0.01);
+                    const low = Math.min(open, close) * (1 - Math.random() * 0.01);
+                    const volume = Math.floor(Math.random() * 1e6) + 500000;
+                    data.push({ t, open, high, low, close, volume });
+                }
+                return data;
+            }
+
+            window.StockChartLib = {
+                StockChart: StockChart
+            };
+
+            // Demo usage:
+            document.addEventListener('DOMContentLoaded', () => {
+                const data1 = generateRandomStockData(300, 'day');
+                new StockChart('chart1', {
+                    chartType: 'candlestick',
+                    darkMode: false,
+                    data: data1,
+                    ticker: 'AAPL'
+                });
+                const data2 = generateRandomStockData(300, '5min');
+                new StockChart('chart2', {
+                    chartType: 'candlestick',
+                    darkMode: true,
+                    data: data2,
+                    ticker: 'TSLA'
+                });
+            });
+        })();
+
+    </script>
+</body>
+</html>

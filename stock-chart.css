@@ -1,0 +1,335 @@
+﻿.sc-chart-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+    .sc-chart-container.dark-mode {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    .sc-chart-container.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        z-index: 9999;
+        overflow: hidden;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+        .sc-chart-container.fullscreen .sc-price-chart {
+            height: calc(100vh - 10px) !important;
+            max-height: 100vh !important;
+        }
+
+.sc-price-chart-container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.sc-price-chart {
+    width: 100%;
+    height: 100%;
+    margin-bottom: 5px;
+    border: 1px solid #ddd;
+    cursor: default;
+    position: relative;
+    transition: border-color 0.3s ease;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.sc-chart-container.dark-mode .sc-price-chart {
+    border-color: #444;
+}
+
+.sc-vertical-scale-area {
+    position: absolute;
+    top: 30px;
+    bottom: 30px;
+    right: 0;
+    width: 60px;
+    cursor: ns-resize;
+    z-index: 10;
+}
+
+.sc-chart-controls-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 8px;
+    z-index: 20;
+    background-color: rgba(0,0,0,0.7);
+    border-radius: 8px;
+    padding: 6px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: opacity 0.2s ease;
+    opacity: 0.8;
+}
+
+    .sc-chart-controls-overlay:hover {
+        opacity: 1;
+    }
+
+.sc-chart-container:not(.dark-mode) .sc-chart-controls-overlay {
+    background-color: rgba(255,255,255,0.7);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.sc-overlay-button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    background-color: rgba(255,255,255,0.1);
+}
+
+.sc-chart-container:not(.dark-mode) .sc-overlay-button {
+    color: #333;
+    background-color: rgba(0,0,0,0.1);
+}
+
+.sc-overlay-button:hover {
+    background-color: rgba(255,255,255,0.2);
+    transform: scale(1.05);
+}
+
+.sc-chart-container:not(.dark-mode) .sc-overlay-button:hover {
+    background-color: rgba(0,0,0,0.2);
+}
+
+.sc-overlay-button.active {
+    background-color: rgba(106,142,245,0.4);
+    color: #fff;
+}
+
+.sc-chart-container:not(.dark-mode) .sc-overlay-button.active {
+    color: #fff;
+}
+
+.sc-price-chart.dragging {
+    cursor: grabbing !important;
+}
+
+.sc-chart-container.dark-mode .sc-overlay-button svg path {
+    fill: #fff;
+}
+
+.sc-chart-container.dark-mode .sc-chart-type-button svg path {
+    stroke: #fff;
+    fill: none;
+}
+
+.sc-dark-mode-button.active {
+    background-color: rgba(255,255,255,0.1) !important;
+}
+
+.sc-chart-container:not(.dark-mode) .sc-dark-mode-button.active {
+    background-color: rgba(0,0,0,0.1);
+    color: #333;
+}
+
+@media (max-width: 576px) {
+    .sc-chart-container {
+        border-radius: 3px;
+    }
+
+    .sc-chart-controls-overlay {
+        gap: 4px;
+        padding: 4px;
+        border-radius: 4px;
+        top: 5px;
+        left: 5px;
+    }
+
+    .sc-overlay-button {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+
+    .sc-vertical-scale-area {
+        width: 40px;
+    }
+
+    #chart1, #chart2 {
+        margin-bottom: 30px;
+        height: 300px;
+    }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+    .sc-chart-container {
+        padding: 8px;
+    }
+
+    .sc-overlay-button {
+        width: 30px;
+        height: 30px;
+    }
+
+    .sc-vertical-scale-area {
+        width: 50px;
+    }
+
+    #chart1, #chart2 {
+        height: 350px;
+    }
+}
+
+@media (min-width:769px) and (max-width:992px) {
+    .sc-vertical-scale-area {
+        width: 55px;
+    }
+}
+
+@media (hover: none) {
+    .sc-overlay-button {
+        padding: 0;
+    }
+
+    .sc-chart-controls-overlay {
+        opacity: 1;
+    }
+
+    .sc-vertical-scale-area {
+        width: 70px;
+    }
+}
+
+.sc-price-chart:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: calc(100% - 1px);
+    height: 1px;
+    background-color: #ddd;
+    pointer-events: none;
+}
+
+.sc-price-chart:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background-color: #ddd;
+    pointer-events: none;
+}
+
+.sc-chart-container.dark-mode .sc-price-chart:after,
+.sc-chart-container.dark-mode .sc-price-chart:before {
+    background-color: #444;
+}
+
+.sc-chart-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    margin: 0;
+    border-radius: 0;
+    z-index: 9999;
+    overflow: hidden;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+    .sc-chart-container.fullscreen .sc-price-chart {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100vh !important;
+        box-sizing: border-box;
+    }
+
+.sc-ohlcv-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Open Sans', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.sc-chart-container:not(.dark-mode) .sc-ohlcv-label {
+    background-color: #f2f2f2;
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.sc-chart-container.dark-mode .sc-ohlcv-label {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.sc-ohlcv-label .open-value {
+}
+
+.sc-ohlcv-label .high-value {
+    color: #26a69a;
+}
+
+.sc-ohlcv-label .low-value {
+    color: #ef5350;
+}
+
+.sc-ohlcv-label .close-value {
+    color: #26a69a;
+}
+
+.sc-ohlcv-label .vol-value {
+}
+
+@media (hover: none), (pointer: coarse) {
+    .sc-ohlcv-label {
+        display: none !important;
+    }
+}
+
+.sc-ohlcv-label [class$="-value"] {
+    display: inline-block;
+    width: 40px; /* Adjust width as needed */
+    text-align: left;
+}
+
+.sc-ohlcv-label .vol-value {
+    display: inline-block;
+    width: 50px; /* Adjust width as needed */
+    text-align: left; /* Or left/center if you prefer */
+}
