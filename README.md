@@ -55,8 +55,6 @@ Simply include the source files in your HTML:
 const chart = new StockChart('container', {
   // Required
   data: ohlcData,  // Array of { t, open, high, low, close, volume }
-  
-  // Optional
   ticker: 'NVDA',  // Stock symbol (displayed as watermark)
   chartType: 'candlestick', // or 'line'
   darkMode: false // Enable dark mode
