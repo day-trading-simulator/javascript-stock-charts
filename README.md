@@ -59,8 +59,7 @@ const chart = new StockChart('container', {
   // Optional
   ticker: 'NVDA',  // Stock symbol (displayed as watermark)
   chartType: 'candlestick', // or 'line'
-  darkMode: false, // Enable dark mode
-  hideBranding: false // Hide the "Powered by simul8or" text
+  darkMode: false // Enable dark mode
 });
 ```
 
