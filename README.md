@@ -1,5 +1,7 @@
 # JavaScript Stock Charts
 
+**[➡️ View Live Demo on simul8or.com](https://simul8or.com/javascript-stock-chart.php)** - See the full capabilities in action with interactive examples and documentation.
+
 ![JavaScript Stock Chart](javascript-stock-chart1.png)
 
 A beautiful, responsive, lightweight chart library for financial data visualization with zero dependencies. Create professional-grade stock charts with candlestick and line views in a simple JavaScript class.
