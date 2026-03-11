@@ -1,52 +1,86 @@
 # JavaScript Stock Charts
 
-**[➡️ View Live Demo on simul8or.com](https://simul8or.com/javascript-stock-chart.php)** - See the full capabilities in action with interactive examples and documentation.
+**[View Live Demo on simul8or.com](https://simul8or.com/javascript-stock-chart.php)** - See the full capabilities in action with interactive examples and documentation.
 
 ![JavaScript Stock Chart](javascript-stock-chart1.png)
 
-A beautiful, responsive, lightweight chart library for financial data visualization with zero dependencies. Create professional-grade stock charts with candlestick and line views in a simple JavaScript class.
+A lightweight, zero-dependency JavaScript stock chart library for financial data visualization. Built on HTML5 Canvas with HiDPI support, technical indicators, candlestick pattern detection, and real-time interactivity.
 
 ## Features
 
-- **Multiple Chart Types** - Toggle between candlestick and line chart views with a single click
-- **Interactive Navigation** - Drag to pan, scroll to zoom, touch-friendly controls
-- **Responsive Design** - Automatically adapts to any screen size from mobile to desktop
+### Core
+- **Candlestick & Line Charts** - Toggle between chart types with a single click
+- **HiDPI Rendering** - Crisp visuals on Retina and high-DPI displays
 - **Dark/Light Mode** - Built-in theme switching
-  
+- **Responsive Design** - Adapts to any screen size, mobile-friendly with touch/pinch support
+- **Volume Panel** - Toggleable volume bars below price data
+- **Fullscreen Mode** - Expand charts with one click
+- **Screenshot to Clipboard** - Copy chart as PNG with embedded branding
+
   ![Chart Types and Dark Mode](javascript-stock-chart2.png)
 
-- **Real-Time OHLC Display** - Shows precise price data on hover
-- **Customizable** - Configure colors, watermarks, and display options
-- **Volume Visualization** - Volume bars displayed below price data
-- **Fullscreen Mode** - Expand charts with a single click
+### Technical Indicators
+Built-in support for popular indicators via the included `indicators.js` module:
+
+- **RSI** - Relative Strength Index
+- **MACD** - Moving Average Convergence Divergence
+- **Bollinger Bands** - Volatility bands around a moving average
+- **Stochastic** - Momentum oscillator
+- **ATR** - Average True Range
+- **OBV** - On-Balance Volume
+- **ADX** - Average Directional Index
+- **CCI** - Commodity Channel Index
+- **Williams %R** - Momentum indicator
+- **MFI** - Money Flow Index
+- **Moving Averages** - Customizable SMA/EMA with color picker
+
+### Pattern Detection
+Automatic candlestick pattern recognition via the included `patterns.js` module:
+
+- Engulfing (bullish/bearish)
+- Doji, Hammer, Shooting Star
+- Morning/Evening Star
+- And more
+
+### Interactive Controls
+- **Drag** - Pan horizontally and vertically
+- **Mouse Wheel** - Zoom in/out
+- **Pinch** - Zoom on touch devices
+- **Hover** - Crosshair with real-time OHLC data
+- **Price Scale Drag** - Adjust vertical scaling
+- **Timeframe Selector** - Switch between 1min, 5min, 15min, 1hour, 4hour, daily, weekly
+- **Drawing Tools** - Trendlines and Fibonacci retracements
+- **AI Price Levels** - Overlay support/resistance levels programmatically
 
 ## Installation
 
-Simply include the source files in your HTML:
+Include the source files in your HTML:
 
 ```html
-<script src="stock-chart.js"></script>
 <link rel="stylesheet" href="stock-chart.css">
+<script src="indicators.js"></script>
+<script src="patterns.js"></script>
+<script src="stock-chart.js"></script>
 ```
 
 ## Quick Start
 
 ```html
-<div id="chart-container" style="width: 100%; height: 400px;"></div>
+<div id="chart-container" style="width: 100%; height: 500px;"></div>
 
 <script>
-  // Sample OHLC data
   const data = [
     { t: 1675209600000, open: 180.68, high: 187.12, low: 179.26, close: 185.38, volume: 4235600 },
     { t: 1675296000000, open: 186.12, high: 194.32, low: 185.21, close: 188.74, volume: 5127800 },
     // ... more data points
   ];
-  
-  // Initialize chart
+
   const chart = new StockChart('chart-container', {
     data: data,
     ticker: 'AAPL',
-    darkMode: true
+    darkMode: true,
+    chartType: 'candlestick',
+    timeframe: '1day'
   });
 </script>
 ```
@@ -56,61 +90,52 @@ Simply include the source files in your HTML:
 ```javascript
 const chart = new StockChart('container', {
   // Required
-  data: ohlcData,  // Array of { t, open, high, low, close, volume }
-  ticker: 'NVDA',  // Stock symbol (displayed as watermark)
-  chartType: 'candlestick', // or 'line'
-  darkMode: false // Enable dark mode
+  data: ohlcData,           // Array of { t, open, high, low, close, volume }
+  ticker: 'NVDA',           // Stock symbol (displayed as watermark)
+
+  // Optional
+  chartType: 'candlestick', // 'candlestick' or 'line'
+  darkMode: false,          // Enable dark mode
+  timeframe: '1day',        // '1min', '5min', '15min', '1hour', '4hour', '1day', '1week'
+
+  // Indicators (enable/disable programmatically)
+  indicators: {
+    rsi: true,
+    macd: false,
+    bollingerBands: false
+  },
+
+  // Moving averages
+  movingAverages: [
+    { type: 'sma', period: 20, enabled: true, color: '#2196F3' },
+    { type: 'ema', period: 50, enabled: true, color: '#FF9800' }
+  ]
 });
 ```
 
-## Interactive Features
-
-StockChart.js provides multiple ways to interact with your chart:
-
-- **Drag**: Click and drag to pan horizontally and vertically
-- **Mouse Wheel**: Zoom in/out to adjust the visible range
-- **Pinch**: On touch devices, pinch to zoom
-- **Hover**: Move mouse over chart to see crosshair and detailed OHLC data
-- **Right Scale**: Drag the price scale area to adjust vertical scaling
-- **Buttons**: Toggle chart type, dark/light mode, and fullscreen
-
-## Customization
-
-Use CSS to customize the look and feel of your charts:
-
-```css
-.sc-chart-container {
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.sc-chart-container.dark-mode {
-  --chart-bg: #131722;
-  --text-color: #d1d4dc;
-}
-```
-
-## Working with the Chart
-
-The StockChart object provides several methods and properties that can be used to control the chart after initialization:
+## API Methods
 
 ```javascript
-// Force a redraw of the chart
+// Redraw the chart
 chart.drawCharts();
 
-// Destroy the chart and clean up event listeners
+// Destroy the chart and clean up
 chart.destroy();
 
-// Adjust visibility settings
-chart.config.watermark.enabled = false;
+// Update configuration
 chart.config.darkMode = true;
-chart.updateConfig();
 chart.drawCharts();
 
-// Resize the canvas when container size changes
-window.addEventListener('resize', function() {
-  chart.resizeCanvases();
-});
+// AI price level overlays
+chart.addAIPriceLevel({ label: 'Entry', price: 185.50, color: '#00C851' });
+chart.setAIPriceLevels([
+  { label: 'Stop Loss', price: 178.00 },
+  { label: 'Target', price: 195.00 }
+]);
+chart.clearAIPriceLevels();
+
+// Handle container resize
+window.addEventListener('resize', () => chart.resizeCanvases());
 ```
 
 ## Browser Support
@@ -119,14 +144,12 @@ window.addEventListener('resize', function() {
 - Chrome, Firefox, Safari, Edge
 - Mobile browsers on iOS and Android
 
-## Performance Notes
+## Performance
 
-StockChart.js is optimized for performance with large datasets:
-
-- Uses canvas for rendering instead of SVG or DOM elements
-- Implements debounced resize event handling
-- Efficiently handles zooming and panning
-- Optimized for both desktop and mobile devices
+- Canvas-based rendering (not SVG/DOM) for large datasets
+- HiDPI-aware with devicePixelRatio scaling
+- Debounced resize handling
+- Optimized for both desktop and mobile
 
 ## Contributing
 
