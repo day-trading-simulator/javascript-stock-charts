@@ -12,7 +12,7 @@ A lightweight, zero-dependency JavaScript stock chart library for financial data
 - **Candlestick & Line Charts** - Toggle between chart types with a single click
 - **HiDPI Rendering** - Crisp visuals on Retina and high-DPI displays
 - **Dark/Light Mode** - Built-in theme switching
-- **Responsive Design** - Adapts to any screen size, mobile-friendly with touch/pinch support
+- **Responsive Design** - Adapts to any screen size
 - **Volume Panel** - Toggleable volume bars below price data
 - **Fullscreen Mode** - Expand charts with one click
 - **Screenshot to Clipboard** - Copy chart as PNG with embedded branding
@@ -45,7 +45,6 @@ Automatic candlestick pattern recognition via the included `patterns.js` module:
 ### Interactive Controls
 - **Drag** - Pan horizontally and vertically
 - **Mouse Wheel** - Zoom in/out
-- **Pinch** - Zoom on touch devices
 - **Hover** - Crosshair with real-time OHLC data
 - **Price Scale Drag** - Adjust vertical scaling
 - **Timeframe Selector** - Switch between 1min, 5min, 15min, 1hour, 4hour, daily, weekly
@@ -96,7 +95,7 @@ const chart = new StockChart('container', {
   // Optional
   chartType: 'candlestick', // 'candlestick' or 'line'
   darkMode: false,          // Enable dark mode
-  timeframe: '1day',        // '1min', '5min', '15min', '1hour', '4hour', '1day', '1week'
+  timeframe: '1day',        // '1min', '5min', '15min', '1hour', '4hour', '1day', '1week', '1month'
 
   // Indicators (enable/disable programmatically)
   indicators: {
