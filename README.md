@@ -33,6 +33,7 @@ Built-in support for popular indicators via the included `indicators.js` module:
 - **Williams %R** - Momentum indicator
 - **MFI** - Money Flow Index
 - **Moving Averages** - Customizable SMA/EMA with color picker
+- And more
 
 ### Pattern Detection
 Automatic candlestick pattern recognition via the included `patterns.js` module:
