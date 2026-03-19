@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twelve Data API with JavaScript Stock Charts | Free Tutorial</title>
+    <meta name="description" content="Learn how to fetch stock market data from Twelve Data API and render interactive candlestick charts using a free, open-source JavaScript stock chart library. Copy-paste ready code.">
+    <meta name="keywords" content="twelve data api, javascript stock charts, twelve data api tutorial, stock chart javascript, financial data api, candlestick chart, twelve data stock data, free stock chart library">
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="How to Use Twelve Data API with JavaScript Stock Charts">
+    <meta property="og:description" content="Step-by-step tutorial: fetch stock data from Twelve Data and render interactive charts with a free JavaScript library. Copy-paste ready.">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="How to Use Twelve Data API with JavaScript Stock Charts">
+    <meta property="twitter:description" content="Step-by-step tutorial: fetch stock data from Twelve Data and render interactive charts with a free JavaScript library. Copy-paste ready.">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to Use Twelve Data API with JavaScript Stock Charts",
+        "description": "Learn how to fetch stock market data from the Twelve Data API and display it as interactive candlestick charts using a free, open-source JavaScript stock chart library.",
+        "totalTime": "PT10M",
+        "tool": {
+            "@type": "SoftwareApplication",
+            "name": "JavaScript Stock Charts Library",
+            "url": "https://github.com/day-trading-simulator/javascript-stock-charts",
+            "applicationCategory": "DeveloperApplication",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+        },
+        "step": [
+            {
+                "@type": "HowToStep",
+                "name": "Get Your Twelve Data API Key",
+                "text": "Sign up for a free Twelve Data account and copy your API key from the dashboard.",
+                "url": "https://twelvedata.com/register"
+            },
+            {
+                "@type": "HowToStep",
+                "name": "Include the Chart Library",
+                "text": "Add the JavaScript Stock Charts CSS and JS files to your HTML page."
+            },
+            {
+                "@type": "HowToStep",
+                "name": "Fetch Data from Twelve Data",
+                "text": "Use the Twelve Data Time Series endpoint to fetch OHLCV candle data for any stock ticker."
+            },
+            {
+                "@type": "HowToStep",
+                "name": "Transform the API Response",
+                "text": "Convert Twelve Data's string values to numbers with parseFloat() and reverse the array from newest-first to oldest-first order."
+            },
+            {
+                "@type": "HowToStep",
+                "name": "Render the Chart",
+                "text": "Initialize a new StockChart instance with the transformed data."
+            }
+        ]
+    }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/stock-chart.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --accent-green: #10b981;
+            --accent-cyan: #22d3ee;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-red: #ef4444;
+            --accent-orange: #f97316;
+            --section-dark: #050508;
+            --section-medium: #0c0c12;
+            --section-light: #16161f;
+            --border-light: rgba(255, 255, 255, 0.15);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-muted: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            background: var(--section-dark);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .text-center { text-align: center; }
+        .mb-5 { margin-bottom: 3rem; }
+        .d-flex { display: flex; }
+        .justify-content-center { justify-content: center; }
+        .gap-3 { gap: 1rem; }
+        .flex-wrap { flex-wrap: wrap; }
+
+        /* Typography */
+        .section-label {
+            display: inline-block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent-green);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .section-heading {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .section-heading-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+        }
+
+        .section-separator {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 4px;
+            background: linear-gradient(90deg, transparent 0%, var(--accent-green) 20%, var(--accent-cyan) 50%, var(--accent-blue) 80%, transparent 100%);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Hero */
+        .hero-section {
+            padding: 80px 0 60px;
+            background: transparent;
+        }
+
+        /* Demo section */
+        .demo-section {
+            padding: 60px 0;
+            background: var(--section-medium);
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .demo-controls .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .demo-controls label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .demo-controls input,
+        .demo-controls select {
+            background: var(--section-dark);
+            border: 1px solid var(--border-light);
+            border-radius: 2px;
+            color: var(--text-primary);
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .demo-controls input:focus,
+        .demo-controls select:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .demo-controls input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .demo-controls select option {
+            background: var(--section-dark);
+            color: var(--text-primary);
+        }
+
+        .btn-load {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+            border: none;
+            color: #fff;
+            padding: 10px 28px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-load:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-load:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .demo-status {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            min-height: 24px;
+        }
+
+        .demo-status.error {
+            color: var(--accent-red);
+        }
+
+        .demo-status.success {
+            color: var(--accent-green);
+        }
+
+        .chart-container {
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .sc-chart-container.dark-mode {
+            background-color: var(--section-dark) !important;
+        }
+
+        /* Show the chart type toggle (candlestick/line) */
+        .sc-chart-type-button.d-none {
+            display: inline-flex !important;
+        }
+
+        /* Tutorial section */
+        .tutorial-section {
+            padding: 80px 0;
+            background: var(--section-light);
+        }
+
+        .step-card {
+            background: var(--section-dark);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 2px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            line-height: 1;
+            min-width: 40px;
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .step-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .step-card a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        .step-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* Code cards */
+        .code-card {
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .code-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .code-card-header h6 {
+            margin: 0;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .btn-copy {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 3px 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+        }
+
+        .btn-copy.copied {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .code-card pre {
+            padding: 16px;
+            margin: 0;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            overflow-x: auto;
+        }
+
+        .code-card code {
+            font-size: 0.8rem;
+        }
+
+        /* Inline code */
+        .step-card code,
+        p code {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+        }
+
+        /* Full example section */
+        .example-section {
+            padding: 80px 0;
+            background: var(--section-medium);
+        }
+
+        .example-intro {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+
+        /* CTA section */
+        .cta-section {
+            padding: 80px 0;
+            background: var(--section-dark);
+        }
+
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 48px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 2px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-cta-primary {
+            background: linear-gradient(135deg, #8338ec 0%, #3a86ff 50%, #06ffa5 100%);
+            border: none;
+            color: #fff;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            animation: holographicShift 3s ease-in-out infinite;
+        }
+
+        @keyframes holographicShift {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(45deg); }
+        }
+
+        .btn-cta-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: transform 0.6s ease;
+        }
+
+        .btn-cta-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(131, 56, 236, 0.4), 0 0 20px rgba(58, 134, 255, 0.3);
+            color: #fff;
+        }
+
+        .btn-cta-primary:hover::before {
+            transform: translateX(200%);
+        }
+
+        .btn-cta-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .btn-cta-secondary:hover {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+            transform: translateY(-4px);
+        }
+
+        /* Info/Warning boxes */
+        .info-box {
+            background: rgba(34, 211, 238, 0.06);
+            border: 1px solid rgba(34, 211, 238, 0.15);
+            border-radius: 2px;
+            padding: 14px 18px;
+            color: var(--accent-cyan);
+            font-size: 0.85rem;
+            margin-top: 16px;
+        }
+
+        .info-box i {
+            margin-right: 8px;
+        }
+
+        .warning-box {
+            background: rgba(249, 115, 22, 0.08);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 2px;
+            padding: 14px 18px;
+            color: var(--accent-orange);
+            font-size: 0.85rem;
+            margin-top: 16px;
+        }
+
+        .warning-box i {
+            margin-right: 8px;
+        }
+
+        /* Response table */
+        .response-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .response-table th {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 10px 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+        }
+
+        .response-table td {
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .response-table code {
+            color: var(--accent-cyan);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .section-heading {
+                font-size: 1.4rem;
+            }
+
+            .demo-controls {
+                flex-direction: column;
+            }
+
+            .demo-controls .field {
+                width: 100%;
+            }
+
+            .demo-controls input,
+            .demo-controls select {
+                width: 100%;
+            }
+
+            .step-card {
+                padding: 20px;
+            }
+
+            .btn-cta {
+                padding: 14px 32px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <span class="section-label">Tutorial</span>
+            <h1 class="section-title">Twelve Data API +<br>Stock Charts</h1>
+            <p class="section-subtitle">Fetch real-time and historical stock data from Twelve Data and render interactive candlestick charts in the browser. 100% client-side, zero backend required.</p>
+        </div>
+    </section>
+
+    <div class="section-separator"></div>
+
+    <!-- Live Demo Section -->
+    <section class="demo-section">
+        <div class="container">
+            <span class="section-heading-label">Try It Live</span>
+            <h2 class="section-heading">Interactive Demo</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">Enter your Twelve Data API key and a ticker symbol to fetch real market data. Use the chart's built-in timeframe selector to switch between intraday, daily, weekly, and monthly views &mdash; new data is automatically fetched from Twelve Data when you change timeframes.</p>
+
+            <div class="demo-controls">
+                <div class="field">
+                    <label for="apiKey">Twelve Data API Key</label>
+                    <input type="text" id="apiKey" placeholder="Enter your API key" autocomplete="off" style="width: 320px;">
+                </div>
+                <div class="field">
+                    <label for="ticker">Ticker Symbol</label>
+                    <input type="text" id="ticker" placeholder="AAPL" value="AAPL" style="width: 140px;">
+                </div>
+                <button class="btn-load" id="btnLoad" onclick="loadTwelveData()">
+                    <i class="fas fa-chart-bar"></i>&nbsp; Load Chart
+                </button>
+            </div>
+
+            <div class="demo-status" id="demoStatus">Chart loaded with sample AAPL daily data. Enter your API key above to fetch live data from Twelve Data. Use the chart's built-in timeframe selector to switch views.</div>
+
+            <div class="chart-container" style="height: 600px;" id="demoChart"></div>
+
+            <div class="info-box" style="margin-top: 20px;">
+                <i class="fas fa-info-circle"></i>
+                <strong>Don't have an API key?</strong> Sign up for a free Twelve Data account at <a href="https://twelvedata.com/register" target="_blank" rel="noopener" style="color: var(--accent-cyan);">twelvedata.com</a> &mdash; the free tier includes 8 API calls per minute, 800 per day.
+            </div>
+        </div>
+    </section>
+
+    <div class="section-separator"></div>
+
+    <!-- Step-by-Step Tutorial -->
+    <section class="tutorial-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <span class="section-heading-label">Step by Step</span>
+                <h2 class="section-heading">Implementation Guide</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">Everything you need to get Twelve Data into a chart</p>
+            </div>
+
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">01</span>
+                    <span class="step-title">Get Your Twelve Data API Key</span>
+                </div>
+                <p>Head to <a href="https://twelvedata.com/register" target="_blank" rel="noopener">twelvedata.com/register</a> and create a free account. Once logged in, your API key is displayed on the dashboard. The free tier gives you 8 API calls per minute and 800 per day with access to real-time and historical stock data across global exchanges.</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">02</span>
+                    <span class="step-title">Include the Chart Library</span>
+                </div>
+                <p>Add the JavaScript Stock Charts library to your HTML page via CDN. It's zero-dependency &mdash; just three script tags and one CSS link. No downloads or installs required.</p>
+                <div class="code-card">
+                    <div class="code-card-header">
+                        <h6>HTML</h6>
+                        <button class="btn-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code>&lt;!-- CSS --&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/stock-chart.css"&gt;
+
+&lt;!-- Chart container --&gt;
+&lt;div id="chart" style="width: 100%; height: 500px;"&gt;&lt;/div&gt;
+
+&lt;!-- JS (order matters) --&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/indicators.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/patterns.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/stock-chart.js"&gt;&lt;/script&gt;</code></pre>
+                </div>
+                <div class="info-box">
+                    <i class="fas fa-bolt"></i>
+                    No downloads needed &mdash; the library is served via <a href="https://www.jsdelivr.com/" target="_blank" rel="noopener" style="color: var(--accent-cyan);">jsDelivr CDN</a> directly from <a href="https://github.com/day-trading-simulator/javascript-stock-charts" target="_blank" rel="noopener" style="color: var(--accent-cyan);">GitHub</a>. Just include the script tags and you're ready to go.
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">03</span>
+                    <span class="step-title">Fetch Data from Twelve Data</span>
+                </div>
+                <p>Use the <a href="https://twelvedata.com/docs#time-series" target="_blank" rel="noopener">Time Series</a> endpoint to fetch OHLCV data. This works directly in the browser &mdash; Twelve Data supports CORS on their REST API. You specify the <code>symbol</code>, <code>interval</code>, and <code>outputsize</code> (number of bars, up to 5000) as query parameters.</p>
+                <div class="code-card">
+                    <div class="code-card-header">
+                        <h6>JavaScript</h6>
+                        <button class="btn-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code>const API_KEY = 'YOUR_TWELVEDATA_API_KEY';
+const ticker  = 'AAPL';
+
+const url = `https://api.twelvedata.com/time_series?symbol=${ticker}&interval=1day&outputsize=500&apikey=${API_KEY}`;
+
+const response = await fetch(url);
+const json = await response.json();</code></pre>
+                </div>
+
+                <p style="margin-top: 20px;">Twelve Data returns data as an <strong>array of objects</strong> in the <code>values</code> field. Unlike some APIs that use parallel arrays, each bar is a self-contained object. However, all numeric values are returned as <strong>strings</strong> that need to be parsed, and the array is in <strong>reverse chronological order</strong> (newest first):</p>
+                <div class="code-card">
+                    <div class="code-card-header">
+                        <h6>Twelve Data Response</h6>
+                    </div>
+                    <pre><code>{
+  "meta": { "symbol": "AAPL", "interval": "1day", ... },
+  "values": [
+    { "datetime": "2024-05-10", "open": "183.45", "high": "184.90", "low": "182.76", "close": "183.05", "volume": "45123456" },
+    { "datetime": "2024-05-09", "open": "184.90", "high": "185.09", "low": "182.13", "close": "183.05", "volume": "50383100" },
+    ...
+  ],
+  "status": "ok"
+}</code></pre>
+                </div>
+
+                <table class="response-table" style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Twelve Data Field</th>
+                            <th>Type</th>
+                            <th>Chart Field</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>datetime</code></td><td>String (date/datetime)</td><td><code>t</code> (ms timestamp)</td></tr>
+                        <tr><td><code>open</code></td><td>String &rarr; <code>parseFloat()</code></td><td><code>open</code> (number)</td></tr>
+                        <tr><td><code>high</code></td><td>String &rarr; <code>parseFloat()</code></td><td><code>high</code> (number)</td></tr>
+                        <tr><td><code>low</code></td><td>String &rarr; <code>parseFloat()</code></td><td><code>low</code> (number)</td></tr>
+                        <tr><td><code>close</code></td><td>String &rarr; <code>parseFloat()</code></td><td><code>close</code> (number)</td></tr>
+                        <tr><td><code>volume</code></td><td>String &rarr; <code>parseInt()</code></td><td><code>volume</code> (number)</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="warning-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Important:</strong> Twelve Data returns all OHLCV values as <strong>strings</strong>, not numbers &mdash; you must use <code>parseFloat()</code> and <code>parseInt()</code> to convert them. Additionally, the <code>values</code> array is in <strong>reverse chronological order</strong> (newest first), so you must call <code>.reverse()</code> before passing data to the chart.
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">04</span>
+                    <span class="step-title">Transform the API Response</span>
+                </div>
+                <p>Reverse the array to get chronological order, parse all string values to numbers, and convert datetime strings to millisecond timestamps. The <code>date</code> property is used by the chart library for pre/post market hour shading:</p>
+                <div class="code-card">
+                    <div class="code-card-header">
+                        <h6>JavaScript</h6>
+                        <button class="btn-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code>function transformTwelveData(json) {
+    return json.values.reverse().map(function(bar) {
+        var ts = new Date(bar.datetime).getTime();
+        var d = new Date(ts);
+        var date = d.toLocaleString('en-US', {
+            timeZone: 'America/New_York',
+            year: 'numeric', month: 'numeric', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: false
+        }).replace(',', '');
+        return {
+            t: ts, date: date,
+            open: parseFloat(bar.open), high: parseFloat(bar.high),
+            low: parseFloat(bar.low), close: parseFloat(bar.close),
+            volume: parseInt(bar.volume)
+        };
+    });
+}
+
+const chartData = transformTwelveData(json);</code></pre>
+                </div>
+                <div class="info-box">
+                    <i class="fas fa-sort-amount-up"></i>
+                    Twelve Data returns data newest-first, so <code>.reverse()</code> is called to put it in chronological order, which is what the chart library expects.
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">05</span>
+                    <span class="step-title">Render the Chart with Timeframe Switching &amp; Infinite Scroll</span>
+                </div>
+                <p>Create a <code>StockChart</code> instance with an <code>onReachingStart</code> callback for infinite scroll. Then monitor the chart's built-in timeframe selector to re-fetch data when the user switches timeframes:</p>
+                <div class="code-card">
+                    <div class="code-card-header">
+                        <h6>JavaScript</h6>
+                        <button class="btn-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code>var chart = null;
+var previousTimeframe = '1day';
+var isLoadingMore = false;
+var earliestTimestamp = null;
+var hasMoreHistory = true;
+var timeframeCheckInterval = null;
+
+// Map chart timeframes to Twelve Data interval + outputsize
+function mapTimeframeToTwelveDataParams(tf) {
+    var map = {
+        '1min':   { interval: '1min',   outputsize: 500 },
+        '2min':   { interval: '5min',   outputsize: 500 },
+        '5min':   { interval: '5min',   outputsize: 500 },
+        '15min':  { interval: '15min',  outputsize: 500 },
+        '30min':  { interval: '30min',  outputsize: 500 },
+        '1hour':  { interval: '1h',     outputsize: 500 },
+        '60min':  { interval: '1h',     outputsize: 500 },
+        '4hour':  { interval: '4h',     outputsize: 500 },
+        '1day':   { interval: '1day',   outputsize: 500 },
+        '1week':  { interval: '1week',  outputsize: 260 },
+        '1W':     { interval: '1week',  outputsize: 260 },
+        '1month': { interval: '1month', outputsize: 120 },
+        '1M':     { interval: '1month', outputsize: 120 }
+    };
+    return map[tf] || map['1day'];
+}
+
+// Initialize chart
+chart = new StockChart('chart', {
+    data:      chartData,
+    ticker:    ticker,
+    chartType: 'candlestick',
+    darkMode:  true,
+    timeframe: '1day',
+    useAfterHoursStyling: true,
+    onReachingStart: handleReachingStart
+});
+earliestTimestamp = chartData[0].t;
+
+// Monitor chart's built-in timeframe selector
+setupTimeframeMonitor();
+
+function setupTimeframeMonitor() {
+    if (timeframeCheckInterval) clearInterval(timeframeCheckInterval);
+    timeframeCheckInterval = setInterval(function() {
+        if (chart &amp;&amp; chart.timeframe !== previousTimeframe) {
+            previousTimeframe = chart.timeframe;
+            loadChart(); // re-fetch with new timeframe
+        }
+    }, 500);
+}
+
+// Infinite scroll - fetch older data when user pans left
+async function handleReachingStart() {
+    if (isLoadingMore || !hasMoreHistory || !earliestTimestamp) return;
+    isLoadingMore = true;
+    try {
+        var p = mapTimeframeToTwelveDataParams(chart.timeframe || '1day');
+        // Format end_date from earliest timestamp
+        var d = new Date(earliestTimestamp - 1);
+        var endDate = d.getFullYear() + '-'
+            + String(d.getMonth() + 1).padStart(2, '0') + '-'
+            + String(d.getDate()).padStart(2, '0');
+        // For intraday, include time
+        if (['1min','5min','15min','30min','45min','1h','2h','4h','8h'].indexOf(p.interval) !== -1) {
+            endDate += ' ' + String(d.getHours()).padStart(2, '0') + ':'
+                + String(d.getMinutes()).padStart(2, '0') + ':00';
+        }
+        var url = 'https://api.twelvedata.com/time_series?symbol=' + ticker
+            + '&amp;interval=' + p.interval
+            + '&amp;outputsize=' + p.outputsize
+            + '&amp;end_date=' + encodeURIComponent(endDate)
+            + '&amp;apikey=' + API_KEY;
+        var resp = await fetch(url);
+        var json = await resp.json();
+        if (json.status === 'ok' &amp;&amp; json.values &amp;&amp; json.values.length &gt; 0) {
+            var older = transformTwelveData(json);
+            earliestTimestamp = older[0].t;
+            chart.prependHistoricalData(older);
+        } else {
+            hasMoreHistory = false;
+            chart.setLoadingHistoricalData(false);
+        }
+    } catch(e) {
+        chart.setLoadingHistoricalData(false);
+    } finally {
+        isLoadingMore = false;
+    }
+}</code></pre>
+                </div>
+                <p style="margin-top: 16px;">The chart includes a built-in timeframe dropdown &mdash; when the user clicks it, we detect the change via <code>setInterval</code> polling on <code>chart.timeframe</code> and automatically re-fetch data from Twelve Data. The <code>onReachingStart</code> callback fires when the user pans to the beginning of loaded data, triggering a fetch of older candles using the <code>end_date</code> parameter that get prepended seamlessly. Technical indicators, pan, zoom, crosshair, volume, and more are all built-in.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-separator"></div>
+
+    <!-- Complete Code Example -->
+    <section class="example-section">
+        <div class="container">
+            <span class="section-heading-label">Full Example</span>
+            <h2 class="section-heading">Complete Working Code</h2>
+            <p class="example-intro">Copy-paste this entire HTML file. Replace <code>YOUR_TWELVEDATA_API_KEY</code> with your key, open it in a browser, and you'll have a working stock chart in seconds.</p>
+
+            <div class="code-card" id="fullCodeCard">
+                <div class="code-card-header">
+                    <h6>twelvedata-stock-chart.html</h6>
+                    <button class="btn-copy" onclick="copyCode(this)" style="padding: 5px 16px; font-size: 0.75rem;">Copy Full Code</button>
+                </div>
+                <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Twelve Data + JavaScript Stock Charts&lt;/title&gt;
+    &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/stock-chart.css"&gt;
+    &lt;style&gt;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            padding: 20px;
+            background: #0a0a0f;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #fff;
+        }
+        h1 { font-size: 1.4rem; margin-bottom: 4px; }
+        .subtitle { color: #888; margin-bottom: 16px; }
+        .subtitle a { color: #22d3ee; }
+        .controls {
+            display: flex; gap: 10px; margin-bottom: 12px;
+            flex-wrap: wrap; align-items: flex-end;
+        }
+        .controls label {
+            display: block; font-size: 0.7rem;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: #888; margin-bottom: 4px;
+        }
+        .controls input {
+            background: #16161f; border: 1px solid #333;
+            color: #fff; padding: 8px 12px; font-size: 0.9rem;
+            border-radius: 2px;
+        }
+        .controls button {
+            background: #10b981; border: none; color: #fff;
+            padding: 8px 24px; font-weight: 700; cursor: pointer;
+            border-radius: 2px;
+        }
+        .controls button:hover { background: #059669; }
+        .sc-chart-type-button.d-none { display: inline-flex !important; }
+        #status { font-size: 0.85rem; color: #888; margin-bottom: 8px; }
+        #status.error { color: #ef4444; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Twelve Data + JavaScript Stock Charts&lt;/h1&gt;
+    &lt;p class="subtitle"&gt;
+        Powered by &lt;a href="https://github.com/day-trading-simulator/javascript-stock-charts"&gt;JavaScript Stock Charts&lt;/a&gt;
+    &lt;/p&gt;
+
+    &lt;div class="controls"&gt;
+        &lt;div&gt;
+            &lt;label&gt;API Key&lt;/label&gt;
+            &lt;input type="text" id="apiKey" placeholder="Your Twelve Data API key" style="width:280px"&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+            &lt;label&gt;Ticker&lt;/label&gt;
+            &lt;input type="text" id="ticker" value="AAPL" style="width:100px"&gt;
+        &lt;/div&gt;
+        &lt;button onclick="loadChart()"&gt;Load Chart&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div id="status"&gt;&lt;/div&gt;
+    &lt;div id="chart" style="width:100%; height:500px;"&gt;&lt;/div&gt;
+
+    &lt;script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/indicators.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/patterns.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/stock-chart.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        var chart = null;
+        var currentTicker = 'AAPL';
+        var previousTimeframe = '1day';
+        var timeframeCheckInterval = null;
+        var isLoadingMore = false;
+        var earliestTimestamp = null;
+        var hasMoreHistory = true;
+
+        // Map chart timeframes to Twelve Data interval + outputsize
+        function mapTimeframeToTwelveDataParams(tf) {
+            var map = {
+                '1min':   { interval: '1min',   outputsize: 500 },
+                '2min':   { interval: '5min',   outputsize: 500 },
+                '5min':   { interval: '5min',   outputsize: 500 },
+                '15min':  { interval: '15min',  outputsize: 500 },
+                '30min':  { interval: '30min',  outputsize: 500 },
+                '1hour':  { interval: '1h',     outputsize: 500 },
+                '60min':  { interval: '1h',     outputsize: 500 },
+                '4hour':  { interval: '4h',     outputsize: 500 },
+                '1day':   { interval: '1day',   outputsize: 500 },
+                '1week':  { interval: '1week',  outputsize: 260 },
+                '1W':     { interval: '1week',  outputsize: 260 },
+                '1month': { interval: '1month', outputsize: 120 },
+                '1M':     { interval: '1month', outputsize: 120 }
+            };
+            return map[tf] || map['1day'];
+        }
+
+        function transformTwelveData(json) {
+            return json.values.reverse().map(function(bar) {
+                var ts = new Date(bar.datetime).getTime();
+                var d = new Date(ts);
+                var date = d.toLocaleString('en-US', {
+                    timeZone: 'America/New_York',
+                    year: 'numeric', month: 'numeric', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: false
+                }).replace(',', '');
+                return {
+                    t: ts, date: date,
+                    open: parseFloat(bar.open), high: parseFloat(bar.high),
+                    low: parseFloat(bar.low), close: parseFloat(bar.close),
+                    volume: parseInt(bar.volume)
+                };
+            });
+        }
+
+        // Format end_date for infinite scroll
+        function formatEndDate(timestamp, interval) {
+            var d = new Date(timestamp - 1);
+            var endDate = d.getFullYear() + '-'
+                + String(d.getMonth() + 1).padStart(2, '0') + '-'
+                + String(d.getDate()).padStart(2, '0');
+            var intradayIntervals = ['1min','5min','15min','30min','45min','1h','2h','4h','8h'];
+            if (intradayIntervals.indexOf(interval) !== -1) {
+                endDate += ' ' + String(d.getHours()).padStart(2, '0') + ':'
+                    + String(d.getMinutes()).padStart(2, '0') + ':00';
+            }
+            return endDate;
+        }
+
+        // Fetch data from Twelve Data and render chart
+        async function loadChart() {
+            var apiKey = document.getElementById('apiKey').value.trim();
+            var ticker = document.getElementById('ticker').value.trim().toUpperCase();
+            var status = document.getElementById('status');
+
+            if (!apiKey) { status.textContent = 'Enter your Twelve Data API key.'; status.className = 'error'; return; }
+            if (!ticker) { status.textContent = 'Enter a ticker symbol.'; status.className = 'error'; return; }
+
+            var timeframe = (chart &amp;&amp; chart.timeframe) ? chart.timeframe : '1day';
+            var p = mapTimeframeToTwelveDataParams(timeframe);
+
+            status.textContent = 'Fetching ' + timeframe + ' data...';
+            status.className = '';
+
+            var url = 'https://api.twelvedata.com/time_series?symbol=' + ticker
+                + '&amp;interval=' + p.interval
+                + '&amp;outputsize=' + p.outputsize
+                + '&amp;apikey=' + apiKey;
+
+            try {
+                var resp = await fetch(url);
+                var json = await resp.json();
+                if (json.status !== 'ok' || !json.values || json.values.length === 0) {
+                    status.textContent = json.message || 'No data for ' + ticker + '.';
+                    status.className = 'error'; return;
+                }
+
+                var chartData = transformTwelveData(json);
+                if (chart) chart.destroy();
+                if (timeframeCheckInterval) clearInterval(timeframeCheckInterval);
+
+                currentTicker = ticker;
+                chart = new StockChart('chart', {
+                    data: chartData, ticker: ticker,
+                    chartType: 'candlestick', darkMode: true,
+                    timeframe: timeframe,
+                    useAfterHoursStyling: true,
+                    onReachingStart: handleReachingStart
+                });
+
+                isLoadingMore = false;
+                hasMoreHistory = true;
+                earliestTimestamp = chartData[0].t;
+                previousTimeframe = chart.timeframe || timeframe;
+                setupTimeframeMonitor();
+
+                status.textContent = '';
+                status.className = '';
+            } catch (err) {
+                status.textContent = 'Network error: ' + err.message;
+                status.className = 'error';
+            }
+        }
+
+        // Monitor chart's built-in timeframe selector for changes
+        function setupTimeframeMonitor() {
+            if (timeframeCheckInterval) clearInterval(timeframeCheckInterval);
+            timeframeCheckInterval = setInterval(function() {
+                if (chart &amp;&amp; chart.timeframe !== previousTimeframe) {
+                    previousTimeframe = chart.timeframe;
+                    loadChart();
+                }
+            }, 500);
+        }
+
+        // Infinite scroll - fetch older data when user pans to start
+        async function handleReachingStart() {
+            if (isLoadingMore || !hasMoreHistory || !earliestTimestamp) return;
+            isLoadingMore = true;
+            var apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) { isLoadingMore = false; return; }
+            try {
+                var p = mapTimeframeToTwelveDataParams(chart.timeframe || '1day');
+                var endDate = formatEndDate(earliestTimestamp, p.interval);
+                var url = 'https://api.twelvedata.com/time_series?symbol=' + currentTicker
+                    + '&amp;interval=' + p.interval
+                    + '&amp;outputsize=' + p.outputsize
+                    + '&amp;end_date=' + encodeURIComponent(endDate)
+                    + '&amp;apikey=' + apiKey;
+                var resp = await fetch(url);
+                var json = await resp.json();
+                if (json.status === 'ok' &amp;&amp; json.values &amp;&amp; json.values.length &gt; 0) {
+                    var older = transformTwelveData(json);
+                    earliestTimestamp = older[0].t;
+                    chart.prependHistoricalData(older);
+                } else {
+                    hasMoreHistory = false;
+                    chart.setLoadingHistoricalData(false);
+                }
+            } catch(e) {
+                chart.setLoadingHistoricalData(false);
+            } finally {
+                isLoadingMore = false;
+            }
+        }
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+            </div>
+
+            <div class="warning-box" style="margin-top: 20px;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Important:</strong> Never commit your API key to a public repository. For production apps, use environment variables or a server-side proxy.
+            </div>
+        </div>
+    </section>
+
+    <div class="section-separator"></div>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container text-center">
+            <span class="section-heading-label">Get Started</span>
+            <h2 class="section-heading">Ready to build your own chart?</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 32px;">Grab the library from GitHub, get your Twelve Data API key, and start charting.</p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="https://github.com/day-trading-simulator/javascript-stock-charts" class="btn-cta btn-cta-primary">
+                    <i class="fab fa-github"></i>View on GitHub
+                </a>
+                <a href="https://twelvedata.com/register" target="_blank" rel="noopener" class="btn-cta btn-cta-secondary">
+                    <i class="fas fa-key"></i>Get API Key
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/indicators.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/patterns.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@main/stock-chart.js"></script>
+
+    <script>
+        // State variables
+        var demoChart = null;
+        var currentTicker = 'AAPL';
+        var previousTimeframe = null;
+        var timeframeCheckInterval = null;
+        var isLoadingMore = false;
+        var earliestTimestamp = null;
+        var hasMoreHistoricalData = true;
+
+        // Map chart timeframes to Twelve Data interval + outputsize
+        function mapTimeframeToTwelveDataParams(chartTimeframe) {
+            var mappings = {
+                '1min':   { interval: '1min',   outputsize: 500 },
+                '2min':   { interval: '5min',   outputsize: 500 },
+                '5min':   { interval: '5min',   outputsize: 500 },
+                '15min':  { interval: '15min',  outputsize: 500 },
+                '30min':  { interval: '30min',  outputsize: 500 },
+                '1hour':  { interval: '1h',     outputsize: 500 },
+                '60min':  { interval: '1h',     outputsize: 500 },
+                '4hour':  { interval: '4h',     outputsize: 500 },
+                '1day':   { interval: '1day',   outputsize: 500 },
+                '1week':  { interval: '1week',  outputsize: 260 },
+                '1W':     { interval: '1week',  outputsize: 260 },
+                '1month': { interval: '1month', outputsize: 120 },
+                '1M':     { interval: '1month', outputsize: 120 }
+            };
+            return mappings[chartTimeframe] || mappings['1day'];
+        }
+
+        function transformTwelveData(json) {
+            return json.values.reverse().map(function(bar) {
+                var ts = new Date(bar.datetime).getTime();
+                var d = new Date(ts);
+                var date = d.toLocaleString('en-US', {
+                    timeZone: 'America/New_York',
+                    year: 'numeric', month: 'numeric', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: false
+                }).replace(',', '');
+                return {
+                    t: ts, date: date,
+                    open: parseFloat(bar.open), high: parseFloat(bar.high),
+                    low: parseFloat(bar.low), close: parseFloat(bar.close),
+                    volume: parseInt(bar.volume)
+                };
+            });
+        }
+
+        // Format end_date for infinite scroll requests
+        function formatEndDate(timestamp, interval) {
+            var d = new Date(timestamp - 1);
+            var endDate = d.getFullYear() + '-'
+                + String(d.getMonth() + 1).padStart(2, '0') + '-'
+                + String(d.getDate()).padStart(2, '0');
+            var intradayIntervals = ['1min','5min','15min','30min','45min','1h','2h','4h','8h'];
+            if (intradayIntervals.indexOf(interval) !== -1) {
+                endDate += ' ' + String(d.getHours()).padStart(2, '0') + ':'
+                    + String(d.getMinutes()).padStart(2, '0') + ':00';
+            }
+            return endDate;
+        }
+
+        // Fetch data from Twelve Data and create/recreate chart
+        async function loadTwelveData(timeframe) {
+            var apiKey = document.getElementById('apiKey').value.trim();
+            var ticker = document.getElementById('ticker').value.trim().toUpperCase();
+            var status = document.getElementById('demoStatus');
+            var btn = document.getElementById('btnLoad');
+
+            if (!apiKey) {
+                status.textContent = 'Please enter your Twelve Data API key.';
+                status.className = 'demo-status error';
+                return;
+            }
+            if (!ticker) {
+                status.textContent = 'Please enter a ticker symbol.';
+                status.className = 'demo-status error';
+                return;
+            }
+
+            timeframe = timeframe || (demoChart && demoChart.timeframe) || '1day';
+            var p = mapTimeframeToTwelveDataParams(timeframe);
+
+            btn.disabled = true;
+            status.textContent = 'Fetching ' + timeframe + ' data from Twelve Data...';
+            status.className = 'demo-status';
+
+            var url = 'https://api.twelvedata.com/time_series?symbol=' + ticker
+                + '&interval=' + p.interval
+                + '&outputsize=' + p.outputsize
+                + '&apikey=' + apiKey;
+
+            try {
+                var response = await fetch(url);
+                var json = await response.json();
+
+                btn.disabled = false;
+
+                if (json.status !== 'ok' || !json.values || json.values.length === 0) {
+                    status.textContent = json.message || 'No data returned for ' + ticker + '. Check the ticker or try a different timeframe.';
+                    status.className = 'demo-status error';
+                    return;
+                }
+
+                var chartData = transformTwelveData(json);
+
+                // Destroy existing chart & timeframe monitor
+                if (demoChart) demoChart.destroy();
+                if (timeframeCheckInterval) { clearInterval(timeframeCheckInterval); timeframeCheckInterval = null; }
+
+                currentTicker = ticker;
+
+                // Create new chart with onReachingStart for infinite scroll
+                demoChart = new StockChart('demoChart', {
+                    data: chartData,
+                    ticker: ticker,
+                    chartType: 'candlestick',
+                    darkMode: true,
+                    timeframe: timeframe,
+                    useAfterHoursStyling: true,
+                    onReachingStart: handleReachingStart
+                });
+
+                // Reset infinite scroll state
+                isLoadingMore = false;
+                hasMoreHistoricalData = true;
+                earliestTimestamp = chartData[0].t;
+                previousTimeframe = demoChart.timeframe || timeframe;
+
+                // Start monitoring chart's built-in timeframe selector
+                setupTimeframeMonitor();
+
+                status.textContent = '';
+                status.className = 'demo-status';
+            } catch (err) {
+                btn.disabled = false;
+                status.textContent = 'Network error: ' + err.message;
+                status.className = 'demo-status error';
+            }
+        }
+
+        // Monitor chart's built-in timeframe selector for changes
+        function setupTimeframeMonitor() {
+            if (timeframeCheckInterval) clearInterval(timeframeCheckInterval);
+            timeframeCheckInterval = setInterval(function () {
+                if (demoChart && typeof demoChart.timeframe !== 'undefined') {
+                    if (demoChart.timeframe !== previousTimeframe) {
+                        var newTimeframe = demoChart.timeframe;
+                        previousTimeframe = newTimeframe;
+                        loadTwelveData(newTimeframe);
+                    }
+                }
+            }, 500);
+        }
+
+        // Infinite scroll - fetch older data when user pans to start of loaded data
+        async function handleReachingStart() {
+            if (isLoadingMore || !hasMoreHistoricalData || !demoChart || !earliestTimestamp) return;
+
+            var apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                demoChart.setLoadingHistoricalData(false);
+                return;
+            }
+
+            isLoadingMore = true;
+            try {
+                var p = mapTimeframeToTwelveDataParams(demoChart.timeframe || '1day');
+                var endDate = formatEndDate(earliestTimestamp, p.interval);
+
+                var url = 'https://api.twelvedata.com/time_series?symbol=' + currentTicker
+                    + '&interval=' + p.interval
+                    + '&outputsize=' + p.outputsize
+                    + '&end_date=' + encodeURIComponent(endDate)
+                    + '&apikey=' + apiKey;
+
+                var response = await fetch(url);
+                var json = await response.json();
+
+                if (json.status === 'ok' && json.values && json.values.length > 0) {
+                    var olderData = transformTwelveData(json);
+                    earliestTimestamp = olderData[0].t;
+                    demoChart.prependHistoricalData(olderData);
+                } else {
+                    hasMoreHistoricalData = false;
+                    demoChart.setLoadingHistoricalData(false);
+                }
+            } catch (error) {
+                demoChart.setLoadingHistoricalData(false);
+            } finally {
+                isLoadingMore = false;
+            }
+        }
+
+        // Realistic AAPL daily data (Jan-May 2024) for initial sample chart
+        var sampleData = [
+            {t:1704153600000,open:187.15,high:188.44,low:183.89,close:185.64,volume:58414460},
+            {t:1704240000000,open:184.22,high:185.88,low:183.43,close:184.25,volume:47299890},
+            {t:1704326400000,open:184.45,high:185.56,low:181.17,close:181.91,volume:55751890},
+            {t:1704412800000,open:182.15,high:183.09,low:180.30,close:181.18,volume:42505050},
+            {t:1704672000000,open:181.27,high:182.76,low:180.17,close:182.62,volume:46301750},
+            {t:1704758400000,open:183.92,high:185.59,low:183.43,close:185.14,volume:49096290},
+            {t:1704844800000,open:184.35,high:186.10,low:183.82,close:185.56,volume:40477780},
+            {t:1704931200000,open:186.09,high:186.74,low:185.19,close:185.92,volume:39756670},
+            {t:1705017600000,open:185.26,high:186.07,low:184.39,close:185.59,volume:43826260},
+            {t:1705363200000,open:182.16,high:183.92,low:180.93,close:183.63,volume:65603020},
+            {t:1705449600000,open:181.79,high:182.83,low:180.27,close:180.95,volume:50516740},
+            {t:1705536000000,open:181.45,high:182.79,low:180.66,close:182.32,volume:44364980},
+            {t:1705622400000,open:182.85,high:183.42,low:181.53,close:183.16,volume:41516510},
+            {t:1705881600000,open:185.33,high:189.07,low:185.11,close:188.63,volume:67830370},
+            {t:1705968000000,open:189.39,high:192.52,low:188.85,close:191.94,volume:60133090},
+            {t:1706054400000,open:192.01,high:195.33,low:191.06,close:194.50,volume:59303750},
+            {t:1706140800000,open:194.27,high:196.38,low:194.14,close:194.17,volume:54822350},
+            {t:1706227200000,open:195.42,high:196.19,low:193.71,close:192.42,volume:55467440},
+            {t:1706486400000,open:192.01,high:192.20,low:189.58,close:191.73,volume:55221800},
+            {t:1706572800000,open:190.94,high:191.80,low:187.47,close:188.04,volume:54956780},
+            {t:1706659200000,open:187.04,high:189.14,low:185.18,close:186.86,volume:56480960},
+            {t:1706745600000,open:186.56,high:187.76,low:183.59,close:184.40,volume:62354630},
+            {t:1707091200000,open:183.99,high:186.10,low:183.28,close:185.85,volume:69672780},
+            {t:1707177600000,open:186.86,high:189.31,low:186.77,close:187.68,volume:42725280},
+            {t:1707264000000,open:188.42,high:189.92,low:187.95,close:189.41,volume:44953860},
+            {t:1707350400000,open:189.98,high:190.67,low:188.47,close:189.72,volume:41529400},
+            {t:1707436800000,open:190.13,high:191.05,low:189.20,close:190.54,volume:42115230},
+            {t:1707696000000,open:189.26,high:190.95,low:188.90,close:189.41,volume:37929050},
+            {t:1707782400000,open:189.91,high:190.85,low:188.44,close:188.85,volume:38367010},
+            {t:1707868800000,open:189.65,high:191.38,low:189.02,close:190.14,volume:42249640},
+            {t:1707955200000,open:188.93,high:189.89,low:186.72,close:187.15,volume:37697250},
+            {t:1708041600000,open:187.04,high:187.96,low:185.11,close:185.04,volume:46770120},
+            {t:1708387200000,open:183.42,high:184.85,low:181.63,close:182.31,volume:55129930},
+            {t:1708473600000,open:181.74,high:183.92,low:181.43,close:182.63,volume:44847440},
+            {t:1708560000000,open:183.38,high:184.50,low:181.81,close:184.37,volume:44027860},
+            {t:1708646400000,open:185.01,high:185.60,low:182.76,close:182.52,volume:52489810},
+            {t:1708905600000,open:182.24,high:184.26,low:181.07,close:181.16,volume:47274350},
+            {t:1708992000000,open:181.10,high:183.92,low:180.39,close:182.63,volume:48942370},
+            {t:1709078400000,open:182.51,high:183.12,low:180.83,close:181.42,volume:37158170},
+            {t:1709164800000,open:181.27,high:182.57,low:179.53,close:180.75,volume:39783800},
+            {t:1709251200000,open:179.55,high:180.39,low:178.05,close:179.66,volume:49714060},
+            {t:1709510400000,open:179.94,high:180.70,low:177.38,close:179.29,volume:73249290},
+            {t:1709596800000,open:176.15,high:176.90,low:173.79,close:175.10,volume:81586040},
+            {t:1709683200000,open:170.76,high:172.29,low:168.49,close:169.12,volume:99400280},
+            {t:1709769600000,open:169.00,high:171.24,low:168.68,close:170.73,volume:68568910},
+            {t:1709856000000,open:171.06,high:171.44,low:168.52,close:170.12,volume:71178140},
+            {t:1710115200000,open:169.15,high:172.62,low:168.90,close:172.28,volume:60133340},
+            {t:1710201600000,open:172.94,high:174.38,low:172.05,close:173.23,volume:59753230},
+            {t:1710288000000,open:172.77,high:173.60,low:170.80,close:171.13,volume:63394250},
+            {t:1710374400000,open:172.45,high:173.56,low:171.42,close:173.00,volume:64931330},
+            {t:1710460800000,open:171.17,high:172.62,low:170.29,close:172.62,volume:72913510},
+            {t:1710720000000,open:171.76,high:173.70,low:171.58,close:173.72,volume:76140360},
+            {t:1710806400000,open:175.57,high:177.71,low:173.52,close:176.08,volume:73696900},
+            {t:1710892800000,open:178.21,high:178.67,low:170.71,close:171.37,volume:96753420},
+            {t:1710979200000,open:171.32,high:172.63,low:170.14,close:172.28,volume:72644680},
+            {t:1711065600000,open:171.42,high:172.85,low:170.51,close:172.62,volume:66831640},
+            {t:1711324800000,open:170.76,high:171.08,low:168.95,close:170.85,volume:59250920},
+            {t:1711411200000,open:170.21,high:171.89,low:169.31,close:170.29,volume:46818140},
+            {t:1711497600000,open:170.05,high:171.64,low:169.40,close:171.48,volume:47169050},
+            {t:1711670400000,open:171.18,high:171.25,low:169.48,close:171.13,volume:42390700},
+            {t:1711929600000,open:170.29,high:171.94,low:169.45,close:171.65,volume:46244700},
+            {t:1712016000000,open:171.76,high:172.23,low:169.63,close:170.03,volume:40704900},
+            {t:1712102400000,open:169.08,high:170.90,low:168.24,close:169.58,volume:47404600},
+            {t:1712188800000,open:170.29,high:171.92,low:169.57,close:171.48,volume:42912400},
+            {t:1712275200000,open:170.09,high:170.79,low:167.44,close:168.82,volume:49126500},
+            {t:1712534400000,open:169.59,high:170.39,low:168.95,close:169.03,volume:37217400},
+            {t:1712620800000,open:168.79,high:170.09,low:167.11,close:168.45,volume:42152300},
+            {t:1712707200000,open:168.34,high:169.20,low:166.56,close:168.38,volume:37122800},
+            {t:1712793600000,open:168.80,high:170.67,low:168.34,close:169.58,volume:41016900},
+            {t:1712880000000,open:169.38,high:170.35,low:168.34,close:169.30,volume:36610800},
+            {t:1713139200000,open:169.60,high:172.03,low:168.74,close:172.00,volume:49909800},
+            {t:1713225600000,open:172.50,high:173.56,low:171.04,close:172.69,volume:43659800},
+            {t:1713312000000,open:173.33,high:174.73,low:171.50,close:173.93,volume:53411000},
+            {t:1713398400000,open:173.85,high:174.16,low:170.75,close:171.04,volume:54878600},
+            {t:1713484800000,open:170.76,high:171.29,low:164.08,close:165.00,volume:77599300},
+            {t:1713744000000,open:165.52,high:167.26,low:164.77,close:166.90,volume:46868000},
+            {t:1713830400000,open:166.54,high:169.30,low:166.21,close:169.02,volume:49209700},
+            {t:1713916800000,open:169.38,high:170.76,low:168.98,close:169.89,volume:44456000},
+            {t:1714003200000,open:169.53,high:170.61,low:168.15,close:169.30,volume:41005200},
+            {t:1714348800000,open:173.37,high:176.04,low:173.00,close:173.50,volume:94214400},
+            {t:1714435200000,open:173.33,high:176.82,low:172.23,close:176.55,volume:47508600},
+            {t:1714521600000,open:186.65,high:187.86,low:183.81,close:183.95,volume:109648200},
+            {t:1714608000000,open:183.46,high:184.84,low:182.39,close:183.38,volume:55963000},
+            {t:1714694400000,open:183.81,high:185.32,low:182.40,close:183.38,volume:43738100},
+            {t:1714953600000,open:182.35,high:184.20,low:180.42,close:181.71,volume:56310100},
+            {t:1715040000000,open:182.85,high:184.59,low:181.32,close:182.40,volume:47975700},
+            {t:1715126400000,open:183.45,high:184.90,low:181.64,close:184.57,volume:48896600},
+            {t:1715212800000,open:184.90,high:185.09,low:182.13,close:183.05,volume:50383100},
+            {t:1715299200000,open:183.45,high:184.90,low:182.11,close:183.38,volume:51005300},
+            {t:1715558400000,open:182.56,high:186.32,low:182.44,close:186.28,volume:72044800},
+            {t:1715644800000,open:187.69,high:189.99,low:186.62,close:189.87,volume:67789700},
+            {t:1715731200000,open:190.47,high:191.10,low:189.66,close:189.72,volume:42355600},
+            {t:1715817600000,open:190.54,high:191.24,low:189.51,close:189.84,volume:41738500},
+            {t:1715904000000,open:189.51,high:190.81,low:189.18,close:189.87,volume:36129700},
+            {t:1716163200000,open:189.32,high:190.65,low:188.85,close:189.72,volume:44361300},
+            {t:1716249600000,open:190.90,high:192.73,low:190.27,close:192.35,volume:42309400},
+            {t:1716336000000,open:192.49,high:192.57,low:189.91,close:190.29,volume:50978000},
+            {t:1716422400000,open:190.98,high:191.10,low:189.39,close:189.98,volume:36326900},
+            {t:1716508800000,open:191.51,high:192.25,low:189.51,close:189.49,volume:35426100}
+        ];
+
+        // Initialize sample chart on page load (no API key needed)
+        demoChart = new StockChart('demoChart', {
+            data: sampleData,
+            ticker: 'AAPL',
+            chartType: 'candlestick',
+            darkMode: true,
+            timeframe: '1day',
+            useAfterHoursStyling: true,
+            onReachingStart: handleReachingStart
+        });
+        earliestTimestamp = sampleData[0].t;
+        previousTimeframe = '1day';
+
+        // Start monitoring for timeframe changes on the sample chart too
+        setupTimeframeMonitor();
+
+        function copyCode(btn) {
+            var pre = btn.closest('.code-card').querySelector('pre');
+            var text = pre.textContent;
+            navigator.clipboard.writeText(text).then(function () {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(function () {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                var target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
