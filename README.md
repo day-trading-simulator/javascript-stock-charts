@@ -6,6 +6,18 @@
 
 A lightweight, zero-dependency JavaScript stock chart library for financial data visualization. Built on HTML5 Canvas with HiDPI support, technical indicators, candlestick pattern detection, and real-time interactivity.
 
+## What's new in v3.0
+
+- **Key levels** - Day high and low, premarket range and prior close, drawn as dashed lines with tags
+- **Undo for drawings** - Ctrl+Z steps back through every line and drawing; one click clears them all
+- **Indicator colors** - Click any color dot in the Indicators menu to restyle that line
+- **Change & range in the legend** - Hover any candle to see its move from the prior close and its high-low range
+- **Measure tool**, a **30-minute timeframe**, and many rendering fixes
+- **Live data ready** - Update the last candle or append new ones and redraw (see [Live Data](#live-data))
+- **`tickerLogoUrl`** and **`padding`** options (see [Configuration Options](#configuration-options))
+
+Upgrading from v2? v3 keeps the same API, so it's a drop-in replacement. Need v2? Use the [`v2.0` tag](https://github.com/day-trading-simulator/javascript-stock-charts/tree/v2.0).
+
 ## Features
 
 ### Core
@@ -49,19 +61,28 @@ Automatic candlestick pattern recognition via the included `patterns.js` module:
 - **Pinch** - Zoom on touch devices
 - **Hover** - Crosshair with real-time OHLC data
 - **Price Scale Drag** - Adjust vertical scaling
-- **Timeframe Selector** - Switch between 1min, 5min, 15min, 1hour, 4hour, daily, weekly
+- **Timeframe Selector** - Switch between 1min, 5min, 15min, 30min, 1hour, 4hour, daily, weekly
 - **Drawing Tools** - Trendlines and Fibonacci retracements
 - **AI Price Levels** - Overlay support/resistance levels programmatically
 
 ## Installation
 
-Include the source files in your HTML:
+Include the source files in your HTML. Keep `simul8or-logo.svg` next to `stock-chart.js`.
 
 ```html
 <link rel="stylesheet" href="stock-chart.css">
 <script src="indicators.js"></script>
 <script src="patterns.js"></script>
 <script src="stock-chart.js"></script>
+```
+
+Or load it from the jsDelivr CDN. Pin a version so updates never change your chart unexpectedly:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v3.0/stock-chart.css">
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v3.0/indicators.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v3.0/patterns.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v3.0/stock-chart.js"></script>
 ```
 
 ## Quick Start
@@ -97,7 +118,9 @@ const chart = new StockChart('container', {
   // Optional
   chartType: 'candlestick', // 'candlestick' or 'line'
   darkMode: false,          // Enable dark mode
-  timeframe: '1day',        // '1min', '5min', '15min', '1hour', '4hour', '1day', '1week', '1month'
+  timeframe: '1day',        // '1min', '2min', '5min', '15min', '30min', '1hour', '4hour', '1day', '1week', '1month'
+  padding: { top: 90 },     // Space above the price area for the toolbar and legend (default 90)
+  tickerLogoUrl: (symbol) => `https://your-cdn.example/logos/${symbol}.png`, // Logo next to the ticker (off unless set)
 
   // Indicators (enable/disable programmatically)
   indicators: {
@@ -137,6 +160,44 @@ chart.clearAIPriceLevels();
 
 // Handle container resize
 window.addEventListener('resize', () => chart.resizeCanvases());
+```
+
+## Live Data
+
+Feed new prices by updating the last candle (or pushing a new one) and redrawing. This example streams live BTC candles from Hyperliquid's free public API, with no key needed. `test.html` runs the full version.
+
+```javascript
+const toBar = c => ({ t: c.t, open: +c.o, high: +c.h, low: +c.l, close: +c.c, volume: +c.v });
+
+// 1. Load the last 300 one-minute candles
+const res = await fetch('https://api.hyperliquid.xyz/info', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ type: 'candleSnapshot', req: {
+    coin: 'BTC', interval: '1m', startTime: Date.now() - 300 * 60000, endTime: Date.now() } })
+});
+const chart = new StockChart('chart-container', {
+  data: (await res.json()).map(toBar),
+  ticker: 'BTC', timeframe: '1min', chartType: 'candlestick', darkMode: true
+});
+
+// 2. Stream updates over a WebSocket
+const ws = new WebSocket('wss://api.hyperliquid.xyz/ws');
+ws.onopen = () => ws.send(JSON.stringify({ method: 'subscribe',
+  subscription: { type: 'candle', coin: 'BTC', interval: '1m' } }));
+ws.onmessage = e => {
+  const msg = JSON.parse(e.data);
+  if (msg.channel !== 'candle') return;
+  const bar = toBar(msg.data), data = chart.stockData, last = data[data.length - 1];
+  if (last && last.t === bar.t) Object.assign(last, bar);
+  else {
+    data.push(bar);
+    if (chart.isViewPinnedToRightEdge)   // keep the newest candle in view
+      chart.config.dataOffset = Math.max(0, data.length - chart.config.visibleCandles);
+  }
+  chart.calculateIndicators();
+  chart.drawCharts();
+};
 ```
 
 ## Browser Support

@@ -2,96 +2,88 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>StockChart v2.0 - Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>StockChart v3.0 - Demo</title>
     <link href="stock-chart.css" rel="stylesheet" />
+    <style>
+        body { margin: 0; padding: 24px; background: #0b0d10; color: #c9ced6; font-family: -apple-system, 'Segoe UI', Arial, sans-serif; }
+        h1 { margin: 0 0 6px; font-size: 24px; color: #fff; }
+        p { margin: 0 0 20px; color: #8a919c; }
+        a { color: #3ED69B; text-decoration: none; }
+        h2 { margin: 28px 0 10px; font-size: 15px; color: #fff; }
+        .chart { max-width: 1100px; height: 520px; border: 1px solid #23272e; border-radius: 8px; overflow: hidden; }
+        .chart > .sc-chart-container { height: 100%; }
+    </style>
 </head>
-<body style="margin: 20px; font-family: Arial, sans-serif;">
-    <h2>StockChart v2.0 Demo</h2>
+<body>
+    <h1>StockChart v3.0</h1>
+    <p>Free JavaScript stock chart by <a href="https://simul8or.com/Javascript-Stock-Chart.php">simul8or</a>. Live crypto from Hyperliquid's public API; sample data if you're offline.</p>
 
-    <h4>Candlestick - Dark Mode (Daily)</h4>
-    <div id="chart1" style="max-width:1000px; height:500px;"></div>
+    <h2>BTC &middot; 1 minute &middot; live candles</h2>
+    <div id="chart1" class="chart"></div>
 
-    <h4>Candlestick - Dark Mode (1 Minute)</h4>
-    <div id="chart2" style="max-width:1000px; height:500px;"></div>
-
-    <h4>Line - Light Mode (Hourly)</h4>
-    <div id="chart3" style="max-width:1000px; height:500px;"></div>
+    <h2>ETH &middot; 1 hour &middot; line, light theme</h2>
+    <div id="chart2" class="chart"></div>
 
     <script src="indicators.js"></script>
     <script src="patterns.js"></script>
     <script src="stock-chart.js"></script>
     <script>
         (function () {
-            function generateRandomStockData(count, timeframe) {
-                count = count || 300;
-                timeframe = timeframe || 'day';
-                var data = [];
-                var now = new Date();
-                var price = 100 + Math.random() * 100;
-                var volatility = 1.5;
-                var timeIncrement = 24 * 60 * 60 * 1000;
-                switch (timeframe) {
-                    case '1min': timeIncrement = 60 * 1000; break;
-                    case '5min': timeIncrement = 5 * 60 * 1000; break;
-                    case '15min': timeIncrement = 15 * 60 * 1000; break;
-                    case 'hour': timeIncrement = 60 * 60 * 1000; break;
-                    case '4hour': timeIncrement = 4 * 60 * 60 * 1000; break;
-                    case 'week': timeIncrement = 7 * 24 * 60 * 60 * 1000; break;
-                }
+            var API = 'https://api.hyperliquid.xyz';
+            var STEP = { '1m': 60000, '1h': 3600000 };
+            function toBar(c) { return { t: c.t, open: +c.o, high: +c.h, low: +c.l, close: +c.c, volume: +c.v }; }
+
+            // Random walk, used only when the live API can't be reached.
+            function sampleBars(count, stepMs, price) {
+                var out = [], now = Math.floor(Date.now() / stepMs) * stepMs;
                 for (var i = 0; i < count; i++) {
-                    var t = now.getTime() - (count - i) * timeIncrement;
-                    var change = (Math.random() - 0.5) * volatility;
                     var open = price;
-                    price = price * (1 + change / 100);
-                    var close = price;
-                    var high = Math.max(open, close) * (1 + Math.random() * 0.01);
-                    var low = Math.min(open, close) * (1 - Math.random() * 0.01);
-                    var volume = Math.floor(Math.random() * 1e6) + 500000;
-                    var date = new Date(t).toLocaleString('en-US', {
-                        timeZone: 'America/New_York',
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    }).replace(',', '');
-                    data.push({ date: date, t: t, open: open, high: high, low: low, close: close, volume: volume });
+                    price = price * (1 + (Math.random() - 0.5) * 0.004);
+                    out.push({ t: now - (count - 1 - i) * stepMs, open: open, close: price,
+                        high: Math.max(open, price) * 1.001, low: Math.min(open, price) * 0.999,
+                        volume: Math.floor(Math.random() * 400) + 50 });
                 }
-                return data;
+                return out;
             }
 
-            window.StockChartLib = {
-                StockChart: StockChart
-            };
+            function liveChart(id, coin, interval, options, fallbackPrice) {
+                var end = Date.now();
+                fetch(API + '/info', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'candleSnapshot', req: { coin: coin, interval: interval, startTime: end - 300 * STEP[interval], endTime: end } })
+                }).then(function (r) { return r.json(); })
+                  .then(function (raw) { return raw.map(toBar); })
+                  .catch(function () { return null; })
+                  .then(function (bars) {
+                      var live = !!(bars && bars.length);
+                      options.data = live ? bars : sampleBars(300, STEP[interval], fallbackPrice);
+                      options.ticker = coin;
+                      var chart = new StockChart(id, options);
+                      if (!live) return;
+                      // Keep the last candle updating.
+                      var ws = new WebSocket('wss://api.hyperliquid.xyz/ws');
+                      ws.onopen = function () { ws.send(JSON.stringify({ method: 'subscribe', subscription: { type: 'candle', coin: coin, interval: interval } })); };
+                      ws.onmessage = function (e) {
+                          var msg = JSON.parse(e.data);
+                          if (msg.channel !== 'candle') return;
+                          var bar = toBar(msg.data), data = chart.stockData, last = data[data.length - 1];
+                          if (last && last.t === bar.t) { for (var k in bar) last[k] = bar[k]; }
+                          else {
+                              data.push(bar);
+                              if (chart.isViewPinnedToRightEdge) chart.config.dataOffset = Math.max(0, data.length - chart.config.visibleCandles);
+                          }
+                          chart.calculateIndicators();
+                          chart.drawCharts();
+                      };
+                  });
+            }
 
             document.addEventListener('DOMContentLoaded', function () {
-                var data1 = generateRandomStockData(300, 'day');
-                new StockChart('chart1', {
-                    chartType: 'candlestick',
-                    darkMode: true,
-                    data: data1,
-                    ticker: 'AAPL',
-                    timeframe: '1day'
-                });
-
-                var data2 = generateRandomStockData(300, '1min');
-                new StockChart('chart2', {
-                    chartType: 'candlestick',
-                    darkMode: true,
-                    data: data2,
-                    ticker: 'TSLA',
-                    timeframe: '1min'
-                });
-
-                var data3 = generateRandomStockData(300, 'hour');
-                new StockChart('chart3', {
-                    chartType: 'line',
-                    darkMode: false,
-                    data: data3,
-                    ticker: 'MSFT',
-                    timeframe: '1hour'
-                });
+                liveChart('chart1', 'BTC', '1m', { chartType: 'candlestick', darkMode: true, timeframe: '1min' }, 97000);
+                liveChart('chart2', 'ETH', '1h', { chartType: 'line', darkMode: false, timeframe: '1hour' }, 3400);
+                // Optional: ticker logos next to the symbol, from any image source you have:
+                //   tickerLogoUrl: function (symbol) { return 'https://your-cdn.example/logos/' + symbol + '.png'; }
             });
         })();
     </script>

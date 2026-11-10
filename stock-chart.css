@@ -1,4 +1,4 @@
-.sc-chart-container{width:100%;max-width:100%;margin:0 auto;background-color:#fff;border-radius:5px;box-shadow:0 2px 5px rgb(0 0 0 / .1);transition:background-color 0.3s ease,color 0.3s ease,box-shadow 0.3s ease;position:relative;height:100%;box-sizing:border-box;overflow:hidden}.sc-chart-container.dark-mode{background-color:#27262f!important;color:#e0e0e0}.sc-chart-container.fullscreen{position:fixed;top:0;left:0;width:100%;max-width:100%;height:100vh;margin:0;border-radius:0;z-index:9999;overflow:hidden;padding:0;box-sizing:border-box}.sc-chart-container.fullscreen .sc-price-chart{height:calc(100vh - 10px)!important;max-height:100vh!important}.sc-price-chart-container{position:relative;height:100%;width:100%;overflow:hidden}.sc-price-chart{width:100%;height:100%;margin-bottom:5px;border:1px solid #7d7994;cursor:default;position:relative;transition:border-color 0.3s ease;max-width:100%;box-sizing:border-box}.sc-chart-container.dark-mode .sc-price-chart{border-color:#444}.sc-vertical-scale-area{position:absolute;top:30px;bottom:30px;right:0;width:60px;cursor:ns-resize;z-index:10}.sc-chart-controls-overlay{position:absolute;top:10px;left:10px;display:flex;gap:8px;z-index:20;opacity:1}.sc-overlay-button{background:none;border:none;color:#fff;font-size:16px;width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background-color 0.2s,transform 0.2s;background-color:rgb(255 255 255 / .1)}.sc-chart-container:not(.dark-mode) .sc-overlay-button{color:#333;background-color:rgb(0 0 0 / .1)}.sc-overlay-button:hover{background-color:rgb(255 255 255 / .2);transform:scale(1.05)}.sc-chart-container:not(.dark-mode) .sc-overlay-button:hover{background-color:rgb(0 0 0 / .2)}.sc-overlay-button.active{background-color:rgb(106 142 245 / .4);color:#fff}.sc-chart-container:not(.dark-mode) .sc-overlay-button.active{background-color:rgb(106 142 245 / .4);color:#fff}.sc-price-chart.dragging{cursor:grabbing!important}.sc-chart-container.dark-mode .sc-overlay-button svg path:not([fill="none"]){fill:#fff}.sc-chart-container.dark-mode .sc-chart-type-button svg path{stroke:#fff;fill:none}.sc-chart-container.dark-mode .sc-text-tool-button svg text{fill:#fff}.sc-chart-container:not(.dark-mode) .sc-text-tool-button svg text{fill:#333}
+.sc-chart-container{width:100%;max-width:100%;margin:0 auto;background-color:#fff;border-radius:5px;box-shadow:0 2px 5px rgb(0 0 0 / .1);transition:background-color 0.3s ease,color 0.3s ease,box-shadow 0.3s ease;position:relative;height:100%;box-sizing:border-box;overflow:hidden}.sc-chart-container.dark-mode{background-color:#27262f!important;color:#e0e0e0}.sc-chart-container.fullscreen{position:fixed;top:0;left:0;width:100%;max-width:100%;height:100vh;margin:0;border-radius:0;z-index:9999;overflow:hidden;padding:0;box-sizing:border-box}.sc-chart-container.fullscreen .sc-price-chart{height:calc(100vh - 10px)!important;max-height:100vh!important}.sc-price-chart-container{position:relative;height:100%;width:100%;overflow:hidden}.sc-price-chart{width:100%;height:100%;margin-bottom:5px;border:1px solid #7d7994;cursor:default;position:relative;transition:border-color 0.3s ease;max-width:100%;box-sizing:border-box}.sc-chart-container.dark-mode .sc-price-chart{border-color:#444}.sc-vertical-scale-area{position:absolute;top:30px;bottom:30px;right:0;width:60px;cursor:ns-resize;z-index:10}.sc-chart-controls-overlay{position:absolute;top:10px;left:10px;display:flex;gap:8px;z-index:20;opacity:1}.sc-overlay-button{background:none;border:none;color:#fff;font-size:16px;width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background-color 0.2s;background-color:rgb(255 255 255 / .1)}.sc-chart-container:not(.dark-mode) .sc-overlay-button{color:#333;background-color:rgb(0 0 0 / .1)}.sc-overlay-button:hover{background-color:rgb(255 255 255 / .2)}.sc-chart-container:not(.dark-mode) .sc-overlay-button:hover{background-color:rgb(0 0 0 / .2)}.sc-overlay-button.active{background-color:rgb(106 142 245 / .4);color:#fff}.sc-chart-container:not(.dark-mode) .sc-overlay-button.active{background-color:rgb(106 142 245 / .4);color:#fff}.sc-price-chart.dragging{cursor:grabbing!important}.sc-chart-container.dark-mode .sc-overlay-button svg path:not([fill="none"]){fill:#fff}.sc-chart-container.dark-mode .sc-chart-type-button svg path{stroke:#fff;fill:none}.sc-chart-container.dark-mode .sc-text-tool-button svg text{fill:#fff}.sc-chart-container:not(.dark-mode) .sc-text-tool-button svg text{fill:#333}
 /* Ensure outline-only icons use stroke instead of fill */
 .sc-chart-container.dark-mode .sc-drawing-tools-button svg path,
 .sc-chart-container.dark-mode .sc-drawing-tools-button svg circle,
@@ -447,6 +447,23 @@
     gap: 8px;
 }
 
+/* Undo + Clear all: a compact row of their own under the tools. */
+.sc-drawing-tool-option[data-action] {
+    flex-direction: row;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 8px;
+    font-size: 12px;
+}
+.sc-drawing-tool-option[data-action] svg {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+.sc-drawing-tool-undo {
+    grid-column: 1;
+}
+
 .sc-drawing-tool-option {
     display: flex;
     flex-direction: column;
@@ -521,24 +538,267 @@
     }
 }
 
-/* Branding Link */
-.sc-branding-link {
+/* ============================================================
+   Pattern detection callout - pinned beside the pattern candles.
+   Separate from .chart-notification, which stays the general
+   top-centre toast (pause, copy-to-clipboard, errors).
+   ============================================================ */
+/* "A+" bubble: amber ring and warm glow, with a notch on the side facing the
+   pattern. sc-pc-left = card sits left of the pattern (notch on its right
+   edge), sc-pc-right = the mirror. --sc-pc-ny is the notch's top offset,
+   set by _positionPatternCallout() so it keeps pointing at the bracket
+   when the card is clamped against the chart edge. */
+.sc-pattern-callout {
+    --sc-pc-bg: #171A20;
+    --sc-pc-ring: rgba(245, 177, 74, 0.6);
+    --sc-pc-ny: 16px;
+    --sc-pc-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 4px rgba(245, 177, 74, 0.08), 0 0 32px -6px rgba(245, 177, 74, 0.35), 0 24px 64px -16px rgba(0, 0, 0, 0.8);
     position: absolute;
-    bottom: 4px;
+    z-index: 41;
+    width: max-content;
+    min-width: 196px;
+    box-sizing: border-box;
+    padding: 11px 12px 5px;
+    white-space: nowrap;
+    pointer-events: none;
+    background: radial-gradient(120% 70% at 0% 0%, rgba(245, 177, 74, 0.13), transparent 60%), var(--sc-pc-bg);
+    border: 1px solid var(--sc-pc-ring);
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    box-shadow: var(--sc-pc-shadow);
+    animation: scPatternCalloutIn 320ms cubic-bezier(.4, 0, .2, 1) .25s both,
+               scPatternCalloutRing 2.4s cubic-bezier(.4, 0, .2, 1) .65s 2;
+}
+
+.sc-pattern-callout::after {
+    content: "";
+    position: absolute;
+    top: var(--sc-pc-ny);
+    width: 12px;
+    height: 12px;
+    background: var(--sc-pc-bg);
+    transform: rotate(45deg);
+}
+
+.sc-pattern-callout.sc-pc-left::after {
+    right: -7px;
+    border-top: 1px solid var(--sc-pc-ring);
+    border-right: 1px solid var(--sc-pc-ring);
+    border-top-right-radius: 2px;
+    clip-path: polygon(-6px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), calc(100% - 2px) calc(100% + 2px));
+}
+
+/* Mirrored notch sits inside the top-left glow, so its fill carries a
+   matching amber tint instead of the bare card colour. */
+.sc-pattern-callout.sc-pc-right::after {
+    left: -7px;
+    background: #292623;
+    border-bottom: 1px solid var(--sc-pc-ring);
+    border-left: 1px solid var(--sc-pc-ring);
+    border-bottom-left-radius: 2px;
+    clip-path: polygon(calc(100% + 6px) calc(100% + 2px), -2px calc(100% + 2px), -2px -2px, 2px -2px);
+}
+
+@keyframes scPatternCalloutIn {
+    from { opacity: 0; transform: translateX(var(--sc-pc-from, -6px)); }
+    to { opacity: 1; transform: none; }
+}
+
+.sc-pattern-callout.sc-pc-right { --sc-pc-from: 6px; }
+
+@keyframes scPatternCalloutRing {
+    0%, 100% { box-shadow: var(--sc-pc-shadow); }
+    40% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 7px rgba(245, 177, 74, 0.14), 0 0 40px -4px rgba(245, 177, 74, 0.5), 0 24px 64px -16px rgba(0, 0, 0, 0.8); }
+}
+
+.sc-pattern-callout.sc-pc-out {
+    animation: scPatternCalloutOut .4s ease forwards;
+}
+
+@keyframes scPatternCalloutOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.sc-pattern-callout .sc-pc-kicker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: #F5B14A;
+}
+
+.sc-pattern-callout .sc-pc-name {
+    margin: 5px 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -.012em;
+    color: #fff;
+}
+
+.sc-pattern-callout .sc-pc-meta {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: #8D96A6;
+}
+
+.sc-pattern-callout .sc-pc-meta b {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    color: var(--sc-pc-accent);
+    background: var(--sc-pc-tint);
+    box-shadow: inset 0 0 0 1px var(--sc-pc-line);
+}
+
+.sc-pattern-callout .sc-pc-dot { color: #6A7382; }
+
+.sc-pattern-callout hr {
+    margin: 10px -12px 5px;
+    border: 0;
+    border-top: 1px solid rgba(245, 177, 74, 0.18);
+}
+
+.sc-pattern-callout .sc-pc-settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 24px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 5px;
+    background: none;
+    color: #8D96A6;
+    font: 500 11px/1 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background 140ms cubic-bezier(.4, 0, .2, 1), color 140ms cubic-bezier(.4, 0, .2, 1);
+}
+
+.sc-pattern-callout .sc-pc-settings:hover {
+    background: rgba(245, 177, 74, 0.16);
+    color: #F5B14A;
+}
+
+.sc-pattern-callout .sc-pc-settings:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(62, 162, 242, 0.42);
+}
+
+.sc-pattern-callout .sc-pc-settings svg {
+    width: 13px;
+    height: 13px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.sc-pattern-callout.sc-pc-bearish { --sc-pc-accent: #FF6E7A; --sc-pc-tint: rgba(255, 110, 122, 0.16); --sc-pc-line: rgba(255, 110, 122, 0.42); }
+.sc-pattern-callout.sc-pc-bullish { --sc-pc-accent: #3ED69B; --sc-pc-tint: rgba(62, 214, 155, 0.16); --sc-pc-line: rgba(62, 214, 155, 0.42); }
+
+@media (prefers-reduced-motion: reduce) {
+    .sc-pattern-callout { animation: scPatternCalloutIn .01ms both; }
+}
+
+/* ── chart style menu ──
+   The chart-type control used to be a two-state toggle button. With candles,
+   hollow candles, bars and line it is a dropdown, built on the same pattern as
+   .sc-timeframe-dropdown so it inherits the overlay's look and click-away. */
+.sc-charttype-dropdown {
+    position: absolute;
+    top: 50px;
     left: 10px;
-    font: 12px Arial, sans-serif;
-    color: rgba(100, 100, 100, 0.3);
-    text-decoration: none;
-    z-index: 5;
-    transition: color 0.2s;
+    width: 150px;
+    z-index: 100;
+    display: none;
+    border: 1px solid rgb(255 255 255 / .1);
+    border-radius: 2px;
+    background-color: rgb(12 12 18 / .98);
+    box-shadow: 0 4px 20px rgb(0 0 0 / .6);
+    backdrop-filter: blur(10px);
+    font-family: 'Open Sans', Arial, sans-serif;
+    font-size: 13px;
+    color: #e0e0e0;
 }
-.sc-branding-link:hover {
-    color: rgba(100, 100, 100, 0.6);
-    text-decoration: none;
+
+.sc-charttype-dropdown.active { display: block; }
+
+/* No .sc-dropdown-content override here on purpose. The timeframe menu wraps
+   its rows in the same element and keeps its 10px/15px inset, so anything that
+   zeroes it makes this menu sit flush where that one is padded. Both panels
+   are: content inset 10/15, then the row metrics below. */
+
+/* Row metrics are .sc-timeframe-option's, so the two menus that open from
+   adjacent toolbar buttons have the same type size, row height and rhythm. */
+.sc-charttype-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 15px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background-color .2s;
 }
-.sc-chart-container.dark-mode .sc-branding-link {
-    color: rgba(255, 255, 255, 0.3);
+
+.sc-charttype-option:hover { background-color: rgb(100 100 100 / .3); }
+.sc-charttype-option.selected { font-weight: 700; background-color: rgb(106 142 245 / .2); }
+
+/* The row icons are the same SVGs as the button, just smaller. */
+.sc-charttype-option svg { width: 18px; height: 18px; flex: none; }
+
+/* Light mode mirrors .sc-timeframe-dropdown's light treatment. */
+.sc-chart-container:not(.dark-mode) .sc-charttype-dropdown {
+    background-color: rgb(250 250 250 / .95);
+    color: #333;
+    border: 1px solid rgb(200 200 200 / .5);
+    box-shadow: 0 4px 15px rgb(0 0 0 / .2);
 }
-.sc-chart-container.dark-mode .sc-branding-link:hover {
-    color: rgba(255, 255, 255, 0.6);
+
+.sc-chart-container:not(.dark-mode) .sc-charttype-option:hover {
+    background-color: rgb(200 200 200 / .3);
+}
+
+/* Keep chart graphics visible but quieter behind the ticker and indicator readouts. */
+.sc-ticker-logo{display:block;align-self:center;flex:none;width:21px;height:21px;box-sizing:border-box;border:1px solid rgb(255 255 255 / .18);border-radius:var(--s8-r-sm,4px);background:rgb(255 255 255 / .08);object-fit:cover}
+.sc-ticker-logo[hidden]{display:none}
+.sc-chart-container:not(.dark-mode) .sc-ticker-logo{border-color:rgb(0 0 0 / .18);background:rgb(0 0 0 / .05)}
+@media(max-width:576px){.sc-ticker-logo{width:18px;height:18px}}
+/* Each readout row gets its own backdrop sized to that row, stacked flush into one
+   stepped panel. The backdrop is a see-through tint, so candles behind it stay
+   visible but dimmed. Only the panel's outer corners are rounded. */
+.sc-chart-info-overlay {
+    box-sizing: border-box;
+    max-width: calc(100% - 70px);
+    margin: -4px 0 0 -5px;
+    align-items: flex-start;
+    pointer-events: none;
+}
+
+.sc-chart-info-overlay > * {
+    box-sizing: border-box;
+    max-width: 100%;
+    margin: 0 !important;
+    padding: 3px 9px 3px 5px;
+    border-radius: 0 4px 4px 0;
+    background: rgb(12 12 16 / .6);
+}
+
+.sc-chart-info-overlay > :first-child { border-top-left-radius: 4px; padding-top: 4px; }
+.sc-chart-info-overlay > :not(:has(~ :has(*))) { border-bottom-left-radius: 4px; padding-bottom: 4px; }
+.sc-chart-info-overlay > :not(:has(*)) { display: none !important; }
+
+.sc-chart-container:not(.dark-mode) .sc-chart-info-overlay > * {
+    background: rgb(255 255 255 / .6);
 }
