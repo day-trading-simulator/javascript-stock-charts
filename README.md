@@ -6,17 +6,18 @@
 
 A lightweight, zero-dependency JavaScript stock chart library for financial data visualization. Built on HTML5 Canvas with HiDPI support, technical indicators, candlestick pattern detection, and real-time interactivity.
 
-## What's new in v3.0
+## What's new in v4.0
 
-- **Key levels** - Day high and low, premarket range and prior close, drawn as dashed lines with tags
-- **Undo for drawings** - Ctrl+Z steps back through every line and drawing; one click clears them all
-- **Indicator colors** - Click any color dot in the Indicators menu to restyle that line
-- **Change & range in the legend** - Hover any candle to see its move from the prior close and its high-low range
-- **Measure tool**, a **30-minute timeframe**, and many rendering fixes
-- **Live data ready** - Update the last candle or append new ones and redraw (see [Live Data](#live-data))
-- **`tickerLogoUrl`** and **`padding`** options (see [Configuration Options](#configuration-options))
+- **New toolbar layout** - Chart settings sit in a top bar and the drawing tools in a strip down the left side
+- **75+ drawing tools** - Trend lines and rays, Fibonacci and Gann, harmonic, head and shoulders and Elliott wave patterns, brushes and shapes
+- **Long & short positions** - Risk/reward boxes that track the target and stop as price moves, plus anchored VWAP, volume profile and price/date ranges
+- **Text, notes & emoji** - Labels and notes pinned to a price and time, a full emoji picker, scale and rotate
+- **Drawing toolbar** - Select any drawing to change its color, fill, width and line style, or lock, clone or delete it
+- **Magnet, box zoom and an eraser**, and a cursor menu with crosshair, dot and arrow modes
+- **Sharp on every screen** - Candles, grid lines and indicator panes land on real device pixels
+- **New options**: `toolbarLayout`, `emojiImages` and `logo` (see [Configuration Options](#configuration-options))
 
-Upgrading from v2? v3 keeps the same API, so it's a drop-in replacement. Need v2? Use the [`v2.0` tag](https://github.com/day-trading-simulator/javascript-stock-charts/tree/v2.0).
+Upgrading from v3? The API is the same. Add `emoji-data.js` before `stock-chart.js`, and keep `s8-logo.svg` next to it. To keep v3's floating button row instead of the new top bar and tool strip, pass `toolbarLayout: 'overlay'`. Need an older version? Use the [`v3.0`](https://github.com/day-trading-simulator/javascript-stock-charts/tree/v3.0) or [`v2.0`](https://github.com/day-trading-simulator/javascript-stock-charts/tree/v2.0) tag.
 
 ## Features
 
@@ -62,28 +63,32 @@ Automatic candlestick pattern recognition via the included `patterns.js` module:
 - **Hover** - Crosshair with real-time OHLC data
 - **Price Scale Drag** - Adjust vertical scaling
 - **Timeframe Selector** - Switch between 1min, 5min, 15min, 30min, 1hour, 4hour, daily, weekly
-- **Drawing Tools** - Trendlines and Fibonacci retracements
+- **Drawing Tools** - 75+ tools in the left strip: lines, Fibonacci and Gann, patterns, forecasting, shapes, text, notes and emoji
 - **AI Price Levels** - Overlay support/resistance levels programmatically
 
 ## Installation
 
-Include the source files in your HTML. Keep `simul8or-logo.svg` next to `stock-chart.js`.
+Include the source files in your HTML. Keep `simul8or-logo.svg` and `s8-logo.svg` next to `stock-chart.js`.
 
 ```html
 <link rel="stylesheet" href="stock-chart.css">
 <script src="indicators.js"></script>
 <script src="patterns.js"></script>
+<script src="emoji-data.js"></script>
 <script src="stock-chart.js"></script>
 ```
 
 Or load it from the jsDelivr CDN. Pin a version so updates never change your chart unexpectedly:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v3.0/stock-chart.css">
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v3.0/indicators.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v3.0/patterns.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v3.0/stock-chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/stock-chart.css">
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/indicators.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/patterns.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/emoji-data.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/stock-chart.js"></script>
 ```
+
+Screens 860px wide or less show the bare chart, without the top bar and tool strip.
 
 ## Quick Start
 
@@ -119,8 +124,11 @@ const chart = new StockChart('container', {
   chartType: 'candlestick', // 'candlestick' or 'line'
   darkMode: false,          // Enable dark mode
   timeframe: '1day',        // '1min', '2min', '5min', '15min', '30min', '1hour', '4hour', '1day', '1week', '1month'
-  padding: { top: 90 },     // Space above the price area for the toolbar and legend (default 90)
+  toolbarLayout: 'side',    // 'side' (top bar + left tool strip, default) or 'overlay' (v3's floating buttons)
+  padding: { top: 56 },     // Space above the price area for the legend (default 56)
   tickerLogoUrl: (symbol) => `https://your-cdn.example/logos/${symbol}.png`, // Logo next to the ticker (off unless set)
+  emojiImages: 'https://your-cdn.example/twemoji/svg/', // Where emoji SVGs load from (default: Twemoji on jsDelivr); false = system emoji font
+  logo: false,              // Hide the small s8 mark in the chart's corner
 
   // Indicators (enable/disable programmatically)
   indicators: {
@@ -220,6 +228,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the MIT License with an attribution requirement - the built-in branding link to simul8or.com must remain visible and functional. See the LICENSE file for details.
+
+Emoji graphics are [Twemoji](https://github.com/jdecked/twemoji) by Twitter, Inc. and other contributors, licensed CC-BY 4.0.
 
 ---
 

@@ -1,4 +1,4 @@
-/*! StockChart v3.0 | free JavaScript stock chart by simul8or | https://simul8or.com/Javascript-Stock-Chart.php */
+/*! StockChart v4.0 | free JavaScript stock chart by simul8or | https://simul8or.com/Javascript-Stock-Chart.php */
 class StockChart {
     constructor(container, options = {}) {
         this.container = typeof container === 'string' ? document.getElementById(container) : container; if (!this.container) throw new Error('Container not found'); this.aiPriceLevels = []; this.aiPriceLevelHitAreas = []; this.hoveredAIPriceLevelCloseIndex = null; this.priceLines = []; this._nextPriceLineId = 1; this.options = options; this.isDragging = !1; this.scalingActive = !1; this.dragStartX = 0; this.dragStartY = 0; this.dragStartOffset = 0; this.dragStartPriceOffset = 0; this.pixelOffset = 0; this.scalingDragStartY = 0; this.screenSize = this.getScreenSizeCategory(); this.isViewPinnedToRightEdge = !0; this.defaultTimeframes = [{ value: '1min', label: '1 Minute' }, { value: '5min', label: '5 Minutes' }, { value: '15min', label: '15 Minutes' }, { value: '30min', label: '30 Minutes' }, { value: '1hour', label: '1 Hour' }, { value: '1day', label: '1 Day' }, { value: '1week', label: '1 Week' }, { value: '1month', label: '1 Month' }]; this.lastMouseX = null; this.lastMouseY = null; this.mouseIsOverChart = !1; this.lineDrawingMode = !1; this.drawingLine = !1; this.currentLine = null; this.lines = []; this.selectedLineIndex = null; this.draggedLine = null; this.snappingPoint = null; this.snappingActive = !1; this.tradeMarkers = []; this.limitOrders = []; this.limitOrderHitAreas = []; this.draggedLimitOrder = null; this.hoveredLimitOrderIndex = null; this.textMode = !1; this.textAnnotations = []; this.selectedTextIndex = null; this.editingTextIndex = null; this.draggingTextIndex = null; this.textDragStartX = 0; this.textDragStartY = 0; this.textClickTimer = null; this.textDragStarted = !1; this.activeTextInput = null; this.textInputReady = !1; this._textInputClickOutside = null; this.emoticonMode = !1; this.emoticons = []; this.selectedEmoticonIndex = null; this.draggingEmoticonIndex = null; this.emoticonDragStartX = 0; this.emoticonDragStartY = 0; this.emoticonDragStarted = !1; this.selectedEmoticonType = '??'; this.textSettings = { fontSize: 12, fontFamily: 'Arial', color: '#ffffff', fontWeight: 'normal' }; this.fibonacciMode = !1; this.drawingFibonacci = !1; this.currentFibonacci = null; this.fibonacciRetracements = []; this.selectedFibonacciIndex = null; this.draggingFibonacciIndex = null; this.fibonacciDragStartX = 0; this.fibonacciDragStartY = 0; this.fibonacciDragStarted = !1; this.fibonacciSnapPoint = null; this.drawingToolsMode = !1; this.selectedDrawingTool = 'line'; this.drawingShapes = []; this.selectedShapeIndex = null; this.drawingArrow = !1; this.currentArrow = null; this.arrows = []; this.selectedArrowIndex = null; this.draggingArrowIndex = null; this.arrowDragStartX = 0; this.arrowDragStartY = 0; this.arrowDragStarted = !1; this.drawingRectangle = !1; this.currentRectangle = null; this.rectangles = []; this.selectedRectangleIndex = null; this.draggingRectangleIndex = null; this.rectangleDragStartX = 0; this.rectangleDragStartY = 0; this.rectangleDragStarted = !1; this.drawingCircle = !1; this.currentCircle = null; this.circles = []; this.selectedCircleIndex = null; this.draggingCircleIndex = null; this.circleDragStartX = 0; this.circleDragStartY = 0; this.circleDragStarted = !1; this.movingAverages = [{ type: 'ema', period: 9, enabled: !0, id: 'ema_9' }, { type: 'ema', period: 20, enabled: !0, id: 'ema_20' }, { type: 'sma', period: 9, enabled: !1, id: 'sma_9' }, { type: 'sma', period: 20, enabled: !1, id: 'sma_20' }]; this.indicators = {
@@ -62,7 +62,7 @@ class StockChart {
         this.panelResizeAboveStartHeight = 0;
         this.panelMinHeight = 40;
         this.panelMaxHeight = 300;
-        this.volumeHeight = 100; this.colorPalette = ['#2196F3', '#E74C3C', '#E69500', '#2157F3', '#9C27B0', '#FF9800', '#4CAF50', '#F44336', '#3F51B5', '#009688', '#FFC107', '#795548', '#607D8B', '#E91E63', '#CDDC39']; this.initializeMovingAverageIndicators(); this.config = { padding: Object.assign({ top: 90, right: 60, bottom: 30, left: 0 }, options.padding || {}), candleWidth: 10, spacing: 4, visibleCandles: (options.initialVisibleCandles !== undefined && typeof options.initialVisibleCandles === 'number' && options.initialVisibleCandles > 0) ? options.initialVisibleCandles : (this.getKeptZoom() || this.getInitialVisibleCandles()), maxVisibleCandles: this.getMaxVisibleCandles(), dataOffset: 0, chartType: options.chartType || 'line', darkMode: options.darkMode || !1, timeframesToDisplay: options.availableTimeframes || this.defaultTimeframes, bullColor: '#26a69a', bearColor: '#ef5350', gridColor: '#d0d0d0', textColor: '#888', crosshairColor: 'rgba(0,0,0,0.3)', drawingLineColor: '#3498db', drawingLineColorSelected: '#ff9800', drawingLineWidth: 1.5, drawingLineWidthSelected: 2.5, verticalScaleFactor: 1.0, verticalPadding: 0.1, priceOffset: 0, watermark: { enabled: !0, text: options.ticker || 'NVDA', font: this.getFontSize('watermark'), opacity: 0.1 }, branding: { enabled: options.hideBranding !== !0, text: 'simul8or.com', font: this.getFontSize('branding'), opacity: 0.3, url: 'https://simul8or.com', logo: options.brandingLogo || StockChart.BRANDING_LOGO || window.S8_CHART_LOGO || null, logoHeight: options.brandingLogoHeight || 26, logoOpacity: options.brandingLogoOpacity || 0.85 }, darkModeColors: { bullColor: '#089981', bearColor: '#F23645', gridColor: '#444', textColor: '#e0e0e0', crosshairColor: 'rgba(255,255,255,0.4)', }, useAfterHoursStyling: options.useAfterHoursStyling !== undefined ? options.useAfterHoursStyling : !0, targetPixelsPerLabel: 45, }; this.createDOM(); this.setupPriceLineShortcuts(); this.chartContainer = this.container.querySelector('.sc-chart-container'); if (this.chartContainer) this.chartContainer._scInstance = this;  this.chartInfoOverlayEl = this.chartContainer.querySelector('.sc-chart-info-overlay'); const ohlcvValuesDisplay = this.chartInfoOverlayEl.querySelector('.sc-ohlcv-values-display'); if (ohlcvValuesDisplay) { this.openEl = ohlcvValuesDisplay.querySelector('.open-value'); this.highEl = ohlcvValuesDisplay.querySelector('.high-value'); this.lowEl = ohlcvValuesDisplay.querySelector('.low-value'); this.closeEl = ohlcvValuesDisplay.querySelector('.close-value'); this.changeEl = ohlcvValuesDisplay.querySelector('.change-value'); this.rangeEl = ohlcvValuesDisplay.querySelector('.range-value'); this.volEl = ohlcvValuesDisplay.querySelector('.vol-value') }
+        this.volumeHeight = 100; this.colorPalette = ['#2196F3', '#E74C3C', '#E69500', '#2157F3', '#9C27B0', '#FF9800', '#4CAF50', '#F44336', '#3F51B5', '#009688', '#FFC107', '#795548', '#607D8B', '#E91E63', '#CDDC39']; this.initializeMovingAverageIndicators(); this.config = { padding: Object.assign({ top: 56, right: 60, bottom: 30, left: 0 }, options.padding || {}), candleWidth: 10, spacing: 4, visibleCandles: (options.initialVisibleCandles !== undefined && typeof options.initialVisibleCandles === 'number' && options.initialVisibleCandles > 0) ? options.initialVisibleCandles : (this.getKeptZoom() || this.getInitialVisibleCandles()), maxVisibleCandles: this.getMaxVisibleCandles(), dataOffset: 0, chartType: options.chartType || 'line', darkMode: options.darkMode || !1, timeframesToDisplay: options.availableTimeframes || this.defaultTimeframes, bullColor: '#26a69a', bearColor: '#ef5350', gridColor: '#d0d0d0', textColor: '#888', crosshairColor: 'rgba(0,0,0,0.3)', drawingLineColor: '#3498db', drawingLineColorSelected: '#ff9800', drawingLineWidth: 1.5, drawingLineWidthSelected: 2.5, verticalScaleFactor: 1.0, verticalPadding: 0.1, priceOffset: 0, watermark: { enabled: !0, text: options.ticker || 'NVDA', font: this.getFontSize('watermark'), opacity: 0.1 }, branding: { enabled: options.hideBranding !== !0, text: 'simul8or.com', font: this.getFontSize('branding'), opacity: 0.3, url: 'https://simul8or.com', logo: options.brandingLogo || StockChart.BRANDING_LOGO || window.S8_CHART_LOGO || null, logoHeight: options.brandingLogoHeight || 26, logoOpacity: options.brandingLogoOpacity || 0.85 }, darkModeColors: { bullColor: '#089981', bearColor: '#F23645', gridColor: '#444', textColor: '#e0e0e0', crosshairColor: 'rgba(255,255,255,0.4)', }, useAfterHoursStyling: options.useAfterHoursStyling !== undefined ? options.useAfterHoursStyling : !0, targetPixelsPerLabel: 45, }; this.createDOM(); this.applyToolbarLayout(); this.setupPriceLineShortcuts(); this.chartContainer = this.container.querySelector('.sc-chart-container'); if (this.chartContainer) this.chartContainer._scInstance = this;  this.chartInfoOverlayEl = this.chartContainer.querySelector('.sc-chart-info-overlay'); const ohlcvValuesDisplay = this.chartInfoOverlayEl.querySelector('.sc-ohlcv-values-display'); if (ohlcvValuesDisplay) { this.openEl = ohlcvValuesDisplay.querySelector('.open-value'); this.highEl = ohlcvValuesDisplay.querySelector('.high-value'); this.lowEl = ohlcvValuesDisplay.querySelector('.low-value'); this.closeEl = ohlcvValuesDisplay.querySelector('.close-value'); this.changeEl = ohlcvValuesDisplay.querySelector('.change-value'); this.rangeEl = ohlcvValuesDisplay.querySelector('.range-value'); this.volEl = ohlcvValuesDisplay.querySelector('.vol-value') }
         this.tickerInfoDisplay = this.chartInfoOverlayEl.querySelector('.sc-ticker-info-display'); if (this.tickerInfoDisplay) { this.tickerLogoEl = this.tickerInfoDisplay.querySelector('.sc-ticker-logo'); this.tickerSymbolEl = this.tickerInfoDisplay.querySelector('.sc-ticker-symbol'); this.companyNameEl = this.tickerInfoDisplay.querySelector('.sc-company-name'); this.currentPriceEl = this.tickerInfoDisplay.querySelector('.sc-current-price'); this.dayChangeEl = this.tickerInfoDisplay.querySelector('.sc-day-change'); this.dayChangePctEl = this.tickerInfoDisplay.querySelector('.sc-day-change-pct'); const modeTag = this.tickerInfoDisplay.querySelector('.sc-mode-tag'); const mode = window.S8_CHART_MODE, modeLabels = { replay: 'Replay', live: 'Live', closed: 'Market closed' }; if (modeTag && modeLabels[mode]) { modeTag.dataset.mode = mode; modeTag.textContent = modeLabels[mode]; modeTag.hidden = false } }
         this.indicatorValuesDisplay = this.chartInfoOverlayEl.querySelector('.sc-indicator-values-display'); this.atrDisplay = this.chartInfoOverlayEl.querySelector('.sc-atr-display'); if (this.config.darkMode) { this.chartContainer.classList.add('dark-mode') }
         this.updateDarkModeIcon(); this.registerEventListeners(); this.updateConfig(); this.stockData = options.data || []; this.onReachingStartCallback = options.onReachingStart || null; this.isLoadingHistoricalData = false; if (this.options.timeframe) { this.timeframe = this.options.timeframe } else if (this.stockData.length > 0) { this.timeframe = this.detectTimeframe(this.stockData) } else { this.timeframe = "1min" }
@@ -360,12 +360,13 @@ class StockChart {
             drawingShapes: this.drawingShapes.slice(),
             arrows: this.arrows.slice(),
             rectangles: this.rectangles.slice(),
-            circles: this.circles.slice()
+            circles: this.circles.slice(),
+            lineTools: (this.lineTools || []).slice()
         };
     }
     restoreOverlays(state) {
         if (!state) return;
-        const keys = ['limitOrders', 'aiPriceLevels', 'priceLines', 'lines', 'textAnnotations', 'emoticons', 'fibonacciRetracements', 'drawingShapes', 'arrows', 'rectangles', 'circles'];
+        const keys = ['limitOrders', 'aiPriceLevels', 'priceLines', 'lines', 'textAnnotations', 'emoticons', 'fibonacciRetracements', 'drawingShapes', 'arrows', 'rectangles', 'circles', 'lineTools'];
         keys.forEach(k => { if (Array.isArray(state[k])) this[k] = state[k].slice() });
         // Keep issuing fresh ids so a restored line can't collide with a new one.
         if (state.nextPriceLineId > this._nextPriceLineId) this._nextPriceLineId = state.nextPriceLineId;
@@ -383,14 +384,15 @@ class StockChart {
                 lines: this.lines, textAnnotations: this.textAnnotations, emoticons: this.emoticons,
                 fibonacciRetracements: this.fibonacciRetracements, drawingShapes: this.drawingShapes,
                 arrows: this.arrows, rectangles: this.rectangles, circles: this.circles,
-                priceLines: this.priceLines.filter(l => l.kind === 'line')
+                priceLines: this.priceLines.filter(l => l.kind === 'line'),
+                lineTools: this.lineTools || []
             });
         } catch (e) { return null; }
     }
     resetDrawingHistory() { this._undoStack = []; this._drawingBaseline = this._drawingSnapshot(); }
     recordDrawingState() {
         // Mid-drag or mid-draw: wait for the gesture to finish.
-        if (this.drawingLine || this.draggedLine || this.drawingArrow || this.drawingRectangle || this.drawingCircle || this.drawingFibonacci || this.draggedPriceLine) return;
+        if (this._emoGesture || (this._lt && (this._lt.placing || this._lt.drag || this._lt.editing)) || this.drawingLine || this.draggedLine || this.drawingArrow || this.drawingRectangle || this.drawingCircle || this.drawingFibonacci || this.draggedPriceLine) return;
         const snap = this._drawingSnapshot();
         if (snap === null || snap === this._drawingBaseline) return;
         if (!this._undoStack) this._undoStack = [];
@@ -400,7 +402,8 @@ class StockChart {
     }
     _applyDrawingSnapshot(snap) {
         const s = JSON.parse(snap);
-        ['lines', 'textAnnotations', 'emoticons', 'fibonacciRetracements', 'drawingShapes', 'arrows', 'rectangles', 'circles'].forEach(k => { this[k] = Array.isArray(s[k]) ? s[k] : [] });
+        ['lines', 'textAnnotations', 'emoticons', 'fibonacciRetracements', 'drawingShapes', 'arrows', 'rectangles', 'circles', 'lineTools'].forEach(k => { this[k] = Array.isArray(s[k]) ? s[k] : [] });
+        if (this._lt) this._lt.sel = this._lt.hover = null;
         const restoredLines = Array.isArray(s.priceLines) ? s.priceLines : [];
         this.priceLines = this.priceLines.filter(l => l.kind !== 'line').concat(restoredLines);
         restoredLines.forEach(l => { if (l.id >= this._nextPriceLineId) this._nextPriceLineId = l.id + 1 });
@@ -418,7 +421,7 @@ class StockChart {
     }
     clearAllDrawings() {
         this.recordDrawingState();
-        const empty = JSON.stringify({ lines: [], textAnnotations: [], emoticons: [], fibonacciRetracements: [], drawingShapes: [], arrows: [], rectangles: [], circles: [], priceLines: [] });
+        const empty = JSON.stringify({ lines: [], textAnnotations: [], emoticons: [], fibonacciRetracements: [], drawingShapes: [], arrows: [], rectangles: [], circles: [], priceLines: [], lineTools: [] });
         if (this._drawingBaseline === empty) return;
         this._applyDrawingSnapshot(empty);
         this.recordDrawingState(); // the pre-clear state lands on the stack, so Ctrl+Z brings it back
@@ -989,6 +992,7 @@ class StockChart {
             timer = setTimeout(() => {
                 timer = null;
                 const rect = this.priceCanvas.getBoundingClientRect();
+                if (this.cursorPrefs && this.cursorPrefs.valuesTooltip) { this.startValuesTooltip(startX - rect.left, startY - rect.top); return }
                 if (!this.openCandleContextMenu(startX - rect.left, startY - rect.top)) return;
                 this._longPressMenuAt = Date.now();
                 if (this.isDragging) { this.isDragging = !1; this.pixelOffset = 0; this.priceCanvas.classList.remove('dragging'); this.drawCharts() }
@@ -1038,6 +1042,2783 @@ class StockChart {
         this.config.dataOffset = Math.max(0, this.stockData.length - this.config.visibleCandles)
     }
     debounce(fn, wait) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), wait) } }
+    // toolbarLayout: 'side' moves the floating button row into a top bar (chart settings)
+    // and a left strip (drawing tools). The canvas sits beside the bars, not under them.
+    // Pages turn it on with the option or, for charts built in several places (the
+    // replay sim), a parse-time window.S8_CHART_TOOLBAR: 'side' for every chart on the
+    // page, or a list of container ids (['newChart']) so side charts keep their toolbar.
+    static _pageWantsSide(id) {
+        const g = window.S8_CHART_TOOLBAR;
+        return Array.isArray(g) ? g.indexOf(id) >= 0 : g === 'side';
+    }
+    applyToolbarLayout() {
+        if ((this.options.toolbarLayout || 'side') !== 'side') return;
+        const root = this.container.querySelector('.sc-chart-container');
+        const chartArea = root.querySelector('.sc-price-chart-container');
+        const overlay = root.querySelector('.sc-chart-controls-overlay');
+        if (!root || !chartArea || !overlay) return;
+        this.sideLayout = true;
+        root.classList.add('sc-layout-side');
+        const top = document.createElement('div'); top.className = 'sc-topbar';
+        const side = document.createElement('div'); side.className = 'sc-sidebar';
+        const btn = (cls) => overlay.querySelector('.' + cls);
+        const sep = () => { const s = document.createElement('span'); s.className = 'sc-bar-sep'; return s; };
+        const spacer = () => { const s = document.createElement('span'); s.className = 'sc-bar-spacer'; return s; };
+        const put = (bar, classes) => classes.forEach(c => { const b = btn(c); if (b) bar.appendChild(b); });
+        // Top: what you're looking at. Left: what you draw with.
+        const tf = btn('sc-timeframe-button');
+        if (tf) { tf.classList.add('sc-bar-text-button'); tf.innerHTML = '<span class="sc-tf-label"></span>'; top.appendChild(tf); }
+        top.appendChild(sep());
+        put(top, ['sc-chart-type-button']);
+        top.appendChild(sep());
+        const ind = btn('sc-indicators-button');
+        if (ind) { ind.classList.add('sc-bar-text-button'); ind.insertAdjacentHTML('beforeend', '<span>Indicators</span>'); top.appendChild(ind); }
+        top.appendChild(spacer());
+        put(top, ['sc-fit-view-button', 'sc-dark-mode-button', 'sc-camera-button', 'sc-maximize-button']);
+        put(side, ['sc-line-tool-button', 'sc-drawing-tools-button', 'sc-fibonacci-tool-button']);
+        side.appendChild(sep());
+        put(side, ['sc-text-tool-button', 'sc-emoticon-tool-button']);
+        side.appendChild(sep());
+        put(side, ['sc-measure-button']);
+        // Anything left over (buttons added later by other versions) goes to the bottom of the strip.
+        Array.from(overlay.children).forEach(b => side.appendChild(b));
+        overlay.remove();
+        root.insertBefore(side, chartArea);
+        root.insertBefore(top, side);
+        // Popups live in the chart area; open each next to the button that owns it.
+        const menus = [
+            ['sc-timeframe-button', '.sc-timeframe-dropdown', 'top'], ['sc-chart-type-button', '.sc-charttype-dropdown', 'top'],
+            ['sc-indicators-button', '.sc-indicators-dropdown', 'top'], ['sc-drawing-tools-button', '.sc-drawing-tools-panel', 'side'],
+            ['sc-emoticon-tool-button', '.sc-emoticon-panel', 'side'], ['sc-text-tool-button', '.sc-text-settings-panel', 'side']
+        ];
+        menus.forEach(([b, sel, bar]) => {
+            const button = root.querySelector('.' + b), menu = root.querySelector(sel);
+            if (!button || !menu) return;
+            button.addEventListener('click', () => {
+                const a = chartArea.getBoundingClientRect(), r = button.getBoundingClientRect();
+                if (bar === 'top') { menu.style.top = '4px'; menu.style.left = Math.max(4, r.left - a.left) + 'px'; }
+                else { menu.style.left = '4px'; menu.style.top = Math.max(4, r.top - a.top) + 'px'; }
+            }, true);
+        });
+        // Top-row icons in the strip's thin outline style. Every shape carries fill="none"
+        // so the old dark-mode rule that paints filled toolbar glyphs white leaves them alone.
+        const ic = (d) => `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+        const TOP_ICONS = {
+            fit: ic('<path fill="none" d="M5 5.5h18M5 22.5h18M14 9v10M11 11.5l3-3 3 3M11 16.5l3 3 3-3"/>'),
+            camera: ic('<path fill="none" d="M4.5 10a2 2 0 0 1 2-2h3.2l1.6-2.5h5.4L18.3 8h3.2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2z"/><circle fill="none" cx="14" cy="14.5" r="4"/>'),
+            full: ic('<path fill="none" d="M5 10.5V5h5.5M17.5 5H23v5.5M23 17.5V23h-5.5M10.5 23H5v-5.5"/>'),
+            sun: ic('<circle fill="none" cx="14" cy="14" r="4.5"/><path fill="none" d="M14 3.5v2.5M14 22v2.5M3.5 14h2.5M22 14h2.5M6.6 6.6l1.8 1.8M19.6 19.6l1.8 1.8M6.6 21.4l1.8-1.8M19.6 8.4l1.8-1.8"/>'),
+            moon: ic('<path fill="none" d="M21.5 16.5A8.5 8.5 0 1 1 11.5 6.5a7 7 0 0 0 10 10z"/>')
+        };
+        const setIcon = (cls, svg) => { const b = top.querySelector('.' + cls); if (b) b.innerHTML = svg };
+        setIcon('sc-fit-view-button', TOP_ICONS.fit);
+        setIcon('sc-camera-button', TOP_ICONS.camera);
+        setIcon('sc-maximize-button', TOP_ICONS.full);
+        // Just "Indicators" - no TA badge.
+        if (ind) { const badge = ind.querySelector('svg'); if (badge) badge.remove() }
+        const plainDarkIcon = this.updateDarkModeIcon.bind(this);
+        this.updateDarkModeIcon = () => {
+            if (!this.darkModeButton) return plainDarkIcon();
+            this.darkModeButton.innerHTML = this.config.darkMode ? TOP_ICONS.sun : TOP_ICONS.moon;
+        };
+        this.updateDarkModeIcon();
+        const info = root.querySelector('.sc-chart-info-overlay');
+        if (info) info.style.top = '8px';
+        this.updateTimeframeButtonLabel();
+    }
+    // ---- Cursor tools (Cross / Dot / Arrow / Demonstration / Magic / Eraser) ----------
+    // One button opens the menu. The choice changes the pointer (crosshair lines always
+    // show) and adds pointer effects on a pass-through canvas over the chart. Eraser
+    // deletes the drawing under a click (Ctrl+Z restores it: history records on pointerup).
+    static cursorIcons() {
+        const s = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+        return {
+            cross: s('<path d="M12 3v6.5M12 14.5V21M3 12h6.5M14.5 12H21"/>'),
+            dot: s('<circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/>'),
+            arrow: s('<path d="M6.5 3.5 18 12.4l-5.2.9 3 6.4-2.2 1-3-6.5-4.1 3.4z"/>'),
+            demonstration: s('<circle cx="12" cy="12" r="9"/><path d="M9.5 7.5 16 12.3l-2.9.5 1.6 3.4-1.2.6-1.6-3.5-2.4 2z"/>'),
+            magic: s('<path d="m4 20 10.5-10.5"/><path d="m13 8 3 3"/><path d="M18 2.5v3M16.5 4h3M20.5 8.5v2M19.5 9.5h2M10 3.5v2M9 4.5h2"/>'),
+            eraser: s('<path d="M8.5 20H20"/><path d="m5.6 13.9 8.2-8.2a2 2 0 0 1 2.8 0l2.7 2.7a2 2 0 0 1 0 2.8L11 19.5a2 2 0 0 1-1.4.5H8.4a2 2 0 0 1-1.4-.6l-1.4-1.4a2.2 2.2 0 0 1 0-3z"/><path d="m9.6 9.9 5.5 5.5"/>')
+        };
+    }
+    static cursorCss() {
+        if (StockChart._cursorCssDone) return; StockChart._cursorCssDone = true;
+        const url = (svg, x, y, fb) => `url("data:image/svg+xml,${encodeURIComponent(svg)}") ${x} ${y}, ${fb}`;
+        const dot = url('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="3.2" fill="#fff" stroke="#131722" stroke-width="1.4"/></svg>', 8, 8, 'crosshair');
+        const wand = url('<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26"><path d="M7 7 22 22" stroke="#131722" stroke-width="4.5" stroke-linecap="round"/><path d="M7 7 22 22" stroke="#c8a2ff" stroke-width="2.4" stroke-linecap="round"/><path d="M4 1.5 5 3.5l2 1-2 1-1 2-1-2-2-1 2-1z" fill="#ffd54a" stroke="#131722" stroke-width=".8"/></svg>', 4, 4, 'pointer');
+        const eraser = url('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="m5.6 13.9 8.2-8.2a2 2 0 0 1 2.8 0l2.7 2.7a2 2 0 0 1 0 2.8L11 19.5a2 2 0 0 1-1.4.5H8.4a2 2 0 0 1-1.4-.6l-1.4-1.4a2.2 2.2 0 0 1 0-3z" fill="#fff" stroke="#131722" stroke-width="1.4"/><path d="m9.6 9.9 5.5 5.5" stroke="#131722" stroke-width="1.4"/><path d="m5.6 13.9 4-4 5.5 5.5-4 4a2 2 0 0 1-1.5.6H8.4a2 2 0 0 1-1.4-.6l-1.4-1.4a2.2 2.2 0 0 1 0-3z" fill="#f48fb1" stroke="#131722" stroke-width="1.4"/></svg>', 6, 19, 'pointer');
+        // Only the plain pointer states are replaced; grab/move/resize/text keep their meaning.
+        const plain = ':not(.dragging):not([style*="cursor: grab"]):not([style*="cursor: move"]):not([style*="resize"]):not([style*="cursor: pointer"]):not([style*="cursor: text"])';
+        const rule = (mode, cur) => `.sc-cur-${mode}:not(.sc-drawing-on) .sc-price-chart${plain}{cursor:${cur}!important}`;
+        // Thin plus with an open centre, outlined so it reads on dark and light charts.
+        const cross = url('<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23"><path d="M11.5 1v7.5M11.5 14.5V22M1 11.5h7.5M14.5 11.5H22" stroke="#131722" stroke-width="3" stroke-linecap="round"/><path d="M11.5 1v7.5M11.5 14.5V22M1 11.5h7.5M14.5 11.5H22" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg>', 11, 11, 'crosshair');
+        const css = [rule('cross', cross), rule('dot', dot), rule('arrow', 'default'), rule('demonstration', 'default'), rule('magic', wand), `.sc-cur-eraser:not(.sc-drawing-on) .sc-price-chart:not(.dragging){cursor:${eraser}!important}`].join('\n');
+        const el = document.createElement('style'); el.textContent = css; document.head.appendChild(el);
+    }
+    loadCursorPrefs() {
+        let p = {}; try { p = JSON.parse(localStorage.getItem('sc-cursor-prefs') || '{}') || {} } catch (e) { }
+        const modes = ['cross', 'dot', 'arrow', 'demonstration', 'magic'];
+        return { mode: modes.includes(p.mode) ? p.mode : 'cross', valuesTooltip: !!p.valuesTooltip };
+    }
+    saveCursorPrefs() {
+        // Eraser is a one-off tool, so a reload comes back to the last real cursor.
+        const mode = this.cursorMode === 'eraser' ? (this._cursorBeforeEraser || 'cross') : this.cursorMode;
+        try { localStorage.setItem('sc-cursor-prefs', JSON.stringify({ mode, valuesTooltip: this.cursorPrefs.valuesTooltip })) } catch (e) { }
+    }
+    isDrawingModeOn() { return !!((this._lt && this._lt.tool) || (this._zoomBox && this._zoomBox.on) || this.lineDrawingMode || this.drawingToolsMode || this.fibonacciMode || this.textMode || this.emoticonMode || this.measureMode) }
+    setupCursorTools() {
+        StockChart.cursorCss();
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        if (!root || !area) return;
+        this.cursorPrefs = this.loadCursorPrefs();
+        this.cursorMode = this.cursorPrefs.mode;
+        const icons = StockChart.cursorIcons();
+
+        // Toolbar button: first in the left strip (or the floating row without the side layout).
+        const btn = document.createElement('button');
+        btn.className = 'sc-overlay-button sc-cursor-button';
+        btn.title = 'Cursors';
+        const bar = root.querySelector('.sc-sidebar') || root.querySelector('.sc-chart-controls-overlay');
+        if (bar) bar.insertBefore(btn, bar.firstChild);
+        if (bar && bar.classList.contains('sc-sidebar')) btn.insertAdjacentElement('afterend', Object.assign(document.createElement('span'), { className: 'sc-bar-sep' }));
+        this.cursorButton = btn;
+
+        const items = [['cross', 'Cross'], ['dot', 'Dot'], ['arrow', 'Arrow'], ['demonstration', 'Demonstration'], ['magic', 'Magic']];
+        const opt = ([k, label]) => `<button type="button" class="sc-cursor-option" data-cursor="${k}">${icons[k]}<span>${label}</span></button>`;
+        const menu = document.createElement('div');
+        menu.className = 'sc-cursor-menu';
+        menu.innerHTML = items.map(opt).join('') + '<div class="sc-cursor-sep"></div>' + opt(['eraser', 'Eraser'])
+            + '<div class="sc-cursor-sep"></div><label class="sc-cursor-toggle"><span>Values tooltip on long press</span><input type="checkbox"><i></i></label>';
+        area.appendChild(menu);
+        this.cursorMenu = menu;
+        const tipToggle = menu.querySelector('input[type="checkbox"]');
+        tipToggle.checked = this.cursorPrefs.valuesTooltip;
+
+        this.closeCursorMenu = () => { menu.classList.remove('active'); btn.classList.remove('open') };
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const open = !menu.classList.contains('active');
+            this.closeOtherToolbarMenus('cursor');
+            if (!open) { this.closeCursorMenu(); return }
+            const a = area.getBoundingClientRect(), r = btn.getBoundingClientRect();
+            const inSide = btn.parentElement && btn.parentElement.classList.contains('sc-sidebar');
+            menu.style.left = (inSide ? 4 : Math.max(4, r.left - a.left)) + 'px';
+            menu.style.top = (inSide ? Math.max(4, r.top - a.top) : 4) + 'px';
+            menu.classList.add('active'); btn.classList.add('open');
+        });
+        menu.addEventListener('mousedown', (e) => e.stopPropagation());
+        menu.querySelectorAll('.sc-cursor-option').forEach(o => o.addEventListener('click', () => { this.setCursorMode(o.dataset.cursor); this.closeCursorMenu() }));
+        tipToggle.addEventListener('change', () => { this.cursorPrefs.valuesTooltip = tipToggle.checked; this.saveCursorPrefs() });
+        document.addEventListener('mousedown', (e) => { if (!menu.contains(e.target) && !btn.contains(e.target)) this.closeCursorMenu() }, true);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeCursorMenu() });
+
+        // Effects layer (Demonstration ring/ripples/trail, Magic sparkles). Never takes input.
+        const fx = document.createElement('canvas');
+        fx.className = 'sc-cursor-fx';
+        area.appendChild(fx);
+        this._fx = { canvas: fx, ctx: fx.getContext('2d'), ripples: [], trail: [], sparks: [], held: false, x: null, y: null, raf: 0 };
+        const sizeFx = () => { const d = window.devicePixelRatio || 1, w = area.clientWidth, h = area.clientHeight; fx.width = Math.round(w * d); fx.height = Math.round(h * d); fx.style.width = w + 'px'; fx.style.height = h + 'px'; this._fx.dpr = d };
+        sizeFx();
+        if ('ResizeObserver' in window) new ResizeObserver(sizeFx).observe(area);
+
+        const local = (e) => { const r = this.priceCanvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top } };
+        const onChart = (p) => p.x >= this.config.padding.left && p.x <= this.getCanvasWidth() - this.config.padding.right && p.y >= this.config.padding.top && p.y <= this.config.padding.top + this.getPriceChartHeight();
+        // Capture on the chart area runs before the library's own canvas handlers.
+        area.addEventListener('mousedown', (e) => {
+            if (e.target !== this.priceCanvas || e.button !== 0 || this.isDrawingModeOn()) return;
+            const p = local(e);
+            if (this.cursorMode === 'eraser') {
+                if (this.eraseDrawingAt(p.x, p.y)) { e.preventDefault(); e.stopPropagation() }
+                return;
+            }
+            if (this.cursorMode === 'demonstration' && onChart(p)) {
+                // Presenting: a held button draws a fading trail instead of panning.
+                this._fx.ripples.push({ x: p.x, y: p.y, t: performance.now() });
+                this._fx.held = true; this._fx.trail.push({ x: p.x, y: p.y, t: performance.now(), brk: true });
+                e.preventDefault(); e.stopPropagation();
+                this.kickFx();
+            }
+        }, true);
+        area.addEventListener('mousemove', (e) => {
+            root.classList.toggle('sc-drawing-on', this.isDrawingModeOn());
+            if (e.target !== this.priceCanvas) return;
+            const p = local(e); this._fx.x = p.x; this._fx.y = p.y;
+            if (this.cursorMode === 'magic' && !this.isDragging) this.spawnSparks(p.x, p.y);
+            if (this.cursorMode === 'demonstration' || this.cursorMode === 'magic') this.kickFx();
+        }, true);
+        document.addEventListener('mousemove', (e) => { if (this._fx.held) { const p = local(e); this._fx.trail.push({ x: p.x, y: p.y, t: performance.now() }); this.kickFx() } });
+        document.addEventListener('mouseup', () => { this._fx.held = false });
+        area.addEventListener('mouseleave', () => { this._fx.x = this._fx.y = null; this.kickFx() });
+
+        this.setupValuesTooltip(area);
+        this.setCursorMode(this.cursorMode, true);
+    }
+    setCursorMode(mode, quiet) {
+        if (mode === 'eraser' && this.cursorMode !== 'eraser') this._cursorBeforeEraser = this.cursorMode;
+        this.cursorMode = mode;
+        const root = this.chartContainer;
+        root.className = root.className.replace(/\bsc-cur-[a-z]+\b/g, '').trim();
+        root.classList.add('sc-cur-' + mode);
+        if (this.cursorButton) this.cursorButton.innerHTML = StockChart.cursorIcons()[mode] + '<span class="sc-cursor-chev"></span>';
+        if (this.cursorMenu) this.cursorMenu.querySelectorAll('.sc-cursor-option').forEach(o => o.classList.toggle('selected', o.dataset.cursor === mode));
+        if (!quiet) { this.saveCursorPrefs(); this.closeOtherToolbarMenus('cursor'); this.drawCharts() }
+    }
+    // Deletes the topmost drawing under (x, y). Returns true when something was erased.
+    eraseDrawingAt(x, y) {
+        const clear = () => { this.selectedLineIndex = this.selectedTextIndex = this.selectedEmoticonIndex = this.selectedArrowIndex = this.selectedRectangleIndex = this.selectedCircleIndex = this.selectedFibonacciIndex = this.selectedShapeIndex = null; this.drawCharts(); return true };
+        let i;
+        const lth = this._ltHit && this._ltHit(x, y); if (lth) { this.lineTools.splice(lth.i, 1); if (this._lt) this._lt.sel = this._lt.hover = null; return clear() }
+        const line = this.findClickedLine(x, y); if (line) { this.lines.splice(line.index, 1); return clear() }
+        if ((i = this.findClickedText(x, y)) !== -1) { this.textAnnotations.splice(i, 1); return clear() }
+        if ((i = this.findClickedEmoticon(x, y)) !== -1) { this.emoticons.splice(i, 1); return clear() }
+        if ((i = this.findClickedArrow(x, y)) !== null) { this.arrows.splice(i, 1); return clear() }
+        if ((i = this.findClickedRectangle(x, y)) !== null) { this.rectangles.splice(i, 1); return clear() }
+        if ((i = this.findClickedCircle(x, y)) !== null) { this.circles.splice(i, 1); return clear() }
+        if ((i = this.findClickedFibonacci(x, y)) !== null) { this.fibonacciRetracements.splice(i, 1); return clear() }
+        const pl = this.findPriceLineAt(x, y); if (pl && pl.line && pl.line.kind === 'line') { this.removePriceLine(pl.line.id); return clear() }
+        return false;
+    }
+    spawnSparks(x, y) {
+        const now = performance.now(), hues = [48, 280, 190, 330];
+        for (let n = 0; n < 2; n++) this._fx.sparks.push({ x: x + (Math.random() - .5) * 6, y: y + (Math.random() - .5) * 6, vx: (Math.random() - .5) * .9, vy: (Math.random() - .3) * .9, t: now, life: 550 + Math.random() * 450, r: 3.5 + Math.random() * 4, hue: hues[(Math.random() * hues.length) | 0] });
+        if (this._fx.sparks.length > 260) this._fx.sparks.splice(0, this._fx.sparks.length - 260);
+    }
+    kickFx() { if (!this._fx.raf) this._fx.raf = requestAnimationFrame(() => this.drawFx()) }
+    drawFx() {
+        const f = this._fx, ctx = f.ctx, now = performance.now(), d = f.dpr || 1;
+        f.raf = 0;
+        ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, f.canvas.width, f.canvas.height); ctx.setTransform(d, 0, 0, d, 0, 0);
+        // The fx canvas covers the chart area; the price canvas starts at its top-left too.
+        const TRAIL = 1100, RIPPLE = 550;
+        f.trail = f.trail.filter(p => now - p.t < TRAIL);
+        f.ripples = f.ripples.filter(r => now - r.t < RIPPLE);
+        f.sparks = f.sparks.filter(s => now - s.t < s.life);
+        if (f.trail.length > 1) {
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            for (let k = 1; k < f.trail.length; k++) {
+                const a = f.trail[k - 1], b = f.trail[k];
+                if (b.brk) continue;
+                const alpha = Math.max(0, 1 - (now - b.t) / TRAIL);
+                ctx.strokeStyle = `rgba(255,82,82,${alpha * .35})`; ctx.lineWidth = 10;
+                ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+                ctx.strokeStyle = `rgba(255,120,100,${alpha})`; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+            }
+        }
+        f.ripples.forEach(r => {
+            const k = (now - r.t) / RIPPLE;
+            ctx.strokeStyle = `rgba(255,193,7,${1 - k})`; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(r.x, r.y, 8 + k * 26, 0, Math.PI * 2); ctx.stroke();
+        });
+        if (this.cursorMode === 'demonstration' && f.x !== null) {
+            ctx.fillStyle = 'rgba(255,193,7,.16)'; ctx.strokeStyle = 'rgba(255,193,7,.75)'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(f.x, f.y, 19, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        }
+        f.sparks.forEach(s => {
+            const k = (now - s.t) / s.life, age = now - s.t;
+            const x = s.x + s.vx * age / 16, y = s.y + s.vy * age / 16 + .00002 * age * age, r = s.r * (1 - k * .6);
+            ctx.fillStyle = `hsla(${s.hue},100%,70%,${1 - k})`;
+            ctx.beginPath();
+            for (let j = 0; j < 8; j++) { const ang = j * Math.PI / 4 + age / 300, rr = j % 2 ? r * .38 : r; ctx.lineTo(x + Math.cos(ang) * rr, y + Math.sin(ang) * rr) }
+            ctx.closePath(); ctx.fill();
+        });
+        const busy = f.trail.length || f.ripples.length || f.sparks.length || f.held || (this.cursorMode === 'demonstration' && f.x !== null);
+        if (busy && (f.trail.length || f.ripples.length || f.sparks.length || f.held)) this.kickFx();
+    }
+    // Values tooltip: with the toggle on, a touch long-press shows the crosshair and an
+    // O/H/L/C/V box that follows the finger (instead of the candle menu) until it lifts.
+    setupValuesTooltip(area) {
+        const tip = document.createElement('div');
+        tip.className = 'sc-values-tip';
+        area.appendChild(tip);
+        this._valuesTipEl = tip;
+        const end = () => {
+            if (!this._valuesTipActive) return;
+            this._valuesTipActive = false; tip.classList.remove('active');
+            this.lastMouseX = this.lastMouseY = null; this.mouseIsOverChart = false; this.drawCharts();
+        };
+        this.priceCanvas.addEventListener('touchmove', (e) => {
+            if (!this._valuesTipActive || e.touches.length !== 1) return;
+            e.preventDefault();
+            const r = this.priceCanvas.getBoundingClientRect();
+            this.moveValuesTooltip(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
+        }, { passive: false });
+        this.priceCanvas.addEventListener('touchend', end);
+        this.priceCanvas.addEventListener('touchcancel', end);
+    }
+    startValuesTooltip(x, y) {
+        this._valuesTipActive = true;
+        if (this.isDragging) { this.isDragging = false; this.pixelOffset = 0; this.priceCanvas.classList.remove('dragging') }
+        if (navigator.vibrate) try { navigator.vibrate(10) } catch (e) { }
+        this.moveValuesTooltip(x, y);
+    }
+    moveValuesTooltip(x, y) {
+        this.lastMouseX = x; this.lastMouseY = y; this.mouseIsOverChart = true;
+        this.drawCharts();
+        const tip = this._valuesTipEl, cW = this.calculateCandleWidth(), step = cW + this.config.spacing;
+        const idx = this.config.dataOffset + Math.floor((x - this.pixelOffset - this.config.padding.left) / step);
+        const c = this.stockData[idx];
+        if (!c) { tip.classList.remove('active'); return }
+        const vol = (v) => v >= 1e9 ? (v / 1e9).toFixed(2) + 'B' : v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? (v / 1e3).toFixed(2) + 'K' : String(+(+v).toFixed(2));
+        const prev = this.stockData[idx - 1], chg = prev ? (c.close / prev.close - 1) * 100 : (c.close / c.open - 1) * 100;
+        const fp = (v) => s8FormatChartPrice(v), cls = chg >= 0 ? 'up' : 'down';
+        tip.innerHTML = `<div class="sc-values-tip__date">${c.date || ''}</div>`
+            + `<div><span>O</span>${fp(c.open)}</div><div><span>H</span>${fp(c.high)}</div><div><span>L</span>${fp(c.low)}</div>`
+            + `<div><span>C</span><b class="${cls}">${fp(c.close)}</b></div><div><span>Chg</span><b class="${cls}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</b></div>`
+            + (c.volume != null ? `<div><span>Vol</span>${vol(c.volume)}</div>` : '');
+        tip.classList.add('active');
+        // Sit above-left of the finger so it isn't covered; flip when there's no room.
+        const w = tip.offsetWidth, h = tip.offsetHeight, W = this.getCanvasWidth();
+        let left = x - w - 24; if (left < 4) left = Math.min(W - w - 4, x + 24);
+        let top = y - h - 40; if (top < 4) top = Math.min(this.getCanvasHeight() - h - 4, y + 40);
+        tip.style.left = left + 'px'; tip.style.top = top + 'px';
+    }
+    // ---- Line tools (Lines / Channels / Pitchforks) -------------------------------
+    // Anchors are stored as { t: candle time ms, p: price } so drawings stay put when
+    // the chart pans, zooms, changes timeframe or drops old bars. Times past either end
+    // of the data are extrapolated with the bar interval. Horizontal line reuses the
+    // existing price line (same as Alt+H) so there is one kind of horizontal line.
+    static lineToolDefs() {
+        return [
+            { group: 'Lines' },
+            { k: 'trendline', label: 'Trendline', n: 2, key: 'Alt + T' },
+            { k: 'ray', label: 'Ray', n: 2 },
+            { k: 'infoline', label: 'Info line', n: 2 },
+            { k: 'extended', label: 'Extended line', n: 2 },
+            { k: 'trendangle', label: 'Trend angle', n: 2 },
+            { k: 'hline', label: 'Horizontal line', n: 1, key: 'Alt + H' },
+            { k: 'hray', label: 'Horizontal ray', n: 1, key: 'Alt + J' },
+            { k: 'vline', label: 'Vertical line', n: 1, key: 'Alt + V' },
+            { k: 'crossline', label: 'Crossline', n: 1, key: 'Alt + C' },
+            { group: 'Channels' },
+            { k: 'parallel', label: 'Parallel channel', n: 3 },
+            { k: 'regression', label: 'Regression trend', n: 2 },
+            { k: 'flattop', label: 'Flat top/bottom', n: 3 },
+            { k: 'disjoint', label: 'Disjoint channel', n: 3 },
+            { group: 'Pitchforks' },
+            { k: 'pitchfork', label: 'Pitchfork', n: 3 },
+            { k: 'schiff', label: 'Schiff pitchfork', n: 3 },
+            { k: 'modschiff', label: 'Modified Schiff pitchfork', n: 3 },
+            { k: 'inside', label: 'Inside pitchfork', n: 3 }
+        ];
+    }
+    static lineToolIcons() {
+        const o = (x, y) => `<circle cx="${x}" cy="${y}" r="2"/>`;
+        const s = (d) => `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+        const fork = (h) => s(`<path d="M${h} 13.4 22 5.5M11.6 9.5 20 1.5M17.4 16.5 26 9M12.5 10.5l3.7 4.6"/>` + o(h === 7.5 ? 6 : 9, h === 7.5 ? 21 : 18) + o(11, 9) + o(17, 17));
+        return {
+            trendline: s('<path d="M8.4 19.6 19.6 8.4"/>' + o(7, 21) + o(21, 7)),
+            ray: s('<path d="M7.4 20.6 11.6 16.4M14.4 13.6 25 3"/>' + o(6, 22) + o(13, 15)),
+            infoline: s('<path d="M7.4 18.6 15.6 10.4"/><rect x="17.5" y="16.5" width="8" height="6.5" rx="1.5"/>' + o(6, 20) + o(17, 9)),
+            extended: s('<path d="M3 25 8.6 19.4M11.4 16.6 16.6 11.4M19.4 8.6 25 3"/>' + o(10, 18) + o(18, 10)),
+            trendangle: s('<path d="M7.4 19.6 21 6M8 21h16M15 21a8 8 0 0 0-2.4-5.7"/>' + o(6, 21)),
+            hline: s('<path d="M3 14h9M16 14h9"/>' + o(14, 14)),
+            hray: s('<path d="M8 14h17"/>' + o(6, 14)),
+            vline: s('<path d="M14 3v9M14 16v9"/>' + o(14, 14)),
+            crossline: s('<path d="M3 14h9M16 14h9M14 3v9M14 16v9"/>' + o(14, 14)),
+            parallel: s('<path d="M7.7 15 18.3 9M5 25l20-12"/>' + o(6, 16) + o(20, 8)),
+            regression: s('<path d="M4 15 24 5M4 25 24 15"/><path d="M4 20 24 10" stroke-dasharray="2 2"/>' + o(5, 19.5) + o(23, 10.5)),
+            flattop: s('<path d="M7.6 18.8 18.4 11.2M4 24h20"/>' + o(6, 20) + o(20, 10)),
+            disjoint: s('<path d="M7 11.3 24 4M7 16.7 24 24"/>' + o(5, 12) + o(5, 16)),
+            pitchfork: fork(7.5), schiff: fork(10.5), modschiff: fork(10.5),
+            inside: s('<path d="M7.5 19.6 22 5.5M13 12 20 5M16 15l7-7M11.6 9.5l5.8 7"/>' + o(6, 21) + o(11, 9) + o(17, 17))
+        };
+    }
+    setupLineTools() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        if (!root || !area) return;
+        if (!Array.isArray(this.lineTools)) this.lineTools = [];
+        this._lt = { tool: null, placing: null, sel: null, hover: null, drag: null, down: null, editing: null };
+        this._ltDefs = {}; this._ltMenus = [];
+        this._ltPaintButton = () => this._ltMenus.forEach(m => m.paint());
+        this.closeLineMenu = () => this._ltMenus.forEach(m => m.close());
+        const cursorBtn = root.querySelector('.sc-cursor-button');
+        const after = cursorBtn && cursorBtn.nextElementSibling && cursorBtn.nextElementSibling.classList.contains('sc-bar-sep') ? cursorBtn.nextElementSibling : cursorBtn;
+        const lineMenu = this._ltMakeMenu({ defs: StockChart.lineToolDefs(), icons: StockChart.lineToolIcons(), store: 'sc-linetool-last', title: 'Lines, channels and pitchforks', after });
+        this.lineToolButton2 = lineMenu.btn;
+
+        const local = (e) => { const r = this.priceCanvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top } };
+        const lt = this._lt;
+        area.addEventListener('mousedown', (e) => {
+            if (lt.editing && e.target === this.priceCanvas) this._ntFinishEdit();
+            if (e.target !== this.priceCanvas || e.button !== 0) return;
+            const p = local(e);
+            if (lt.tool && this._ltDefs[lt.tool].free) {
+                // Brushes: press, drag, release.
+                e.preventDefault(); e.stopPropagation();
+                if (!this.stockData.length) return;
+                lt.placing = this._ltNew(this._ltDefs[lt.tool], [this._shRaw(p.x, p.y, this._ltView())]);
+                lt.free = { x: p.x, y: p.y };
+                this.drawCharts();
+                return;
+            }
+            if (lt.tool) {
+                e.preventDefault(); e.stopPropagation();
+                this._ltPlace(p.x, p.y);
+                lt.down = lt.placing && lt.placing.pts.length === 2 ? { x: p.x, y: p.y } : null;
+                return;
+            }
+            if (this.isDrawingModeOn() || this.cursorMode === 'eraser' || this.cursorMode === 'demonstration') { if (lt.sel !== null) { lt.sel = null; this.drawCharts() } return }
+            const hit = this._ltHit(p.x, p.y);
+            if (!hit) { if (lt.sel !== null) { lt.sel = null; this.drawCharts() } return }
+            e.preventDefault(); e.stopPropagation();
+            lt.sel = hit.i;
+            if (this.lineTools[hit.i].locked) { this.drawCharts(); return } // locked: select only
+            lt.drag = { i: hit.i, h: hit.h, x: p.x, y: p.y, orig: this.lineTools[hit.i].pts.map(q => ({ ...q })) };
+            root.classList.add('sc-lt-drag');
+            this.drawCharts();
+        }, true);
+        area.addEventListener('mousemove', (e) => {
+            if (e.target !== this.priceCanvas) return;
+            const p = local(e);
+            if (lt.placing && lt.free) {
+                if (Math.hypot(p.x - lt.free.x, p.y - lt.free.y) >= 2) { lt.placing.pts.push(this._shRaw(p.x, p.y, this._ltView())); lt.free = { x: p.x, y: p.y }; this.drawCharts() }
+            }
+            else if (lt.placing) { const v = this._ltView(); lt.placing.pts[lt.placing.pts.length - 1] = this._ltAnchor(p.x, p.y, v); this._ltConstrain(lt.placing); }
+            const hit = (!lt.tool && !lt.drag && !this.isDrawingModeOn()) ? this._ltHit(p.x, p.y) : null;
+            const hov = hit ? hit.i : null;
+            if (hov !== lt.hover) lt.hover = hov;
+            root.classList.toggle('sc-lt-hover', !!hit);
+            root.classList.toggle('sc-lt-active', !!lt.tool);
+            root.classList.toggle('sc-drawing-on', this.isDrawingModeOn() || !!hit || !!lt.drag);
+        }, true);
+        document.addEventListener('mousemove', (e) => {
+            if (!lt.drag) return;
+            const p = local(e), v = this._ltView(), d = this.lineTools[lt.drag.i];
+            if (!d) { lt.drag = null; return }
+            if (typeof lt.drag.h === 'string') { if (/^t[\d-]p[\d-]$/.test(lt.drag.h)) this._shResize(d, lt.drag.h, p, v); else this._ntResize(d, lt.drag.h, p, v) }
+            else if (lt.drag.h >= 0) { d.pts[lt.drag.h] = this._ltAnchor(p.x, p.y, v); this._ltConstrain(d, lt.drag.h) }
+            else {
+                // Whole bars only, so points on candles stay on candles; brush points keep their fractions.
+                const di = Math.round(v.xToIdx(p.x) - v.xToIdx(lt.drag.x)), dp = v.yToP(p.y) - v.yToP(lt.drag.y);
+                d.pts = lt.drag.orig.map(q => ({ t: v.idxToT(v.tToIdx(q.t) + di), p: q.p + dp }));
+            }
+            this.drawCharts();
+        });
+        document.addEventListener('mouseup', (e) => {
+            if (lt.drag) { lt.drag = null; root.classList.remove('sc-lt-drag'); this.drawCharts() }
+            if (lt.free) {
+                lt.free = null;
+                if (lt.placing && lt.placing.pts.length >= 2) this._ltCommit(lt.placing);
+                else { lt.placing = null; this.drawCharts() }
+                return;
+            }
+            // Press-drag-release draws a two-point line in one gesture.
+            if (lt.placing && lt.down) {
+                const p = local(e);
+                if (Math.hypot(p.x - lt.down.x, p.y - lt.down.y) > 8) this._ltPlace(p.x, p.y);
+            }
+            lt.down = null;
+        });
+        window.addEventListener('keydown', (e) => this._ltKey(e), true);
+        this._ltPaintButton();
+    }
+    // Split button + flyout menu for a set of tools (lines, text...). The icon starts the
+    // menu's last-used tool; the right-edge chevron opens the menu.
+    _ltMakeMenu(cfg) {
+        const root = this.chartContainer, area = root.querySelector('.sc-price-chart-container');
+        const { defs, icons } = cfg;
+        let last = defs.find(d => d.k).k;
+        try { const v = localStorage.getItem(cfg.store); if (v && defs.some(d => d.k === v)) last = v } catch (e) { }
+        const m = { last, store: cfg.store, defs };
+        defs.forEach(d => { if (d.k) { this._ltDefs[d.k] = d; d.menu = m } });
+        const btn = document.createElement('button');
+        btn.className = 'sc-overlay-button sc-lt-button';
+        btn.title = cfg.title;
+        const bar = root.querySelector('.sc-sidebar') || root.querySelector('.sc-chart-controls-overlay');
+        if (cfg.after) cfg.after.insertAdjacentElement('afterend', btn); else if (bar) bar.insertBefore(btn, bar.firstChild);
+        const menu = document.createElement('div');
+        menu.className = 'sc-cursor-menu sc-lt-menu';
+        menu.innerHTML = defs.map(d => d.group
+            ? `<div class="sc-lt-group">${d.group}</div>`
+            : `<button type="button" class="sc-cursor-option" data-lt="${d.k}">${icons[d.k]}<span>${d.label}</span>${d.key ? `<kbd>${d.key}</kbd>` : ''}</button>`).join('');
+        area.appendChild(menu);
+        Object.assign(m, { btn, menu });
+        m.close = () => { menu.classList.remove('active'); btn.classList.remove('open') };
+        m.paint = () => {
+            btn.innerHTML = icons[m.last] + '<span class="sc-cursor-chev"></span>';
+            btn.classList.toggle('active', !!(this._lt.tool && this._ltDefs[this._lt.tool].menu === m));
+            menu.querySelectorAll('[data-lt]').forEach(o => o.classList.toggle('selected', o.dataset.lt === m.last));
+        };
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const r = btn.getBoundingClientRect();
+            if (e.clientX >= r.right - 11 || menu.classList.contains('active')) {
+                const open = !menu.classList.contains('active');
+                this.closeOtherToolbarMenus('linetools');
+                this.closeLineMenu();
+                if (!open) return;
+                const a = area.getBoundingClientRect();
+                menu.style.left = '4px';
+                menu.classList.add('active'); btn.classList.add('open');
+                menu.style.top = Math.max(4, Math.min(r.top - a.top, area.clientHeight - menu.offsetHeight - 4)) + 'px';
+                return;
+            }
+            const mine = this._lt.tool && this._ltDefs[this._lt.tool].menu === m;
+            if (mine) this.deactivateLineTool(); else this.activateLineTool(m.last);
+        });
+        menu.addEventListener('mousedown', (e) => e.stopPropagation());
+        menu.querySelectorAll('[data-lt]').forEach(o => o.addEventListener('click', () => { this.activateLineTool(o.dataset.lt); this.closeLineMenu() }));
+        document.addEventListener('mousedown', (e) => { if (!menu.contains(e.target) && !btn.contains(e.target)) m.close() }, true);
+        this._ltMenus.push(m);
+        m.paint();
+        return m;
+    }
+    activateLineTool(k) {
+        if (!this._ltDefs[k]) return;
+        this.closeOtherToolbarMenus('linetools');
+        const lt = this._lt;
+        this._ntFinishEdit && this._ntFinishEdit();
+        if (this._zoomBox) this._zoomBox.set(false);
+        lt.tool = k; lt.placing = null; lt.sel = null;
+        const m = this._ltDefs[k].menu; m.last = k;
+        try { localStorage.setItem(m.store, k) } catch (e) { }
+        this.chartContainer.classList.add('sc-lt-active', 'sc-drawing-on');
+        this._ltPaintButton();
+        this.drawCharts();
+    }
+    deactivateLineTool() {
+        const lt = this._lt; if (!lt) return;
+        lt.tool = null; lt.placing = null; lt.down = null; lt.free = null;
+        this.chartContainer.classList.remove('sc-lt-active');
+        this._ltPaintButton();
+        this.drawCharts();
+    }
+    _ltPlace(x, y) {
+        const lt = this._lt, def = this._ltDefs[lt.tool], v = this._ltView();
+        if (!def || !this.stockData.length) return;
+        const a = this._ltAnchor(x, y, v);
+        if (def.multi && lt.placing) {
+            // Path / polyline: click to add points; click the last point again (or
+            // double-click, Enter) to finish; polyline also closes on its first point.
+            const pts = lt.placing.pts, near = (q) => { const s = v.xy(q); return Math.hypot(s.x - x, s.y - y) < 6 };
+            if (near(pts[pts.length - 2])) { pts.pop(); if (pts.length >= 2) this._ltCommit(lt.placing); else this.deactivateLineTool(); this.drawCharts(); return }
+            if (def.k === 'polyline' && pts.length >= 4 && near(pts[0])) { pts.pop(); lt.placing.closed = true; this._ltCommit(lt.placing); this.drawCharts(); return }
+            pts[pts.length - 1] = a; pts.push({ ...a });
+            this.drawCharts();
+            return;
+        }
+        if (!lt.placing) {
+            if (def.n === 1) { this._ltCommit(this._ltNew(def, [a])); return }
+            lt.placing = this._ltNew(def, [a, { ...a }]);
+        } else {
+            lt.placing.pts[lt.placing.pts.length - 1] = a;
+            this._ltConstrain(lt.placing);
+            if (lt.placing.pts.length >= def.n) this._ltCommit(lt.placing);
+            else lt.placing.pts.push({ ...a });
+        }
+        this.drawCharts();
+    }
+    _ltCommit(d) {
+        const lt = this._lt;
+        lt.placing = null; lt.down = null; lt.free = null;
+        if (this._shFinish) this._shFinish(d);
+        if (this._fcFinish) this._fcFinish(d);
+        if (d.type === 'hline') this.handleDrawHorizontalLineAtPrice(d.pts[0].p);
+        else { d.id = Date.now() + Math.random(); this.lineTools.push(d); lt.sel = this.lineTools.length - 1 }
+        this.deactivateLineTool();
+        if (this._ntAfterCommit) this._ntAfterCommit(d);
+    }
+    _ltNew(def, pts) {
+        const d = { type: def.k, pts };
+        if (def.style) d.style = { ...def.style };
+        if (def.color) d.color = def.color;
+        if (def.k === 'table') d.cells = [['', '', ''], ['', '', ''], ['', '', '']];
+        return d;
+    }
+    // Some tools pin a point's time to another so the shape keeps its form.
+    _ltConstrain(d) {
+        if (d.pts.length < 3) return;
+        if (d.type === 'flattop') d.pts[2].t = d.pts[1].t;
+        if (d.type === 'disjoint') d.pts[2].t = d.pts[0].t;
+    }
+    _ltKey(e) {
+        const lt = this._lt, t = e.target;
+        if (!lt || !this.container.isConnected) return;
+        if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+        const active = StockChart._lastActiveChart;
+        if (active && active !== this && active.container && active.container.isConnected) return;
+        const key = (e.key || '').toLowerCase();
+        if ((key === 'enter' || key === 'escape') && lt.placing && this._ltDefs[lt.placing.type].multi && lt.placing.pts.length >= 3) {
+            lt.placing.pts.pop(); this._ltCommit(lt.placing); this.drawCharts();
+            e.preventDefault(); e.stopPropagation(); return;
+        }
+        if (key === 'escape') {
+            if (lt.placing || lt.tool) this.deactivateLineTool();
+            else if (lt.sel !== null) { lt.sel = null; this.drawCharts() }
+            return;
+        }
+        if ((key === 'delete' || key === 'backspace') && lt.sel !== null && !e.altKey && !e.ctrlKey && !e.metaKey) {
+            this.lineTools.splice(lt.sel, 1); lt.sel = lt.hover = null; this.drawCharts();
+            e.preventDefault(); e.stopPropagation(); return;
+        }
+        if (!e.altKey || e.ctrlKey || e.metaKey || !this.mouseIsOverChart || this.lastMouseX === null) return;
+        if (key === 'r' && e.shiftKey && this._ltDefs.rectangle) { this.activateLineTool('rectangle'); e.preventDefault(); e.stopPropagation(); return }
+        if (key === 't') { this.activateLineTool('trendline'); e.preventDefault(); e.stopPropagation(); return }
+        const one = { j: 'hray', v: 'vline', c: 'crossline' }[key];
+        if (one) {
+            const v = this._ltView();
+            this.closeOtherToolbarMenus('linetools');
+            this.lineTools.push({ type: one, id: Date.now() + Math.random(), pts: [this._ltAnchor(this.lastMouseX, this.lastMouseY, v)] });
+            lt.sel = this.lineTools.length - 1;
+            this.drawCharts();
+            e.preventDefault(); e.stopPropagation();
+        }
+    }
+    // Screen <-> data mapping for the current view. Candle i's centre is at idxToX(i).
+    _ltView() {
+        const cW = this.calculateCandleWidth(), step = cW + this.config.spacing, L = this.config.padding.left;
+        const R = this.getCanvasWidth() - this.config.padding.right, top = this.config.padding.top, H = this.getPriceChartHeight(), bottom = top + H;
+        const raw = this.calculateRawPriceRange(this.stockData, this.config.dataOffset, this.config.visibleCandles);
+        let { min, max } = this.applyVerticalScale(raw); min += this.config.priceOffset; max += this.config.priceOffset;
+        const d = this.stockData, n = d.length;
+        let bar = 60000;
+        if (n > 1) { const diffs = []; for (let i = Math.max(1, n - 30); i < n; i++) diffs.push(d[i].t - d[i - 1].t); diffs.sort((a, b) => a - b); bar = diffs[diffs.length >> 1] || bar }
+        const off = this.config.dataOffset, px = this.pixelOffset || 0;
+        const v = { cW, step, L, R, top, H, bottom, min, max, n };
+        v.idxToX = (i) => L + px + (i - off) * step + cW / 2;
+        v.xToIdx = (x) => (x - L - px - cW / 2) / step + off;
+        v.pToY = (p) => bottom - (p - min) / (max - min) * H;
+        v.yToP = (y) => min + (bottom - y) / H * (max - min);
+        v.tToIdx = (t) => {
+            if (!n) return 0;
+            if (t <= d[0].t) return (t - d[0].t) / bar;
+            if (t >= d[n - 1].t) return n - 1 + (t - d[n - 1].t) / bar;
+            let lo = 0, hi = n - 1;
+            while (hi - lo > 1) { const m = (lo + hi) >> 1; if (d[m].t <= t) lo = m; else hi = m }
+            return lo + (t - d[lo].t) / ((d[hi].t - d[lo].t) || 1);
+        };
+        v.idxToT = (i) => {
+            if (!n) return 0;
+            if (i <= 0) return d[0].t + i * bar;
+            if (i >= n - 1) return d[n - 1].t + (i - (n - 1)) * bar;
+            const lo = Math.floor(i); return d[lo].t + (i - lo) * (d[lo + 1].t - d[lo].t);
+        };
+        v.xy = (a) => ({ x: v.idxToX(v.tToIdx(a.t)), y: v.pToY(a.p) });
+        return v;
+    }
+    _ltAnchor(x, y, v) {
+        const i = Math.round(v.xToIdx(x)), snap = this._magnetSnapIdx ? this._magnetSnapIdx(i, y, v) : null;
+        return { t: v.idxToT(i), p: snap ? snap.p : v.yToP(y) };
+    }
+    // Builds what to draw for one drawing: segments, fills, handles, labels, axis tags.
+    _ltShape(d, v, state) {
+        if (this._ntTypes && this._ntTypes.has(d.type)) return this._ntShape(d, v, state || {});
+        if (this._shTypes && this._shTypes.has(d.type)) return this._shShape(d, v, state || {});
+        if (this._fbTypes && this._fbTypes.has(d.type)) return this._fbShape(d, v, state || {});
+        if (this._cpTypes && this._cpTypes.has(d.type)) return this._cpShape(d, v, state || {});
+        if (this._fcTypes && this._fcTypes.has(d.type)) return this._fcShape(d, v, state || {});
+        const P = d.pts.map(v.xy), A = d.pts, g = { segs: [], fills: [], handles: [], labels: [], arcs: [], tags: [] };
+        const far = (a, b) => { const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy); if (len < 1e-6) return { x: b.x, y: b.y }; const k = 6000 / len; return { x: b.x + dx * k, y: b.y + dy * k } };
+        const seg = (a, b, o) => g.segs.push(Object.assign({ a, b }, o || {}));
+        const fill = (pts, c) => g.fills.push({ pts, c: d.fill || c || 'rgba(41,98,255,0.12)' });
+        const handles = () => P.forEach((p, i) => g.handles.push({ x: p.x, y: p.y, a: i }));
+        const idx = A.map(a => v.tToIdx(a.t));
+        const at = (i, p) => ({ x: v.idxToX(i), y: v.pToY(p) });
+        const [a, b, c] = P;
+        switch (d.type) {
+            case 'trendline': seg(a, b); break;
+            case 'ray': seg(a, far(a, b)); break;
+            case 'extended': seg(far(b, a), far(a, b)); break;
+            case 'infoline': {
+                seg(a, b);
+                const dp = A[1].p - A[0].p, pct = A[0].p ? dp / A[0].p * 100 : 0, bars = Math.round(idx[1] - idx[0]);
+                const ms = Math.abs(A[1].t - A[0].t), m = Math.round(ms / 60000), span = m >= 1440 ? `${Math.floor(m / 1440)}d ${Math.floor(m % 1440 / 60)}h` : m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+                const deg = Math.atan2(-(b.y - a.y), b.x - a.x) * 180 / Math.PI;
+                g.labels.push({ x: b.x + 12, y: b.y + 12, lines: [`${dp >= 0 ? '+' : ''}${s8FormatChartPrice(dp)} (${dp >= 0 ? '+' : ''}${pct.toFixed(2)}%)`, `${bars} bars, ${span}`, `${deg.toFixed(1)}°`] });
+                break;
+            }
+            case 'trendangle': {
+                seg(a, b);
+                const len = Math.max(40, Math.abs(b.x - a.x));
+                seg(a, { x: a.x + len, y: a.y }, { dash: [4, 4], w: 1 });
+                const ang = Math.atan2(b.y - a.y, b.x - a.x), r = Math.min(36, Math.max(18, Math.hypot(b.x - a.x, b.y - a.y) / 3));
+                g.arcs.push({ x: a.x, y: a.y, r, s: 0, e: ang, ccw: ang < 0 });
+                const deg = -ang * 180 / Math.PI;
+                g.labels.push({ x: a.x + r + 8, y: a.y + (ang < 0 ? -22 : 4), lines: [`${deg.toFixed(1)}°`], plain: true });
+                break;
+            }
+            case 'hray': seg(a, { x: v.R + 10, y: a.y }); g.tags.push({ p: A[0].p }); break;
+            case 'vline': seg({ x: a.x, y: v.top - 10 }, { x: a.x, y: v.bottom + 10 }); g.tags.push({ t: A[0].t }); break;
+            case 'crossline': seg({ x: v.L - 10, y: a.y }, { x: v.R + 10, y: a.y }); seg({ x: a.x, y: v.top - 10 }, { x: a.x, y: v.bottom + 10 }); g.tags.push({ p: A[0].p }, { t: A[0].t }); break;
+            case 'parallel': {
+                if (!c) { seg(a, b); break }
+                const slope = idx[1] !== idx[0] ? (A[1].p - A[0].p) / (idx[1] - idx[0]) : 0;
+                const off = A[2].p - (A[0].p + slope * (idx[2] - idx[0]));
+                const a2 = at(idx[0], A[0].p + off), b2 = at(idx[1], A[1].p + off), am = at(idx[0], A[0].p + off / 2), bm = at(idx[1], A[1].p + off / 2);
+                fill([a, b, b2, a2]); seg(a, b); seg(a2, b2); seg(am, bm, { dash: [5, 4], w: 1 });
+                break;
+            }
+            case 'flattop': {
+                if (!c) { seg(a, b); break }
+                const fa = at(idx[0], A[2].p), fb = at(idx[1], A[2].p);
+                fill([a, b, fb, fa]); seg(a, b); seg(fa, fb);
+                break;
+            }
+            case 'disjoint': {
+                if (!c) { seg(a, b); break }
+                const da = at(idx[0], A[2].p), db = at(idx[1], A[2].p - (A[1].p - A[0].p));
+                fill([a, b, db, da]); seg(a, b); seg(da, db);
+                break;
+            }
+            case 'regression': {
+                const lo = Math.max(0, Math.round(Math.min(idx[0], idx[1]))), hi = Math.min(v.n - 1, Math.round(Math.max(idx[0], idx[1])));
+                if (hi - lo < 1) { seg(a, b); handles(); return g }
+                let sx = 0, sy = 0, sxx = 0, sxy = 0; const m = hi - lo + 1;
+                for (let i = lo; i <= hi; i++) { const y = this.stockData[i].close; sx += i; sy += y; sxx += i * i; sxy += i * y }
+                const slope = (m * sxy - sx * sy) / ((m * sxx - sx * sx) || 1), icp = (sy - slope * sx) / m;
+                let ss = 0; for (let i = lo; i <= hi; i++) { const r = this.stockData[i].close - (icp + slope * i); ss += r * r }
+                const sd = Math.sqrt(ss / m) * 2, fit = (i) => icp + slope * i;
+                const c0 = at(idx[0], fit(idx[0])), c1 = at(idx[1], fit(idx[1]));
+                const u0 = at(idx[0], fit(idx[0]) + sd), u1 = at(idx[1], fit(idx[1]) + sd), l0 = at(idx[0], fit(idx[0]) - sd), l1 = at(idx[1], fit(idx[1]) - sd);
+                fill([u0, u1, l1, l0]); seg(u0, u1); seg(l0, l1); seg(c0, c1, { c: '#f23645', dash: [5, 4] });
+                g.handles.push({ x: c0.x, y: c0.y, a: 0 }, { x: c1.x, y: c1.y, a: 1 });
+                return g;
+            }
+            case 'pitchfork': case 'schiff': case 'modschiff': case 'inside': {
+                if (!c) { seg(a, b); break }
+                const mi = (idx[1] + idx[2]) / 2, mp = (A[1].p + A[2].p) / 2, m = at(mi, mp);
+                let o = a;
+                if (d.type === 'schiff') o = at(idx[0], (A[0].p + A[1].p) / 2);
+                if (d.type === 'modschiff') o = at((idx[0] + idx[1]) / 2, (A[0].p + A[1].p) / 2);
+                if (o !== a) seg(a, o, { dash: [4, 4], w: 1 });
+                const dx = m.x - o.x, dy = m.y - o.y, len = Math.hypot(dx, dy) || 1, k = 6000 / len;
+                const ext = (p) => ({ x: p.x + dx * k, y: p.y + dy * k });
+                // Inside: the tines start halfway between each outer point and the median.
+                const t1 = d.type === 'inside' ? { x: (b.x + m.x) / 2, y: (b.y + m.y) / 2 } : b;
+                const t2 = d.type === 'inside' ? { x: (c.x + m.x) / 2, y: (c.y + m.y) / 2 } : c;
+                fill([t1, ext(t1), ext(m), m], 'rgba(41,98,255,0.10)'); fill([m, ext(m), ext(t2), t2], 'rgba(255,152,0,0.10)');
+                seg(o, ext(m), { c: '#f23645' }); seg(t1, ext(t1)); seg(t2, ext(t2)); seg(b, c);
+                break;
+            }
+        }
+        handles();
+        return g;
+    }
+    _ltHit(x, y) {
+        if (!this._ltCache || !this.lineTools || !this.lineTools.length) return null;
+        const v = { top: this.config.padding.top, bottom: this.config.padding.top + this.getPriceChartHeight() };
+        if (y < v.top - 8 || y > v.bottom + 8) return null;
+        const inPoly = (pts) => { let inside = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const a = pts[i], b = pts[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / ((b.y - a.y) || 1e-9) + a.x) inside = !inside } return inside };
+        for (let i = this.lineTools.length - 1; i >= 0; i--) {
+            const g = this._ltCache.get(this.lineTools[i]); if (!g) continue;
+            for (const h of g.handles) if (Math.hypot(x - h.x, y - h.y) <= 7) return { i, h: h.a };
+            for (const s of g.segs) if (this.distanceToLine(x, y, s.a.x, s.a.y, s.b.x, s.b.y) <= 6) return { i, h: -1 };
+            if (g.polys) for (const q of g.polys) {
+                const tol = Math.max(6, (q.w || 2) / 2 + 2), n = q.pts.length;
+                if (n === 1 && Math.hypot(x - q.pts[0].x, y - q.pts[0].y) <= tol) return { i, h: -1 };
+                for (let k = 1; k < n + (q.closed ? 1 : 0); k++) { const s = q.pts[k - 1], t = q.pts[k % n]; if (this.distanceToLine(x, y, s.x, s.y, t.x, t.y) <= tol) return { i, h: -1 } }
+            }
+            for (const f of g.fills) if (inPoly(f.pts)) return { i, h: -1 };
+            if (g.hit) for (const r of g.hit) if (r.pts ? inPoly(r.pts) : (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h)) return { i, h: -1 };
+        }
+        return null;
+    }
+    drawLineTools(ctx) {
+        const lt = this._lt; if (!lt || !Array.isArray(this.lineTools)) return;
+        this._ltCache = new Map();
+        if (this._syncChartLogo) this._syncChartLogo();
+        const list = this.lineTools.map((d, i) => ({ d, i }));
+        if (lt.placing) list.push({ d: lt.placing, i: -1 });
+        if (!list.length || !this.stockData.length) { if (this._ntSyncUi) this._ntSyncUi(); return }
+        const v = this._ltView(), dark = !!this.config.darkMode, tags = [];
+        ctx.save();
+        ctx.beginPath(); ctx.rect(v.L, v.top, v.R - v.L, v.H); ctx.clip();
+        list.forEach(({ d, i }) => {
+            const sel = i === -1 || i === lt.sel, hov = i === lt.hover;
+            const g = this._ltShape(d, v, { sel, hov }); if (!g) return;
+            if (i >= 0) this._ltCache.set(d, g);
+            // Strokes with no width of their own are the drawing's main lines: they take its width and line style.
+            const color = d.color || '#2962ff', dw = d.w || 2, dd = d.dash === 'dashed' ? [7, 5] : d.dash === 'dotted' ? [2, 3] : [];
+            if (!d.noFill) g.fills.forEach(f => { ctx.fillStyle = f.c; ctx.beginPath(); f.pts.forEach((p, j) => j ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.closePath(); ctx.fill() });
+            g.segs.forEach(s => { ctx.strokeStyle = s.c || color; ctx.lineWidth = (s.w || dw) + (hov && !sel ? 0.6 : 0); ctx.setLineDash(s.dash || (s.w ? [] : dd)); ctx.beginPath(); ctx.moveTo(s.a.x, s.a.y); ctx.lineTo(s.b.x, s.b.y); ctx.stroke() });
+            ctx.setLineDash([]);
+            // Polylines draw as one path so joins are smooth and see-through strokes don't double up.
+            if (g.polys) g.polys.forEach(q => {
+                ctx.save(); ctx.globalAlpha = q.a == null ? 1 : q.a; ctx.strokeStyle = q.c || color;
+                ctx.lineWidth = (q.w || dw) + (hov && !sel && q.a == null ? 0.6 : 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                ctx.setLineDash(q.dash || (q.w ? [] : dd));
+                ctx.beginPath(); q.pts.forEach((p, j) => j ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+                if (q.pts.length === 1) ctx.lineTo(q.pts[0].x + 0.01, q.pts[0].y);
+                if (q.closed) ctx.closePath(); ctx.stroke(); ctx.restore();
+            });
+            g.arcs.forEach(r => { ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, r.s, r.e, r.ccw); ctx.stroke() });
+            if (g.draws) g.draws.forEach(fn => { ctx.save(); fn(ctx); ctx.restore() });
+            if (g.frame && sel && i >= 0) { ctx.strokeStyle = '#2962ff'; ctx.lineWidth = 1; ctx.strokeRect(g.frame.x - 0.5, g.frame.y - 0.5, g.frame.w + 1, g.frame.h + 1) }
+            g.labels.forEach(lb => this._ltLabel(ctx, lb, color, dark, v));
+            if ((sel || hov) && !d.locked) g.handles.forEach(h => { ctx.beginPath(); ctx.arc(h.x, h.y, 5, 0, Math.PI * 2); ctx.fillStyle = dark ? '#131722' : '#fff'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = color; ctx.stroke() });
+            g.tags.forEach(t => tags.push(Object.assign({ color }, t)));
+        });
+        const hint = this._magnetHint;
+        if (hint && (lt.placing || (lt.drag && lt.drag.h >= 0))) {
+            ctx.strokeStyle = '#2962ff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(hint.x, hint.y, 7, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.restore();
+        tags.forEach(t => this._ltTag(ctx, t, v));
+        if (this._ntSyncUi) this._ntSyncUi();
+    }
+    _ltLabel(ctx, lb, color, dark, v) {
+        ctx.save();
+        ctx.font = '12px "Open Sans", Arial, sans-serif'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+        const pad = 6, lh = 16, w = Math.max(...lb.lines.map(s => ctx.measureText(s).width)) + pad * 2, h = lb.lines.length * lh + pad * 2 - 2;
+        const x = Math.max(v.L + 2, Math.min(lb.x, v.R - w - 2)), y = Math.max(v.top + 2, Math.min(lb.y, v.bottom - h - 2));
+        if (!lb.plain) {
+            ctx.fillStyle = dark ? 'rgba(30,34,45,0.94)' : 'rgba(255,255,255,0.96)'; ctx.strokeStyle = color; ctx.lineWidth = 1;
+            this._crosshairLabelPath(ctx, x, y, w, h, 4); ctx.fill(); ctx.stroke();
+        }
+        ctx.fillStyle = dark ? '#d1d4dc' : '#131722';
+        lb.lines.forEach((s, k) => ctx.fillText(s, x + pad, y + pad + k * lh));
+        ctx.restore();
+    }
+    _ltTag(ctx, t, v) {
+        ctx.save();
+        ctx.font = '12px Arial'; ctx.textBaseline = 'middle';
+        const pad = 5, h = 20;
+        ctx.fillStyle = t.color;
+        if (t.p !== undefined) {
+            const y = v.pToY(t.p); if (y < v.top || y > v.bottom) { ctx.restore(); return }
+            const text = s8FormatChartPrice(t.p), w = ctx.measureText(text).width + pad * 2;
+            this._crosshairLabelPath(ctx, v.R, y - h / 2, w, h, 3); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText(text, v.R + pad, y);
+        } else {
+            const x = v.idxToX(v.tToIdx(t.t)); if (x < v.L || x > v.R) { ctx.restore(); return }
+            const text = this.formatDetailTimestamp(t.t, this.timeframe), w = ctx.measureText(text).width + pad * 2;
+            this._crosshairLabelPath(ctx, x - w / 2, v.bottom + 4, w, h, 3); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(text, x, v.bottom + 4 + h / 2);
+        }
+        ctx.restore();
+    }
+    // ---- Fibonacci / Gann ------------------------------------------------------------
+    // Same engine as the line tools. Level sets and colours follow TradingView's
+    // defaults. Retracement runs 1 at the first click to 0 at the second.
+    static fibToolDefs() {
+        return [
+            { group: 'Fibonacci' },
+            { k: 'fibret', label: 'Fib retracement', n: 2, key: 'Alt + F' },
+            { k: 'fibext', label: 'Trend-based fib extension', n: 3 },
+            { k: 'fibchannel', label: 'Fib channel', n: 3 },
+            { k: 'fibtz', label: 'Fib time zone', n: 2 },
+            { k: 'fibfan', label: 'Fib speed resistance fan', n: 2 },
+            { k: 'fibtime', label: 'Trend-based fib time', n: 3 },
+            { k: 'fibcircles', label: 'Fib circles', n: 2 },
+            { k: 'fibspiral', label: 'Fib spiral', n: 2 },
+            { k: 'fibarcs', label: 'Fib speed resistance arcs', n: 2 },
+            { k: 'fibwedge', label: 'Fib wedge', n: 3 },
+            { k: 'pitchfan', label: 'Pitchfan', n: 3 },
+            { group: 'Gann' },
+            { k: 'gannbox', label: 'Gann box', n: 2 },
+            { k: 'gannsqfixed', label: 'Gann square fixed', n: 2 },
+            { k: 'gannsquare', label: 'Gann square', n: 2 },
+            { k: 'gannfan', label: 'Gann fan', n: 2 }
+        ];
+    }
+    static fibToolIcons() {
+        const s = (d) => `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+        const o = (x, y) => `<circle cx="${x}" cy="${y}" r="2"/>`;
+        const box = '<rect x="4.5" y="4.5" width="19" height="19"/>';
+        return {
+            fibret: s('<path d="M3 6.5h15M3 11.5h22M3 16.5h22M9 21.5h16"/>' + o(5.5, 21.5) + o(20.5, 6.5)),
+            fibext: s('<path d="M6.6 11.4 11.4 6.6M3 16h22M3 20h22M3 24h22"/>' + o(5, 13) + o(13, 5)),
+            fibchannel: s('<path d="M7.7 11 19.3 5M4 18 24 8M4 24l20-10"/>' + o(6, 12) + o(21, 4)),
+            fibtz: s('<path d="M5 3v8M5 15v10M10 3v22M16 3v22M24 3v22"/>' + o(5, 13)),
+            fibfan: s('<path d="M6.4 21.6 24 4M7 23h17M5 21V4M7 22l17-9M6 21.5 15 4"/>' + o(5, 23)),
+            fibtime: s('<path d="M5 11.5 7 20M9.5 20.5 12.5 6.5M16 3v22M20 3v22M24.5 3v22"/>' + o(4.5, 9.5) + o(8.5, 22.5) + o(13, 4.5)),
+            fibcircles: s('<circle cx="14" cy="14" r="10.5"/><circle cx="14" cy="14" r="7"/><circle cx="14" cy="14" r="3.5"/>'),
+            fibspiral: s('<path d="M14.5 15.5a1.6 1.6 0 0 1-1.8-1.8 3 3 0 0 1 3.4-2.6 4.6 4.6 0 0 1 3.7 5.2 7 7 0 0 1-8 5.5 9.5 9.5 0 0 1-7.4-9.5"/>' + o(14.5, 15.5)),
+            fibarcs: s('<path d="M3 11a11 11 0 0 0 22 0M7 11a7 7 0 0 0 14 0M11 11a3 3 0 0 0 6 0"/>' + o(14, 11)),
+            fibwedge: s('<path d="M5 21V4M7 23h17M5 13a10 10 0 0 1 10 10M5 8a15 15 0 0 1 15 15"/>' + o(5, 23)),
+            pitchfan: s('<path d="M6.4 21.6 22 6M7 22.2l17-9M6 21.4 16 4M7.2 22.8 24 19"/>' + o(5, 23)),
+            gannbox: s(box + '<path d="M9.5 4.5v19M14 4.5v19M18.5 4.5v19M4.5 9.5h19M4.5 14h19M4.5 18.5h19"/>'),
+            gannsqfixed: s(box + '<path d="M4.5 23.5l19-19M4.5 4.5l19 19M4.5 23.5 23.5 14M4.5 23.5 14 4.5"/>' + o(4.5, 23.5)),
+            gannsquare: s(box + '<path d="M4.5 23.5l19-19M4.5 4.5l19 19M4.5 14a9.5 9.5 0 0 1 9.5 9.5"/>'),
+            gannfan: s('<path d="M6.4 21.6 24 4M6 21.5 13 4M7 22.2 24 15M6.2 21.2 18 4M7.2 22.8 24 10"/>' + o(5, 23))
+        };
+    }
+    setupFibTools() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        if (!area || !this._lt) return;
+        const defs = StockChart.fibToolDefs();
+        this._fbTypes = new Set(defs.filter(d => d.k).map(d => d.k));
+        // The new menu takes the old Fibonacci button's place.
+        const old = this.fibonacciToolButton;
+        const m = this._ltMakeMenu({ defs, icons: StockChart.fibToolIcons(), store: 'sc-fibtool-last', title: 'Fibonacci and Gann', after: old || null });
+        if (old) old.style.display = 'none';
+        this.fibToolButton = m.btn;
+    }
+    static fibColor(r) {
+        return ({ 0: '#787b86', 0.236: '#f23645', 0.382: '#ff9800', 0.5: '#4caf50', 0.618: '#089981', 0.786: '#00bcd4', 1: '#787b86', 1.618: '#2962ff', 2.618: '#f23645', 3.618: '#9c27b0', 4.236: '#e91e63' })[r] || '#787b86';
+    }
+    _fbShape(d, v, state) {
+        const g = { segs: [], fills: [], handles: [], labels: [], arcs: [], tags: [], draws: [], polys: [], hit: [] };
+        const P = d.pts.map(v.xy), A = d.pts, [a, b, c] = P, idx = A.map(q => v.tToIdx(q.t));
+        const pt = (x, y) => ({ x, y }), at = (i, p) => pt(v.idxToX(i), v.pToY(p));
+        const col = StockChart.fibColor, tint = (cl, al) => this._shTint(cl, al);
+        const LV = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.618, 2.618, 3.618, 4.236];
+        const CYCLE = ['#787b86', '#f23645', '#ff9800', '#4caf50', '#089981', '#00bcd4', '#2962ff', '#9c27b0', '#e91e63'];
+        const gray = '#787b86', dash = [4, 4];
+        const seg = (p, q, cl, o) => g.segs.push(Object.assign({ a: p, b: q, c: cl, w: 1 }, o || {}));
+        const trend = (...pts) => { for (let i = 1; i < pts.length; i++) seg(pts[i - 1], pts[i], gray, { dash }) };
+        const text = (x, y, s, cl, al) => g.draws.push(ctx => { ctx.font = '11px "Open Sans", Arial, sans-serif'; ctx.fillStyle = cl; ctx.textAlign = al || 'left'; ctx.textBaseline = 'middle'; ctx.fillText(s, x, y) });
+        const far = (o, q) => { const dx = q.x - o.x, dy = q.y - o.y, L = Math.hypot(dx, dy); if (L < 1e-6) return q; const k = 6000 / L; return pt(q.x + dx * k, q.y + dy * k) };
+        const ray = (o, q, cl) => seg(o, far(o, q), cl);
+        const handles = () => P.forEach((q, i) => g.handles.push({ x: q.x, y: q.y, a: i }));
+        const done = () => { handles(); return g };
+        const line = () => { if (b) trend(a, b); return done() };
+        const ringPts = (cx, cy, rx, ry, s0, s1, n) => { const out = []; for (let k = 0; k <= n; k++) { const t = s0 + (s1 - s0) * k / n; out.push(pt(cx + rx * Math.cos(t), cy + ry * Math.sin(t))) } return out };
+        const fmt = (r) => String(r);
+        // Horizontal price levels between x0 and x1 with bands and left-hand labels.
+        const levels = (x0, x1, priceAt) => {
+            const L = Math.min(x0, x1), R = Math.max(x0, x1), left = L - 6 > v.L + 110;
+            LV.forEach((r, i) => {
+                const p = priceAt(r), y = v.pToY(p), cl = col(r);
+                if (i) { const yp = v.pToY(priceAt(LV[i - 1])); g.fills.push({ pts: [pt(L, yp), pt(R, yp), pt(R, y), pt(L, y)], c: tint(cl, 0.1) }) }
+                seg(pt(L, y), pt(R, y), cl);
+                text(left ? L - 6 : R + 6, y, `${fmt(r)} (${s8FormatChartPrice(p)})`, cl, left ? 'right' : 'left');
+            });
+        };
+        // Vertical time lines at bar positions, labelled along the bottom.
+        const vlines = (list) => list.forEach(([i, lab, cl]) => { const x = v.idxToX(i); seg(pt(x, v.top - 10), pt(x, v.bottom + 10), cl); text(x + 4, v.bottom - 10, lab, cl) });
+        switch (d.type) {
+            case 'fibret':
+                if (!b) return line();
+                levels(a.x, b.x, (r) => A[1].p + (A[0].p - A[1].p) * r);
+                trend(a, b); return done();
+            case 'fibext': {
+                if (!c) return line();
+                const span = Math.max(40, Math.abs(b.x - a.x));
+                levels(c.x, c.x + span, (r) => A[2].p + (A[1].p - A[0].p) * r);
+                trend(a, b, c); return done();
+            }
+            case 'fibchannel': {
+                if (!c) return line();
+                const slope = idx[1] !== idx[0] ? (A[1].p - A[0].p) / (idx[1] - idx[0]) : 0;
+                const off = A[2].p - (A[0].p + slope * (idx[2] - idx[0]));
+                let prev = null;
+                LV.forEach(r => {
+                    const p0 = at(idx[0], A[0].p + off * r), p1 = at(idx[1], A[1].p + off * r), cl = col(r);
+                    if (prev) g.fills.push({ pts: [prev[0], prev[1], p1, p0], c: tint(cl, 0.1) });
+                    seg(p0, p1, cl); text(Math.min(p0.x, p1.x) - 6, p0.x < p1.x ? p0.y : p1.y, fmt(r), cl, 'right');
+                    prev = [p0, p1];
+                });
+                return done();
+            }
+            case 'fibtz': {
+                if (!b) return line();
+                const step = idx[1] - idx[0];
+                if (Math.abs(step) < 0.5) return line();
+                vlines([0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144].map((n, k) => [idx[0] + step * n, String(n), CYCLE[k % CYCLE.length]]));
+                trend(a, b); return done();
+            }
+            case 'fibtime': {
+                if (!c) return line();
+                const step = idx[1] - idx[0];
+                vlines([0, 0.382, 0.5, 0.618, 1, 1.382, 1.618, 2, 2.382, 2.618, 3, 3.618, 4.236].map((r, k) => [idx[2] + step * r, fmt(r), CYCLE[k % CYCLE.length]]));
+                trend(a, b, c); return done();
+            }
+            case 'fibfan': {
+                if (!b) return line();
+                const FL = [0, 0.25, 0.382, 0.5, 0.618, 0.75, 1], fc = (k) => CYCLE[k % CYCLE.length];
+                let prevP = null;
+                FL.forEach((r, k) => {
+                    const pp = pt(b.x, a.y + (b.y - a.y) * r), tp = pt(a.x + (b.x - a.x) * r, b.y);
+                    if (prevP) g.fills.push({ pts: [a, far(a, prevP), far(a, pp)], c: tint(fc(k), 0.07) });
+                    ray(a, pp, fc(k)); if (r < 1) ray(a, tp, fc(k));
+                    seg(pt(a.x, pp.y), pt(b.x, pp.y), tint(gray, 0.5)); seg(pt(tp.x, a.y), pt(tp.x, b.y), tint(gray, 0.5));
+                    text(b.x + 4, pp.y, fmt(r), fc(k)); text(tp.x, b.y + (b.y > a.y ? 10 : -10), fmt(r), fc(k), 'center');
+                    prevP = pp;
+                });
+                return done();
+            }
+            case 'fibcircles': {
+                if (!b) return line();
+                const R = Math.hypot(b.x - a.x, b.y - a.y), CL = [0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.618, 2.618, 3.618, 4.236];
+                let prev = null;
+                CL.forEach(r => {
+                    const ring = ringPts(a.x, a.y, R * r, R * r, 0, Math.PI * 2, 96), cl = col(r);
+                    g.fills.push({ pts: prev ? ring.concat(prev.slice().reverse()) : ring, c: tint(cl, 0.08) });
+                    g.polys.push({ pts: ring, closed: true, w: 1, c: cl });
+                    text(a.x + R * r + 3, a.y - 6, fmt(r), cl);
+                    prev = ring;
+                });
+                trend(a, b); return done();
+            }
+            case 'fibspiral': {
+                // Golden spiral around a, passing through b, widening by phi every quarter turn.
+                if (!b) return line();
+                const R = Math.hypot(b.x - a.x, b.y - a.y), t0 = Math.atan2(b.y - a.y, b.x - a.x), phi = 1.618033988749895, pts = [];
+                if (R < 2) return line();
+                for (let k = 0; k <= 480; k++) { const t = -10 * Math.PI + k * (12.5 * Math.PI / 480), r = R * Math.pow(phi, t / (Math.PI / 2)); pts.push(pt(a.x + r * Math.cos(t0 - t), a.y + r * Math.sin(t0 - t))) }
+                g.polys.push({ pts, w: 1.5, c: '#f23645' });
+                seg(a, b, gray, { dash }); return done();
+            }
+            case 'fibarcs': {
+                // Arcs round the second point, on the side the move came from.
+                if (!b) return line();
+                const R = Math.hypot(b.x - a.x, b.y - a.y), down = a.y > b.y, AL = [0.236, 0.382, 0.5, 0.618, 0.786, 1];
+                let prev = null;
+                AL.forEach(r => {
+                    const arc = ringPts(b.x, b.y, R * r, R * r, down ? 0 : Math.PI, down ? Math.PI : Math.PI * 2, 64), cl = col(r);
+                    g.fills.push({ pts: prev ? arc.concat(prev.slice().reverse()) : arc, c: tint(cl, 0.08) });
+                    g.polys.push({ pts: arc, w: 1, c: cl });
+                    text(b.x + R * r + 3, b.y + (down ? 8 : -8), fmt(r), cl);
+                    prev = arc;
+                });
+                trend(a, b); return done();
+            }
+            case 'fibwedge': {
+                if (!c) return line();
+                const R = Math.hypot(b.x - a.x, b.y - a.y), s0 = Math.atan2(b.y - a.y, b.x - a.x);
+                let s1 = Math.atan2(c.y - a.y, c.x - a.x), dd = s1 - s0;
+                while (dd > Math.PI) dd -= 2 * Math.PI; while (dd < -Math.PI) dd += 2 * Math.PI; s1 = s0 + dd;
+                const WL = [0.236, 0.382, 0.5, 0.618, 0.786, 1];
+                let prev = null;
+                WL.forEach(r => {
+                    const arc = ringPts(a.x, a.y, R * r, R * r, s0, s1, 48), cl = col(r);
+                    g.fills.push({ pts: prev ? arc.concat(prev.slice().reverse()) : [a].concat(arc), c: tint(cl, 0.1) });
+                    g.polys.push({ pts: arc, w: 1, c: cl });
+                    const e = arc[arc.length - 1]; text(e.x + 4, e.y, fmt(r), cl);
+                    prev = arc;
+                });
+                seg(a, b, gray); seg(a, pt(a.x + R * Math.cos(s1), a.y + R * Math.sin(s1)), gray);
+                return done();
+            }
+            case 'pitchfan': {
+                // Rays from the pivot through levels on the b-c span, median in red.
+                if (!c) return line();
+                const m = pt((b.x + c.x) / 2, (b.y + c.y) / 2), PL = [-1, -0.618, -0.5, -0.382, 0, 0.382, 0.5, 0.618, 1];
+                let prev = null;
+                PL.forEach(r => {
+                    const q = pt(m.x + (c.x - m.x) * r, m.y + (c.y - m.y) * r), cl = r === 0 ? '#f23645' : col(Math.abs(r));
+                    if (prev) g.fills.push({ pts: [a, far(a, prev), far(a, q)], c: tint(cl, 0.07) });
+                    ray(a, q, cl); prev = q;
+                });
+                seg(b, c, gray, { dash }); return done();
+            }
+            case 'gannbox': {
+                if (!b) return line();
+                const GL = [0, 0.25, 0.382, 0.5, 0.618, 0.75, 1], x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
+                GL.forEach((r, k) => {
+                    const cl = CYCLE[k % CYCLE.length], x = a.x + (b.x - a.x) * r, y = a.y + (b.y - a.y) * r;
+                    if (k) { const xp = a.x + (b.x - a.x) * GL[k - 1], yp = a.y + (b.y - a.y) * GL[k - 1]; g.fills.push({ pts: [pt(x0, yp), pt(x1, yp), pt(x1, y), pt(x0, y)], c: tint(cl, 0.06) }); g.fills.push({ pts: [pt(xp, y0), pt(x, y0), pt(x, y1), pt(xp, y1)], c: tint(cl, 0.06) }) }
+                    seg(pt(x, y0), pt(x, y1), cl); seg(pt(x0, y), pt(x1, y), cl);
+                    text(x, y0 - 8, fmt(r), cl, 'center'); text(x0 - 4, y, fmt(r), cl, 'right');
+                });
+                return done();
+            }
+            case 'gannsquare': case 'gannsqfixed': {
+                if (!b) return line();
+                // Fixed keeps the box square on screen; the second point only sets size and direction.
+                const e = d.type === 'gannsqfixed' ? pt(b.x, a.y + Math.sign(b.y - a.y || -1) * Math.abs(b.x - a.x)) : b;
+                const dx = e.x - a.x, dy = e.y - a.y, Q = [0.25, 0.5, 0.75];
+                g.fills.push({ pts: [a, pt(e.x, a.y), e, pt(a.x, e.y)], c: tint('#2962ff', 0.05) });
+                [0, 1].forEach(t => { seg(pt(a.x + dx * t, a.y), pt(a.x + dx * t, e.y), gray); seg(pt(a.x, a.y + dy * t), pt(e.x, a.y + dy * t), gray) });
+                Q.forEach(t => { seg(pt(a.x + dx * t, a.y), pt(a.x + dx * t, e.y), tint(gray, 0.45)); seg(pt(a.x, a.y + dy * t), pt(e.x, a.y + dy * t), tint(gray, 0.45)) });
+                seg(a, e, '#2962ff'); seg(pt(e.x, a.y), pt(a.x, e.y), '#2962ff');
+                Q.forEach((t, k) => { seg(a, pt(e.x, a.y + dy * t), CYCLE[k + 1]); seg(a, pt(a.x + dx * t, e.y), CYCLE[k + 1]) });
+                // Quarter arcs from the first corner, spanning the box's quadrant.
+                const s0 = dx >= 0 ? 0 : Math.PI;
+                const sweep = ((dx >= 0) === (dy >= 0) ? 1 : -1) * Math.PI / 2;
+                [0.25, 0.5, 0.75, 1].forEach((t, k) => g.polys.push({ pts: ringPts(a.x, a.y, Math.abs(dx) * t, Math.abs(dy) * t, s0, s0 + sweep, 32), w: 1, c: CYCLE[(k + 4) % CYCLE.length] }));
+                g.handles.push({ x: a.x, y: a.y, a: 0 }, { x: e.x, y: e.y, a: 1 });
+                return g;
+            }
+            case 'gannfan': {
+                if (!b) return line();
+                const dx = b.x - a.x, dy = b.y - a.y, R = [[1, 8], [1, 4], [1, 3], [1, 2], [1, 1], [2, 1], [3, 1], [4, 1], [8, 1]];
+                let prev = null;
+                R.forEach(([t, p], k) => {
+                    const mx = Math.max(t, p), q = pt(a.x + dx * t / mx, a.y + dy * p / mx), cl = CYCLE[k % CYCLE.length];
+                    if (prev) g.fills.push({ pts: [a, far(a, prev), far(a, q)], c: tint(cl, 0.07) });
+                    // Labels sit at the same distance along every ray, so the steep ones don't stack up.
+                    const L = Math.hypot(dx, dy) * 1.1, ql = Math.hypot(q.x - a.x, q.y - a.y) || 1;
+                    ray(a, q, cl); text(a.x + (q.x - a.x) / ql * L + 4, a.y + (q.y - a.y) / ql * L, `${t}/${p}`, cl);
+                    prev = q;
+                });
+                return done();
+            }
+        }
+        return line();
+    }
+    // ---- Chart patterns / Elliott waves / Cycles ------------------------------------
+    // Same engine as the line tools: click each point in turn. Harmonic patterns show
+    // their leg ratios; Elliott waves label each point above a peak or below a trough;
+    // cycles repeat across the whole chart.
+    static patternToolDefs() {
+        return [
+            { group: 'Chart patterns' },
+            { k: 'xabcd', label: 'XABCD pattern', n: 5 },
+            { k: 'cypher', label: 'Cypher pattern', n: 5 },
+            { k: 'headshoulders', label: 'Head and shoulders', n: 7 },
+            { k: 'abcd', label: 'ABCD pattern', n: 4 },
+            { k: 'trianglepat', label: 'Triangle pattern', n: 4 },
+            { k: 'threedrives', label: 'Three drives pattern', n: 7 },
+            { group: 'Elliott waves' },
+            { k: 'ewimpulse', label: 'Elliott impulse wave (1·2·3·4·5)', n: 6, marks: ['0', '1', '2', '3', '4', '5'] },
+            { k: 'ewcorrection', label: 'Elliott correction wave (A·B·C)', n: 4, marks: ['0', 'A', 'B', 'C'] },
+            { k: 'ewtriangle', label: 'Elliott triangle wave (A·B·C·D·E)', n: 6, marks: ['0', 'A', 'B', 'C', 'D', 'E'] },
+            { k: 'ewdouble', label: 'Elliott double combo wave (W·X·Y)', n: 4, marks: ['0', 'W', 'X', 'Y'] },
+            { k: 'ewtriple', label: 'Elliott triple combo wave (W·X·Y·X·Z)', n: 6, marks: ['0', 'W', 'X', 'Y', 'X', 'Z'] },
+            { group: 'Cycles' },
+            { k: 'cycliclines', label: 'Cyclic lines', n: 2 },
+            { k: 'timecycles', label: 'Time cycles', n: 2 },
+            { k: 'sineline', label: 'Sine line', n: 2 }
+        ];
+    }
+    static patternToolIcons() {
+        const s = (d) => `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+        const link = (pts, closed, r) => {
+            r = r || 1.8; let d = '';
+            const n = pts.length, m = closed ? n : n - 1;
+            for (let i = 0; i < m; i++) {
+                const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % n], L = Math.hypot(x2 - x1, y2 - y1), k = (r + 0.6) / L, ux = (x2 - x1) * k, uy = (y2 - y1) * k;
+                d += `M${(x1 + ux).toFixed(1)} ${(y1 + uy).toFixed(1)}L${(x2 - ux).toFixed(1)} ${(y2 - uy).toFixed(1)}`;
+            }
+            return `<path d="${d}"/>` + pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="${r}"/>`).join('');
+        };
+        const t = (x, y, c) => `<text x="${x}" y="${y}" font-size="6.5" font-family="Arial" fill="currentColor" stroke="none" text-anchor="middle">${c}</text>`;
+        const wave = (pts, a, b) => s(link(pts, false, 1.5) + t(pts[1][0], pts[1][1] - 3.5, a) + t(pts[pts.length - 1][0], pts[pts.length - 1][1] - 3.5, b));
+        return {
+            xabcd: s(link([[5, 22], [8, 6], [14, 15], [20, 7], [23, 22]])),
+            cypher: s(link([[4, 18], [9, 5], [12, 13], [21, 4], [17, 23]])),
+            headshoulders: s(link([[3, 22], [7, 12], [10, 17], [14, 5], [18, 17], [21, 12], [25, 22]], false, 1.5)),
+            abcd: s(link([[5, 21], [10, 6], [17, 14], [23, 4]])),
+            trianglepat: s(link([[4, 5], [23, 13], [6, 22], [17, 15]])),
+            threedrives: s(link([[3, 23], [6, 15], [10, 19], [14, 10], [18, 14], [22, 4], [25, 9]], false, 1.5)),
+            ewimpulse: wave([[3, 23], [7, 16], [11, 20], [16, 11], [20, 15], [25, 8]], '1', '5'),
+            ewcorrection: wave([[4, 22], [9, 12], [15, 18], [22, 9]], 'A', 'C'),
+            ewtriangle: wave([[3, 23], [7, 13], [11, 20], [16, 15], [20, 19], [25, 14]], 'A', 'E'),
+            ewdouble: wave([[4, 22], [9, 12], [15, 18], [22, 9]], 'W', 'Y'),
+            ewtriple: wave([[3, 23], [7, 13], [11, 20], [16, 15], [20, 19], [25, 10]], 'W', 'Z'),
+            cycliclines: s('<path d="M5 3v8M5 15v10M11 3v22M17 3v22M23 3v8M23 15v10"/><circle cx="5" cy="13" r="2"/><circle cx="23" cy="13" r="2"/>'),
+            timecycles: s('<path d="M4.5 16a4.5 4.5 0 0 1 9 0M14.5 16a4.5 4.5 0 0 1 9 0"/><circle cx="4.5" cy="18" r="1.8"/><circle cx="14" cy="18" r="1.8"/><circle cx="23.5" cy="18" r="1.8"/>'),
+            sineline: s('<path d="M4.5 17C7 7 10 7 13 14s6 7 9 0"/><circle cx="4" cy="19" r="1.8"/><circle cx="23.5" cy="11" r="1.8"/>')
+        };
+    }
+    setupPatternTools() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        if (!area || !this._lt) return;
+        const defs = StockChart.patternToolDefs();
+        this._cpTypes = new Set(defs.filter(d => d.k).map(d => d.k));
+        const m = this._ltMakeMenu({ defs, icons: StockChart.patternToolIcons(), store: 'sc-patterntool-last', title: 'Patterns, Elliott waves and cycles', after: this.fibToolButton || null });
+        this.patternToolButton = m.btn;
+    }
+    _cpShape(d, v, state) {
+        const g = { segs: [], fills: [], handles: [], labels: [], arcs: [], tags: [], draws: [], polys: [], hit: [] };
+        const P = d.pts.map(v.xy), A = d.pts, n = P.length, idx = A.map(q => v.tToIdx(q.t));
+        const color = d.color || '#2962ff', tint = d.fill || this._shTint(color, 0.15), dark = !!this.config.darkMode, gray = '#787b86';
+        const pt = (x, y) => ({ x, y });
+        const seg = (p, q, o) => g.segs.push(Object.assign({ a: p, b: q }, o || {}));
+        const dashed = (p, q) => seg(p, q, { dash: [4, 4], w: 1 });
+        const zig = () => { if (n > 1) g.polys.push({ pts: P }) };
+        // Text with a halo in the chart's background colour so it reads over candles.
+        const text = (x, y, s, o) => g.draws.push(ctx => {
+            o = o || {};
+            ctx.font = `${o.bold === false ? '' : 'bold '}${o.size || 12}px "Open Sans", Arial, sans-serif`; ctx.textAlign = o.align || 'center'; ctx.textBaseline = 'middle';
+            ctx.lineWidth = 3; ctx.strokeStyle = dark ? '#000' : '#fff'; ctx.lineJoin = 'round'; ctx.strokeText(s, x, y);
+            ctx.fillStyle = o.c || color; ctx.fillText(s, x, y);
+        });
+        // A point's label goes above it if it's a peak, below if it's a trough.
+        const isHigh = (i) => i > 0 ? A[i].p >= A[i - 1].p : (n > 1 ? A[0].p >= A[1].p : true);
+        const mark = (i, s) => text(P[i].x, P[i].y + (isHigh(i) ? -14 : 14), s);
+        const leg = (i, j) => Math.abs(A[j].p - A[i].p);
+        const ratio = (p, q, num, den) => { dashed(p, q); if (den > 0) text((p.x + q.x) / 2, (p.y + q.y) / 2, (num / den).toFixed(3), { size: 11, bold: false, c: gray }) };
+        const handles = () => P.forEach((q, i) => g.handles.push({ x: q.x, y: q.y, a: i }));
+        const done = () => { handles(); return g };
+        const mid = v.idxToX, L = v.L, R = v.R;
+        switch (d.type) {
+            case 'xabcd': case 'cypher': {
+                const N = ['X', 'A', 'B', 'C', 'D'];
+                if (n >= 3) g.fills.push({ pts: [P[0], P[1], P[2]], c: tint });
+                if (n >= 5) g.fills.push({ pts: [P[2], P[3], P[4]], c: tint });
+                zig();
+                if (n >= 3) ratio(P[0], P[2], leg(1, 2), leg(0, 1));
+                if (d.type === 'xabcd') {
+                    if (n >= 4) ratio(P[1], P[3], leg(2, 3), leg(1, 2));
+                    if (n >= 5) { ratio(P[2], P[4], leg(3, 4), leg(2, 3)); ratio(P[0], P[4], leg(1, 4), leg(0, 1)) }
+                } else {
+                    if (n >= 4) ratio(P[0], P[3], leg(0, 3), leg(0, 1));
+                    if (n >= 5) ratio(P[0], P[4], leg(3, 4), leg(0, 3));
+                }
+                P.forEach((q, i) => mark(i, N[i]));
+                return done();
+            }
+            case 'abcd': {
+                zig();
+                if (n >= 3) ratio(P[0], P[2], leg(1, 2), leg(0, 1));
+                if (n >= 4) ratio(P[1], P[3], leg(2, 3), leg(1, 2));
+                P.forEach((q, i) => mark(i, 'ABCD'[i]));
+                return done();
+            }
+            case 'headshoulders': {
+                if (n >= 7) g.fills.push({ pts: P, c: tint });
+                zig();
+                if (n >= 5) {
+                    // Neckline through the two troughs, run out to the pattern's ends.
+                    const a = P[2], b = P[4], k = (b.y - a.y) / ((b.x - a.x) || 1e-9);
+                    const x0 = P[0].x, x1 = P[n - 1].x;
+                    seg(pt(x0, a.y + k * (x0 - a.x)), pt(Math.max(x1, b.x), a.y + k * (Math.max(x1, b.x) - a.x)), { w: 1 });
+                }
+                [[1, 'Left Shoulder'], [3, 'Head'], [5, 'Right Shoulder']].forEach(([i, s]) => { if (i < n) mark(i, s) });
+                return done();
+            }
+            case 'trianglepat': {
+                zig();
+                if (n >= 4) {
+                    // Sides A-C and B-D run on to where they meet; if they don't converge ahead they stop at C and D.
+                    const [a, b, c, e] = P, d1x = c.x - a.x, d1y = c.y - a.y, d2x = e.x - b.x, d2y = e.y - b.y;
+                    const den = d1x * d2y - d1y * d2x, right = Math.max(c.x, e.x);
+                    let apex = null;
+                    if (Math.abs(den) > 1e-9) { const t = ((b.x - a.x) * d2y - (b.y - a.y) * d2x) / den; const q = pt(a.x + d1x * t, a.y + d1y * t); if (q.x > right && q.x - right < 4000) apex = q }
+                    if (apex) { seg(a, apex, { w: 1 }); seg(b, apex, { w: 1 }); g.fills.push({ pts: [a, apex, b], c: tint }) }
+                    else { seg(a, c, { w: 1 }); seg(b, e, { w: 1 }) }
+                }
+                P.forEach((q, i) => mark(i, 'ABCD'[i]));
+                return done();
+            }
+            case 'threedrives': {
+                zig();
+                if (n >= 4) ratio(P[1], P[3], leg(2, 3), leg(1, 2));
+                if (n >= 6) ratio(P[3], P[5], leg(4, 5), leg(3, 4));
+                [[1, 'Drive 1'], [3, 'Drive 2'], [5, 'Drive 3']].forEach(([i, s]) => { if (i < n) mark(i, s) });
+                return done();
+            }
+            case 'ewimpulse': case 'ewcorrection': case 'ewtriangle': case 'ewdouble': case 'ewtriple': {
+                zig();
+                const marks = this._ltDefs[d.type].marks;
+                P.forEach((q, i) => { if (i) mark(i, `(${marks[i]})`) });
+                return done();
+            }
+            case 'cycliclines': case 'timecycles': case 'sineline': {
+                if (n < 2) return done();
+                const step = idx[1] - idx[0];
+                if (Math.abs(step) < 0.5) { dashed(P[0], P[1]); return done() }
+                // Repeat across the visible bars only (capped so a tiny period can't hang the draw).
+                const iL = v.xToIdx(L), iR = v.xToIdx(R), per = Math.abs(step) * (d.type === 'sineline' ? 2 : 1);
+                if ((iR - iL) / per > 600) { dashed(P[0], P[1]); return done() }
+                const k0 = Math.floor((iL - idx[0]) / Math.abs(step)) - 1, k1 = Math.ceil((iR - idx[0]) / Math.abs(step)) + 1;
+                const sx = (k) => mid(idx[0] + Math.abs(step) * k);
+                if (d.type === 'cycliclines') {
+                    for (let k = k0; k <= k1; k++) seg(pt(sx(k), v.top - 10), pt(sx(k), v.bottom + 10), { w: 1, c: k === 0 || k === Math.sign(step) ? color : this._shTint(color, 0.6) });
+                } else if (d.type === 'timecycles') {
+                    // Half-ellipses on the first point's level, as tall as the second point says.
+                    const ry = Math.max(4, Math.abs(P[1].y - P[0].y)), up = P[1].y <= P[0].y, y0 = P[0].y;
+                    for (let k = k0; k < k1; k++) {
+                        const xa = sx(k), xb = sx(k + 1), cx = (xa + xb) / 2, rx = Math.abs(xb - xa) / 2, arc = [];
+                        for (let j = 0; j <= 32; j++) { const t = Math.PI * j / 32; arc.push(pt(cx - rx * Math.cos(t), y0 + (up ? -1 : 1) * ry * Math.sin(t))) }
+                        g.fills.push({ pts: arc, c: this._shTint(color, 0.08) }); g.polys.push({ pts: arc });
+                    }
+                } else {
+                    // First point = a crest/trough, second = the opposite one; repeats both ways.
+                    const ym = (P[0].y + P[1].y) / 2, amp = P[0].y - ym, pts = [];
+                    for (let x = L; x <= R; x += 2) pts.push(pt(x, ym + amp * Math.cos(Math.PI * (v.xToIdx(x) - idx[0]) / step)));
+                    g.polys.push({ pts });
+                }
+                return done();
+            }
+        }
+        zig(); return done();
+    }
+    // ---- Forecasting / Volume-based / Measurers --------------------------------------
+    // Same engine as the line tools. Long/short positions and the position forecast
+    // check themselves against the real bars after the entry. Volume tools read the
+    // bars' volume; measurers report change, %, bars, time span and volume.
+    static forecastToolDefs() {
+        return [
+            { group: 'Forecasting' },
+            { k: 'longpos', label: 'Long position', n: 1 },
+            { k: 'shortpos', label: 'Short position', n: 1 },
+            { k: 'forecast', label: 'Position forecast', n: 2 },
+            { k: 'barspattern', label: 'Bars pattern', n: 2 },
+            { k: 'ghostfeed', label: 'Ghost feed', n: 99, multi: true },
+            { k: 'sector', label: 'Sector', n: 3 },
+            { group: 'Volume-based' },
+            { k: 'avwap', label: 'Anchored VWAP', n: 1 },
+            { k: 'frvp', label: 'Fixed range volume profile', n: 2 },
+            { k: 'avp', label: 'Anchored volume profile', n: 1 },
+            { group: 'Measurers' },
+            { k: 'pricerange', label: 'Price range', n: 2 },
+            { k: 'daterange', label: 'Date range', n: 2 },
+            { k: 'dpRange', label: 'Date and price range', n: 2 }
+        ];
+    }
+    static forecastToolIcons() {
+        const s = (d) => `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+        const o = (x, y) => `<circle cx="${x}" cy="${y}" r="2"/>`;
+        const t = (x, y, c) => `<text x="${x}" y="${y}" font-size="7" font-family="Arial" fill="currentColor" stroke="none" text-anchor="middle">${c}</text>`;
+        const candle = (x, y1, y2, b1, b2) => `<path d="M${x} ${y1}V${b1}M${x} ${b2}V${y2}"/><rect x="${x - 1.6}" y="${b1}" width="3.2" height="${b2 - b1}"/>`;
+        return {
+            longpos: s('<path d="M7 6.5h17M7 14h17M7 21.5h17"/>' + o(4.5, 14) + t(16, 12, 'L')),
+            shortpos: s('<path d="M7 6.5h17M7 14h17M7 21.5h17"/>' + o(4.5, 14) + t(16, 19.5, 'S')),
+            forecast: s(candle(7, 5, 23, 9, 18) + candle(13, 4, 22, 8, 15) + '<path d="M20 6v3M20 12v3M20 18v4M18 20l2 2 2-2"/>'),
+            barspattern: s(candle(6, 6, 22, 10, 18) + candle(11, 4, 20, 7, 14) + candle(17, 8, 24, 12, 20) + candle(22, 5, 21, 9, 16)),
+            ghostfeed: s('<path d="M3 22l4-3" stroke-dasharray="1.5 2"/>' + candle(10, 12, 23, 15, 20) + candle(15, 8, 20, 11, 16) + candle(20, 4, 16, 7, 12) + o(25, 4)),
+            sector: s('<path d="M7 21.5V6M8.6 22.6h15M7 9.5a13 13 0 0 1 13 13"/>' + o(7, 4) + o(7, 23) + o(24, 23)),
+            avwap: s(candle(9, 4, 24, 9, 18) + candle(17, 6, 22, 10, 16) + '<path d="M4 19c4-1 7-6 11-7s6 2 9 1"/>'),
+            frvp: s('<path d="M6 4v20M6 7h7M6 11h11M6 15h5M6 19h8M22 9v15"/>' + o(22, 6)),
+            avp: s('<path d="M15 4v20M15 7h7M15 11h9M15 15h5M15 19h8M5 14h8"/>' + o(4, 14)),
+            pricerange: s('<path d="M6 6h12M6 22h12M12 8.5v13M9.5 11 12 8.5 14.5 11"/>' + o(4, 6) + o(20.5, 22)),
+            daterange: s('<path d="M6 5v18M22 5v18M8.5 14h13M19 11.5l2.5 2.5-2.5 2.5"/>' + o(6, 3) + o(22, 25)),
+            dpRange: s('<rect x="6" y="6" width="16" height="16"/><path d="M14 9v10M11.5 11.5 14 9l2.5 2.5M9 14h10M16.5 11.5 19 14l-2.5 2.5"/>' + o(6, 6) + o(22, 22))
+        };
+    }
+    setupForecastTools() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        if (!area || !this._lt) return;
+        const defs = StockChart.forecastToolDefs();
+        this._fcTypes = new Set(defs.filter(d => d.k).map(d => d.k));
+        const m = this._ltMakeMenu({ defs, icons: StockChart.forecastToolIcons(), store: 'sc-forecasttool-last', title: 'Forecasting, volume and measurers', after: this.patternToolButton || this.fibToolButton || null });
+        this.forecastToolButton = m.btn;
+    }
+    // Fill in what a one-click tool needs once it's placed.
+    _fcFinish(d) {
+        if (!this._fcTypes || !this._fcTypes.has(d.type)) return;
+        const v = this._ltView(), i0 = v.tToIdx(d.pts[0].t), n = this.stockData.length;
+        if (d.type === 'longpos' || d.type === 'shortpos') {
+            // Default stop = 8% of the visible price range; target at 1.5R; 20 bars wide.
+            const r = (v.max - v.min) * 0.08, e = d.pts[0].p, k = d.type === 'longpos' ? 1 : -1, t1 = v.idxToT(i0 + 20);
+            d.pts.push({ t: t1, p: e + k * r * 1.5 }, { t: t1, p: e - k * r });
+        }
+        if (d.type === 'barspattern' && d.pts.length >= 2) {
+            // Copy the bars between the two clicks and paste the copy right after them.
+            let a = Math.round(i0), b = Math.round(v.tToIdx(d.pts[1].t)); if (a > b) [a, b] = [b, a];
+            a = Math.max(0, a); b = Math.min(n - 1, b);
+            if (b < a) return;
+            d.bars = this.stockData.slice(a, b + 1).map(c => [c.open, c.high, c.low, c.close]);
+            d.base = d.bars[0][0];
+            d.pts = [{ t: v.idxToT(b + 1), p: d.bars[d.bars.length - 1][3] }];
+        }
+    }
+    static fmtVol(x) {
+        const a = Math.abs(x);
+        return a >= 1e9 ? (x / 1e9).toFixed(2) + 'B' : a >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : a >= 1e3 ? (x / 1e3).toFixed(2) + 'K' : (Math.round(x * 100) / 100).toString();
+    }
+    static fmtSpan(ms) {
+        const m = Math.round(Math.abs(ms) / 60000);
+        return m >= 1440 ? `${Math.floor(m / 1440)}d ${Math.floor(m % 1440 / 60)}h` : m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+    }
+    _fcShape(d, v, state) {
+        const g = { segs: [], fills: [], handles: [], labels: [], arcs: [], tags: [], draws: [], polys: [], hit: [] };
+        const P = d.pts.map(v.xy), A = d.pts, n = P.length, data = this.stockData, N = data.length;
+        const idx = A.map(q => v.tToIdx(q.t)), color = d.color || '#2962ff', dark = !!this.config.darkMode;
+        const GREEN = '#089981', RED = '#f23645', tint = (c, a) => this._shTint(c, a);
+        const pt = (x, y) => ({ x, y }), [a, b, c] = P;
+        const seg = (p, q, o) => g.segs.push(Object.assign({ a: p, b: q }, o || {}));
+        const fp = (p) => s8FormatChartPrice(p), pct = (x, base) => base ? (x / base * 100).toFixed(2) + '%' : '0%';
+        const sgn = (x) => x >= 0 ? '+' : '';
+        const handles = (list) => (list || P.map((q, i) => [q, i])).forEach(([q, k]) => g.handles.push({ x: q.x, y: q.y, a: k }));
+        const done = () => { handles(); return g };
+        const line = () => { if (n > 1) g.polys.push({ pts: [a, b] }); return done() };
+        // Filled, rounded label box centred on x; lines of white text.
+        const tag = (x, y, lines, bg, below) => g.draws.push(ctx => {
+            ctx.font = '12px "Open Sans", Arial, sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+            const lh = 16, w = Math.max(...lines.map(s => ctx.measureText(s).width)) + 16, h = lines.length * lh + 8;
+            const bx = Math.max(v.L + 2, Math.min(x - w / 2, v.R - w - 2)), by = below ? y : y - h;
+            ctx.fillStyle = bg; this._ntRound(ctx, bx, by, w, h, 4); ctx.fill();
+            ctx.fillStyle = '#fff'; lines.forEach((s, k) => ctx.fillText(s, bx + w / 2, by + 4 + lh * (k + 0.5)));
+        });
+        const head = (from, to, cl) => {
+            const dx = to.x - from.x, dy = to.y - from.y, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, s = 9;
+            g.fills.push({ pts: [to, pt(to.x - ux * s - uy * s * 0.5, to.y - uy * s + ux * s * 0.5), pt(to.x - ux * s + uy * s * 0.5, to.y - uy * s - ux * s * 0.5)], c: cl || color });
+        };
+        const bar = (i) => data[Math.max(0, Math.min(N - 1, Math.round(i)))];
+        switch (d.type) {
+            case 'longpos': case 'shortpos': {
+                if (n < 3) return done();
+                const long = d.type === 'longpos', e = A[0].p, tp = A[1].p, sl = A[2].p;
+                const x0 = a.x, x1 = v.idxToX(idx[1]), ye = a.y, yt = v.pToY(tp), ys = v.pToY(sl);
+                g.fills.push({ pts: [pt(x0, ye), pt(x1, ye), pt(x1, yt), pt(x0, yt)], c: tint(GREEN, 0.2) });
+                g.fills.push({ pts: [pt(x0, ye), pt(x1, ye), pt(x1, ys), pt(x0, ys)], c: tint(RED, 0.2) });
+                seg(pt(x0, ye), pt(x1, ye), { c: '#787b86', w: 1 });
+                // Walk the real bars after entry until the target or stop is touched.
+                let exitI = null, exitP = null, hit = null;
+                const last = Math.min(N - 1, Math.floor(idx[1]));
+                for (let i = Math.floor(idx[0]) + 1; i <= last; i++) {
+                    const k = data[i]; if (!k) continue;
+                    const stopHit = long ? k.low <= sl : k.high >= sl, tgtHit = long ? k.high >= tp : k.low <= tp;
+                    if (stopHit) { hit = 'stop'; exitI = i; exitP = sl; break } // same-bar tie counts as the stop
+                    if (tgtHit) { hit = 'target'; exitI = i; exitP = tp; break }
+                }
+                if (exitI === null && last > idx[0]) { exitI = last; exitP = data[last].close }
+                if (exitI !== null) {
+                    const xe = v.idxToX(exitI), ype = v.pToY(exitP), up = long ? exitP >= e : exitP <= e;
+                    g.fills.push({ pts: [pt(x0, ye), pt(xe, ye), pt(xe, ype), pt(x0, ype)], c: tint(up ? GREEN : RED, 0.25) });
+                    seg(pt(x0, ye), pt(xe, ype), { c: '#787b86', w: 1, dash: [4, 4] });
+                }
+                const risk = Math.abs(e - sl), reward = Math.abs(tp - e), rr = risk ? (reward / risk).toFixed(2) : '-';
+                const pl = exitP === null ? 0 : (long ? exitP - e : e - exitP);
+                const status = hit === 'target' ? 'Closed (target)' : hit === 'stop' ? 'Closed (stop)' : 'Open';
+                const cx = (x0 + x1) / 2;
+                tag(cx, Math.min(yt, ys) - 4, [`${long ? 'Target' : 'Stop'}: ${fp(long ? tp : sl)} (${pct(Math.abs((long ? tp : sl) - e), e)})`], long ? GREEN : RED);
+                tag(cx, Math.max(yt, ys) + 4, [`${long ? 'Stop' : 'Target'}: ${fp(long ? sl : tp)} (${pct(Math.abs((long ? sl : tp) - e), e)})`], long ? RED : GREEN, true);
+                tag(cx, ye - 4, [`${status} P&L: ${sgn(pl)}${fp(pl)} (${sgn(pl)}${pct(pl, e)})`, `Risk/reward ratio: ${rr}`], pl >= 0 ? GREEN : RED);
+                handles([[a, 0], [pt(x0, yt), 't-p1'], [pt(x0, ys), 't-p2'], [pt(x1, ye), 't1p-']]);
+                return g;
+            }
+            case 'forecast': {
+                if (!b) return done();
+                seg(a, b, { w: 1.5 }); head(a, b);
+                const dp = A[1].p - A[0].p, up = dp >= 0, bars = Math.round(idx[1] - idx[0]);
+                // Reached the target price between the two times?
+                let ok = false; const lastI = Math.min(N - 1, Math.floor(idx[1]));
+                for (let i = Math.floor(idx[0]) + 1; i <= lastI; i++) { const k = data[i]; if (k && (up ? k.high >= A[1].p : k.low <= A[1].p)) { ok = true; break } }
+                const over = N - 1 >= idx[1], st = ok ? 'Success' : over ? 'Failure' : 'In progress';
+                tag(b.x, up ? b.y - 8 : b.y + 8, [`${sgn(dp)}${fp(dp)} (${sgn(dp)}${pct(dp, A[0].p)})`, `${bars} bars, ${StockChart.fmtSpan(A[1].t - A[0].t)}`, st], ok ? GREEN : over ? RED : color, !up);
+                return done();
+            }
+            case 'barspattern': {
+                if (!d.bars) return line();
+                const off = A[0].p - d.base, cw = Math.max(1, v.cW * 0.8);
+                d.bars.forEach(([o, h, l, cl], k) => {
+                    const x = v.idxToX(idx[0] + k), up = cl >= o, col = tint(up ? GREEN : RED, 0.55);
+                    const yo = v.pToY(o + off), yc = v.pToY(cl + off);
+                    seg(pt(x, v.pToY(h + off)), pt(x, v.pToY(l + off)), { c: col, w: 1 });
+                    g.fills.push({ pts: [pt(x - cw / 2, yo), pt(x + cw / 2, yo), pt(x + cw / 2, yc), pt(x - cw / 2, yc)], c: col });
+                });
+                handles([[a, 0]]); return g;
+            }
+            case 'ghostfeed': {
+                if (n < 2) return done();
+                // Made-up candles that follow the clicked path, one per bar.
+                const at = (i) => { for (let k = 1; k < n; k++) { const i0 = idx[k - 1], i1 = idx[k]; if ((i >= i0 && i <= i1) || (i <= i0 && i >= i1)) return A[k - 1].p + (A[k].p - A[k - 1].p) * ((i - i0) / ((i1 - i0) || 1)) } return A[n - 1].p };
+                const lo = Math.round(Math.min(...idx)), hi = Math.round(Math.max(...idx)), span = Math.abs(v.yToP(v.top) - v.yToP(v.bottom)) || 1;
+                const rnd = (i) => { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x) };
+                const cw = Math.max(1, v.cW * 0.8);
+                let prev = at(lo);
+                for (let i = lo + 1; i <= hi && i - lo < 2000; i++) {
+                    const cl = at(i) + (rnd(i) - 0.5) * span * 0.01, o = prev, w = Math.abs(cl - o) * 0.4 + span * 0.004 * rnd(i + 0.5);
+                    const x = v.idxToX(i), up = cl >= o, col = tint(up ? GREEN : RED, 0.55);
+                    seg(pt(x, v.pToY(Math.max(o, cl) + w)), pt(x, v.pToY(Math.min(o, cl) - w)), { c: col, w: 1 });
+                    const yo = v.pToY(o), yc = v.pToY(cl);
+                    g.fills.push({ pts: [pt(x - cw / 2, yo), pt(x + cw / 2, yo), pt(x + cw / 2, yc), pt(x - cw / 2, yc)], c: col });
+                    prev = cl;
+                }
+                g.polys.push({ pts: P, w: 1, dash: [3, 3], c: tint(color, 0.6) });
+                return done();
+            }
+            case 'sector': {
+                if (!c) return line();
+                const R = Math.hypot(b.x - a.x, b.y - a.y), s0 = Math.atan2(b.y - a.y, b.x - a.x);
+                let dd = Math.atan2(c.y - a.y, c.x - a.x) - s0;
+                while (dd > Math.PI) dd -= 2 * Math.PI; while (dd < -Math.PI) dd += 2 * Math.PI;
+                const arc = []; for (let k = 0; k <= 48; k++) { const t = s0 + dd * k / 48; arc.push(pt(a.x + R * Math.cos(t), a.y + R * Math.sin(t))) }
+                const pts = [a].concat(arc);
+                g.fills.push({ pts, c: tint(color, 0.2) }); g.polys.push({ pts, closed: true });
+                const mid = s0 + dd / 2; tag(a.x + Math.cos(mid) * R * 0.45, a.y + Math.sin(mid) * R * 0.45 + 10, [`${Math.abs(dd * 180 / Math.PI).toFixed(1)}°`], color);
+                handles([[a, 0], [b, 1], [arc[arc.length - 1], 2]]); return g;
+            }
+            case 'avwap': {
+                const s = Math.max(0, Math.round(idx[0]));
+                if (s >= N) return done();
+                let pv = 0, vv = 0; const pts = [];
+                for (let i = s; i < N; i++) {
+                    const k = data[i], vol = k.volume || 0, tp = (k.high + k.low + k.close) / 3;
+                    pv += tp * vol; vv += vol;
+                    pts.push(pt(v.idxToX(i), v.pToY(vv ? pv / vv : tp)));
+                }
+                g.polys.push({ pts });
+                const e = pts[pts.length - 1]; g.draws.push(ctx => { ctx.font = 'bold 11px "Open Sans", Arial, sans-serif'; ctx.fillStyle = color; ctx.textBaseline = 'middle'; ctx.fillText('VWAP', e.x + 6, e.y) });
+                handles([[pts[0], 0]]); return g;
+            }
+            case 'frvp': case 'avp': {
+                if (d.type === 'frvp' && !b) return line();
+                let i0 = Math.round(idx[0]), i1 = d.type === 'avp' ? N - 1 : Math.round(idx[1]);
+                if (i0 > i1) [i0, i1] = [i1, i0];
+                i0 = Math.max(0, i0); i1 = Math.min(N - 1, i1);
+                if (i1 < i0) return done();
+                let lo = Infinity, hi = -Infinity;
+                for (let i = i0; i <= i1; i++) { lo = Math.min(lo, data[i].low); hi = Math.max(hi, data[i].high) }
+                const rows = 24, step = (hi - lo) / rows || 1, upV = new Array(rows).fill(0), dnV = new Array(rows).fill(0);
+                // Spread each bar's volume over the rows its high-low covers.
+                for (let i = i0; i <= i1; i++) {
+                    const k = data[i], vol = k.volume || 0, rng = (k.high - k.low) || step, arr = k.close >= k.open ? upV : dnV;
+                    const r0 = Math.max(0, Math.floor((k.low - lo) / step)), r1 = Math.min(rows - 1, Math.floor((k.high - lo) / step));
+                    for (let r = r0; r <= r1; r++) { const ov = Math.min(k.high, lo + (r + 1) * step) - Math.max(k.low, lo + r * step); arr[r] += vol * (k.high === k.low ? 1 / (r1 - r0 + 1) : Math.max(0, ov) / rng) }
+                }
+                const tot = upV.map((u, r) => u + dnV[r]), all = tot.reduce((x, y) => x + y, 0), maxV = Math.max(...tot) || 1;
+                let poc = tot.indexOf(maxV), va = new Set([poc]), sum = maxV, lo2 = poc, hi2 = poc;
+                while (sum < all * 0.7 && (lo2 > 0 || hi2 < rows - 1)) {
+                    const dn = lo2 > 0 ? tot[lo2 - 1] : -1, upn = hi2 < rows - 1 ? tot[hi2 + 1] : -1;
+                    if (upn >= dn) { hi2++; va.add(hi2); sum += upn } else { lo2--; va.add(lo2); sum += dn }
+                }
+                const x0 = v.idxToX(i0) - v.cW / 2, x1 = v.idxToX(i1) + v.cW / 2, W = Math.max(30, (x1 - x0) * 0.3);
+                g.fills.push({ pts: [pt(x0, v.pToY(hi)), pt(x1, v.pToY(hi)), pt(x1, v.pToY(lo)), pt(x0, v.pToY(lo))], c: tint('#2962ff', 0.04) });
+                for (let r = 0; r < rows; r++) {
+                    const yT = v.pToY(lo + (r + 1) * step) + 0.5, yB = v.pToY(lo + r * step) - 0.5, inVA = va.has(r);
+                    const wu = upV[r] / maxV * W, wd = dnV[r] / maxV * W;
+                    if (wu > 0) g.fills.push({ pts: [pt(x0, yT), pt(x0 + wu, yT), pt(x0 + wu, yB), pt(x0, yB)], c: inVA ? 'rgba(41,98,255,0.7)' : 'rgba(41,98,255,0.3)' });
+                    if (wd > 0) g.fills.push({ pts: [pt(x0 + wu, yT), pt(x0 + wu + wd, yT), pt(x0 + wu + wd, yB), pt(x0 + wu, yB)], c: inVA ? 'rgba(251,192,45,0.7)' : 'rgba(251,192,45,0.3)' });
+                }
+                const yp = v.pToY(lo + (poc + 0.5) * step);
+                seg(pt(x0, yp), pt(x1, yp), { c: RED, w: 1.5 });
+                seg(pt(x0, v.pToY(hi)), pt(x0, v.pToY(lo)), { c: tint('#2962ff', 0.5), w: 1 });
+                if (d.type === 'frvp') seg(pt(x1, v.pToY(hi)), pt(x1, v.pToY(lo)), { c: tint('#2962ff', 0.5), w: 1 });
+                handles(d.type === 'frvp' ? [[pt(x0, v.pToY(hi)), 't0p-'], [pt(x1, v.pToY(lo)), 't1p-']] : [[pt(x0, v.pToY(hi)), 't0p-']]);
+                return g;
+            }
+            case 'pricerange': case 'daterange': case 'dpRange': {
+                if (!b) return line();
+                // Blue going up (or forward in time for Date range), red the other way.
+                const dp = A[1].p - A[0].p, up = d.type === 'daterange' ? idx[1] >= idx[0] : dp >= 0, cl = d.color || (up ? '#2962ff' : RED);
+                const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+                g.fills.push({ pts: [pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1)], c: tint(cl, 0.2) });
+                const lines = [];
+                if (d.type !== 'daterange') {
+                    if (d.type === 'pricerange') { seg(pt(x0, a.y), pt(x1, a.y), { c: cl, w: 1 }); seg(pt(x0, b.y), pt(x1, b.y), { c: cl, w: 1 }) }
+                    seg(pt(mx, a.y), pt(mx, b.y), { c: cl, w: 1.5 }); head(pt(mx, a.y), pt(mx, b.y), cl);
+                    lines.push(`${sgn(dp)}${fp(dp)} (${sgn(dp)}${pct(dp, A[0].p)})`);
+                }
+                if (d.type !== 'pricerange') {
+                    if (d.type === 'daterange') { seg(pt(a.x, y0), pt(a.x, y1), { c: cl, w: 1 }); seg(pt(b.x, y0), pt(b.x, y1), { c: cl, w: 1 }) }
+                    seg(pt(a.x, my), pt(b.x, my), { c: cl, w: 1.5 }); head(pt(a.x, my), pt(b.x, my), cl);
+                    const ia = Math.round(Math.min(idx[0], idx[1])), ib = Math.round(Math.max(idx[0], idx[1]));
+                    let vol = 0; for (let i = Math.max(0, ia); i <= Math.min(N - 1, ib); i++) vol += data[i].volume || 0;
+                    lines.push(`${Math.round(idx[1] - idx[0])} bars, ${StockChart.fmtSpan(A[1].t - A[0].t)}`, `Vol ${StockChart.fmtVol(vol)}`);
+                }
+                const below = b.y >= a.y;
+                tag(mx, below ? y1 + 6 : y0 - 6, lines, cl, below);
+                return done();
+            }
+        }
+        return line();
+    }
+    // ---- Zoom in (box zoom) ---------------------------------------------------------
+    // Click the magnifier, then drag a box: the chart shows exactly that time and price
+    // range. Zoom out appears next to it and steps back through earlier views.
+    setupBoxZoom() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        const bar = root && (root.querySelector('.sc-sidebar') || root.querySelector('.sc-chart-controls-overlay'));
+        if (!area || !bar) return;
+        const s = (d) => `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12.5" cy="12.5" r="7.5"/><path d="m18 18 6 6"/>${d}</svg>`;
+        const mk = (cls, title, icon) => { const b = document.createElement('button'); b.className = 'sc-overlay-button ' + cls; b.title = title; b.innerHTML = icon; return b };
+        const inBtn = mk('sc-zoom-in-button', 'Zoom in (drag a box)', s('<path d="M12.5 9v7M9 12.5h7"/>'));
+        const outBtn = mk('sc-zoom-out-button', 'Zoom out (previous view)', s('<path d="M9 12.5h7"/>'));
+        const measure = bar.querySelector('.sc-measure-button');
+        if (measure) measure.insertAdjacentElement('afterend', inBtn); else bar.appendChild(inBtn);
+        inBtn.insertAdjacentElement('afterend', outBtn);
+        const box = document.createElement('div'); box.className = 'sc-zoom-box'; area.appendChild(box);
+        const z = this._zoomBox = { on: false, start: null, stack: [] };
+        const paint = () => { inBtn.classList.toggle('active', z.on); outBtn.hidden = !z.stack.length; root.classList.toggle('sc-zoom-active', z.on) };
+        z.set = (on) => {
+            if (z.on === on) return;
+            z.on = on; z.start = null; box.classList.remove('active');
+            if (on) { if (this.closeOtherToolbarMenus) this.closeOtherToolbarMenus('zoom'); if (this._lt && this._lt.tool) this.deactivateLineTool() }
+            paint();
+        };
+        z.paint = paint;
+        inBtn.addEventListener('click', (e) => { e.stopPropagation(); z.set(!z.on) });
+        outBtn.addEventListener('click', (e) => { e.stopPropagation(); this.zoomOutStep() });
+        // Chart-area coords of the price pane, clamped to the plot.
+        const local = (e) => {
+            const r = this.priceCanvas.getBoundingClientRect(), L = this.config.padding.left, R = this.getCanvasWidth() - this.config.padding.right;
+            const top = this.config.padding.top, bottom = top + this.getPriceChartHeight();
+            return { x: Math.max(L, Math.min(R, e.clientX - r.left)), y: Math.max(top, Math.min(bottom, e.clientY - r.top)), raw: { x: e.clientX - r.left, y: e.clientY - r.top } };
+        };
+        const place = (a, b) => {
+            const r = this.priceCanvas.getBoundingClientRect(), ar = area.getBoundingClientRect(), ox = r.left - ar.left, oy = r.top - ar.top;
+            Object.assign(box.style, { left: ox + Math.min(a.x, b.x) + 'px', top: oy + Math.min(a.y, b.y) + 'px', width: Math.abs(b.x - a.x) + 'px', height: Math.abs(b.y - a.y) + 'px' });
+        };
+        area.addEventListener('mousedown', (e) => {
+            if (!z.on || e.target !== this.priceCanvas || e.button !== 0) return;
+            const p = local(e);
+            if (p.raw.x > this.getCanvasWidth() - this.config.padding.right) return; // price scale keeps its own drag
+            e.preventDefault(); e.stopPropagation();
+            z.start = p; place(p, p); box.classList.add('active');
+        }, true);
+        document.addEventListener('mousemove', (e) => { if (z.start) place(z.start, local(e)) });
+        document.addEventListener('mouseup', (e) => {
+            if (!z.start) return;
+            const a = z.start, b = local(e);
+            z.start = null; box.classList.remove('active');
+            if (Math.abs(b.x - a.x) < 6 || Math.abs(b.y - a.y) < 6) return; // a click, not a box
+            this.zoomToBox(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.max(a.x, b.x), Math.max(a.y, b.y));
+            z.set(false);
+        });
+        window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && z.on) { z.set(false); e.stopPropagation() } }, true);
+        paint();
+    }
+    _viewState() {
+        const c = this.config;
+        return { dataOffset: c.dataOffset, visibleCandles: c.visibleCandles, priceOffset: c.priceOffset, verticalScaleFactor: c.verticalScaleFactor, pinned: !!this.isViewPinnedToRightEdge };
+    }
+    // Screen box (price-pane coords) -> that exact bar range and price range.
+    zoomToBox(x0, y0, x1, y1) {
+        if (!this.stockData.length) return;
+        const v = this._ltView(), c = this.config, n = this.stockData.length;
+        const i0 = v.xToIdx(x0), i1 = v.xToIdx(x1), pHi = v.yToP(y0), pLo = v.yToP(y1);
+        if (!(pHi > pLo)) return;
+        const z = this._zoomBox;
+        if (z) { z.stack.push(this._viewState()); if (z.stack.length > 50) z.stack.shift() }
+        c.visibleCandles = Math.max(5, Math.round(i1 - i0 + 1));
+        c.dataOffset = Math.max(0, Math.min(Math.round(i0), Math.max(0, n - 1)));
+        this.isViewPinnedToRightEdge = c.dataOffset >= Math.max(0, n - c.visibleCandles);
+        // Work the price scale back from the new window's auto range.
+        const raw = this.calculateRawPriceRange(this.stockData, c.dataOffset, c.visibleCandles);
+        const rawRng = (raw.max - raw.min) || Math.abs(raw.max) * 0.001 || 1;
+        c.verticalScaleFactor = rawRng * (1 + c.verticalPadding * 2) / (pHi - pLo);
+        c.priceOffset = (pLo + pHi) / 2 - (raw.min + raw.max) / 2;
+        if (z) z.paint();
+        this.drawCharts();
+    }
+    zoomOutStep() {
+        const z = this._zoomBox; if (!z || !z.stack.length) return;
+        const s = z.stack.pop(), c = this.config;
+        c.visibleCandles = s.visibleCandles; c.priceOffset = s.priceOffset; c.verticalScaleFactor = s.verticalScaleFactor;
+        // A view that was following the live edge goes back to following it.
+        c.dataOffset = s.pinned ? Math.max(0, this.stockData.length - s.visibleCandles) : s.dataOffset;
+        this.isViewPinnedToRightEdge = s.pinned;
+        z.paint();
+        this.drawCharts();
+    }
+    // ---- Brushes / Arrows / Shapes --------------------------------------------------
+    // Same engine as the line tools. Brushes are press-drag-release freehand strokes;
+    // Path and Polyline take any number of clicks; Curve and Double curve get their
+    // bend handles added once both ends are placed.
+    static shapeToolDefs() {
+        const blue = '#2962ff', purple = '#9c27b0';
+        return [
+            { group: 'Brushes' },
+            { k: 'brush', label: 'Brush', n: 99, free: true, color: blue, style: { w: 2 } },
+            { k: 'highlighter', label: 'Highlighter', n: 99, free: true, color: '#ffeb3b', style: { w: 18, a: 0.35 } },
+            { group: 'Arrows' },
+            { k: 'arrowmarker', label: 'Arrow marker', n: 2, color: blue },
+            { k: 'arrow', label: 'Arrow', n: 2, color: blue },
+            { k: 'arrowup', label: 'Arrow mark up', n: 1, color: '#089981' },
+            { k: 'arrowdown', label: 'Arrow mark down', n: 1, color: '#f23645' },
+            { group: 'Shapes' },
+            { k: 'rectangle', label: 'Rectangle', n: 2, key: 'Alt + Shift + R', color: purple },
+            { k: 'rotrect', label: 'Rotated rectangle', n: 3, color: purple },
+            { k: 'path', label: 'Path', n: 99, multi: true, color: blue },
+            { k: 'circle', label: 'Circle', n: 2, color: '#ff9800' },
+            { k: 'ellipse', label: 'Ellipse', n: 2, color: '#f23645' },
+            { k: 'polyline', label: 'Polyline', n: 99, multi: true, color: blue },
+            { k: 'triangle', label: 'Triangle', n: 3, color: '#089981' },
+            { k: 'arc', label: 'Arc', n: 3, color: '#e91e63' },
+            { k: 'curve', label: 'Curve', n: 2, color: blue },
+            { k: 'dcurve', label: 'Double curve', n: 2, color: blue }
+        ];
+    }
+    static shapeToolIcons() {
+        const s = (d) => `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+        const o = (x, y) => `<circle cx="${x}" cy="${y}" r="2"/>`;
+        // Straight segments between handle circles, stopping short of each circle.
+        const link = (pts, closed) => {
+            let d = '';
+            const n = pts.length, m = closed ? n : n - 1;
+            for (let i = 0; i < m; i++) {
+                const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % n], L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L * 2.6, uy = (y2 - y1) / L * 2.6;
+                d += `M${(x1 + ux).toFixed(1)} ${(y1 + uy).toFixed(1)}L${(x2 - ux).toFixed(1)} ${(y2 - uy).toFixed(1)}`;
+            }
+            return `<path d="${d}"/>` + pts.map(p => o(p[0], p[1])).join('');
+        };
+        // Outline arrow (tip up at 0,-11) turned by deg and centred on the icon.
+        const marker = (deg) => {
+            const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
+            const pts = [[0, -11], [6.5, -3], [2.3, -3], [1.2, 11], [-1.2, 11], [-2.3, -3], [-6.5, -3]];
+            return s(`<path d="M${pts.map(([x, y]) => `${(14 + x * c - y * sn).toFixed(1)} ${(14 + x * sn + y * c).toFixed(1)}`).join('L')}z"/>`);
+        };
+        return {
+            brush: s('<path d="M23.5 4.5 14 14"/><path d="M14 14c-2.2-.6-4.3.4-4.9 2.6-.5 1.9-1.1 3.7-3.6 4.6 3 1.7 7.2.8 8.9-1.7 1-1.5.8-3.5-.4-5.5z"/>'),
+            highlighter: s('<path d="m9 17 9.5-9.5 3 3L12 20z"/><path d="m18.5 7.5 2-2 3 3-2 2"/><path d="m9 17-2.5 4.5h4L12 20"/><path d="M4 24h9"/>'),
+            arrowmarker: marker(45),
+            arrow: s('<path d="M7.6 20.4 21 7M21 7h-6.5M21 7v6.5"/>' + o(6, 22)),
+            arrowup: s('<path d="M14 4.5 22 13h-4.5v10h-7V13H6z"/>'),
+            arrowdown: s('<path d="M14 23.5 22 15h-4.5V5h-7v10H6z"/>'),
+            rectangle: s(link([[6, 6], [22, 6], [22, 22], [6, 22]], true)),
+            rotrect: s(link([[14, 4], [24, 14], [14, 24], [4, 14]], true)),
+            path: s(link([[5, 20], [11, 12], [17, 18]]) + '<path d="M19 15.5 24 9M24 9h-5M24 9v5"/>'),
+            circle: s('<circle cx="14" cy="14" r="9.5"/>' + o(14, 14)),
+            ellipse: s('<ellipse cx="14" cy="14" rx="10.5" ry="6.5"/>' + o(3.5, 14) + o(24.5, 14)),
+            polyline: s(link([[5, 22], [9, 9], [16, 16], [23, 6]])),
+            triangle: s(link([[7, 5], [7, 22], [22, 22]], true)),
+            arc: s('<path d="M6.7 20.2A10 10 0 0 1 21.3 7.8"/>' + o(5.5, 22) + o(22.5, 6)),
+            curve: s('<path d="M6.4 21.1C8 12 13.5 8 21 6.5"/>' + o(5.5, 23) + o(23, 6)),
+            dcurve: s('<path d="M7.6 21.2C5 15 10.5 14 14 14s9-1 6.4-7.2"/>' + o(8.5, 23) + o(19.5, 5))
+        };
+    }
+    setupShapeTools() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        if (!area || !this._lt) return;
+        const defs = StockChart.shapeToolDefs();
+        this._shTypes = new Set(defs.filter(d => d.k).map(d => d.k));
+        // The new menu takes the old drawing-tools button's place.
+        const old = this.drawingToolsButton;
+        const m = this._ltMakeMenu({ defs, icons: StockChart.shapeToolIcons(), store: 'sc-shapetool-last', title: 'Brushes, arrows and shapes', after: old || null });
+        if (old) old.style.display = 'none';
+        this.shapeToolButton = m.btn;
+    }
+    // Anchor at the exact mouse spot (no bar snap, no magnet) for brush strokes and bend handles.
+    _shRaw(x, y, v) { return { t: v.idxToT(v.xToIdx(x)), p: v.yToP(y) } }
+    _shTint(c, a) {
+        const m = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(c || '');
+        return m ? `rgba(${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)},${a})` : `rgba(41,98,255,${a})`;
+    }
+    // Curves start bent so there's something to grab.
+    _shFinish(d) {
+        if ((d.type !== 'curve' && d.type !== 'dcurve') || d.pts.length !== 2) return;
+        const v = this._ltView(), a = v.xy(d.pts[0]), b = v.xy(d.pts[1]);
+        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1, nx = -dy / len, ny = dx / len;
+        const at = (f, k) => this._shRaw(a.x + dx * f + nx * len * k, a.y + dy * f + ny * len * k, v);
+        if (d.type === 'curve') d.pts.push(at(0.5, -0.25));
+        else d.pts.push(at(0.3, -0.3), at(0.7, 0.3));
+    }
+    // Edge/corner handles named t<i>p<j>: take time from point i, price from point j ('-' = leave).
+    _shResize(d, h, p, v) {
+        const m = /^t([\d-])p([\d-])$/.exec(h), a = this._ltAnchor(p.x, p.y, v);
+        if (m[1] !== '-') d.pts[+m[1]].t = a.t;
+        if (m[2] !== '-') d.pts[+m[2]].p = a.p;
+    }
+    _shShape(d, v, state) {
+        const g = { segs: [], fills: [], handles: [], labels: [], arcs: [], tags: [], draws: [], polys: [], hit: [] };
+        const P = d.pts.map(v.xy), [a, b, c] = P, color = d.color || '#2962ff', st = d.style || {}, tint = d.fill || this._shTint(color, 0.2);
+        const handles = (list) => (list || P.map((q, i) => [q, i])).forEach(([q, k]) => g.handles.push({ x: q.x, y: q.y, a: k }));
+        const shape = (pts, closed) => { if (closed) g.fills.push({ pts, c: tint }); g.polys.push({ pts, closed }) };
+        const line = () => { g.polys.push({ pts: [a, b || a] }); handles(); return g };
+        const pt = (x, y) => ({ x, y });
+        // Arrowhead triangle with its tip on `to`; base = where the shaft should stop.
+        const head = (from, to, L, W) => {
+            const dx = to.x - from.x, dy = to.y - from.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
+            const base = pt(to.x - ux * L, to.y - uy * L);
+            return { base, tri: [to, pt(base.x - uy * W / 2, base.y + ux * W / 2), pt(base.x + uy * W / 2, base.y - ux * W / 2)] };
+        };
+        const ring = (cx, cy, rx, ry) => { const out = []; for (let k = 0; k < 72; k++) { const t = k / 72 * Math.PI * 2; out.push(pt(cx + rx * Math.cos(t), cy + ry * Math.sin(t))) } return out };
+        switch (d.type) {
+            case 'brush': case 'highlighter': {
+                const w = st.w || 2, pad = w / 2 + 3;
+                g.polys.push({ pts: P, w, a: st.a });
+                const xs = P.map(q => q.x), ys = P.map(q => q.y), x0 = Math.min(...xs), y0 = Math.min(...ys);
+                g.frame = { x: x0 - pad, y: y0 - pad, w: Math.max(...xs) - x0 + pad * 2, h: Math.max(...ys) - y0 + pad * 2 };
+                return g;
+            }
+            case 'arrow': {
+                if (!b || Math.hypot(b.x - a.x, b.y - a.y) < 2) return line();
+                const hd = head(a, b, 12, 11);
+                g.polys.push({ pts: [a, Math.hypot(b.x - a.x, b.y - a.y) > 12 ? hd.base : a] });
+                g.fills.push({ pts: hd.tri, c: color });
+                handles(); return g;
+            }
+            case 'arrowmarker': {
+                const len = b ? Math.hypot(b.x - a.x, b.y - a.y) : 0;
+                if (len < 4) return line();
+                const ux = (b.x - a.x) / len, uy = (b.y - a.y) / len, nx = -uy, ny = ux;
+                const W = Math.min(28, Math.max(12, len * 0.22)), hl = Math.min(len * 0.5, W * 1.1), sw = W * 0.28, tw = sw * 0.35;
+                const base = pt(b.x - ux * hl, b.y - uy * hl), off = (q, k) => pt(q.x + nx * k, q.y + ny * k);
+                g.fills.push({ pts: [b, off(base, W / 2), off(base, sw), off(a, tw), off(a, -tw), off(base, -sw), off(base, -W / 2)], c: color });
+                handles(); return g;
+            }
+            case 'arrowup': case 'arrowdown': {
+                // Tip on the anchor; up arrows hang below it, down arrows sit above.
+                const k = d.type === 'arrowup' ? 1 : -1, q = (x, y) => pt(a.x + x, a.y + y * k);
+                g.fills.push({ pts: [q(0, 0), q(11, 12), q(4.5, 12), q(4.5, 30), q(-4.5, 30), q(-4.5, 12), q(-11, 12)], c: color });
+                handles(); return g;
+            }
+            case 'rectangle': case 'ellipse': {
+                if (!b) return line();
+                const x0 = a.x, y0 = a.y, x1 = b.x, y1 = b.y, mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+                const edges = [[pt(mx, y0), 't-p0'], [pt(mx, y1), 't-p1'], [pt(x0, my), 't0p-'], [pt(x1, my), 't1p-']];
+                if (d.type === 'ellipse') { shape(ring(mx, my, Math.abs(x1 - x0) / 2, Math.abs(y1 - y0) / 2), true); handles(edges); return g }
+                shape([pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1)], true);
+                handles([[a, 0], [b, 1], [pt(x1, y0), 't1p0'], [pt(x0, y1), 't0p1']].concat(edges));
+                return g;
+            }
+            case 'circle': {
+                if (!b) return line();
+                const r = Math.hypot(b.x - a.x, b.y - a.y);
+                shape(ring(a.x, a.y, r, r), true); handles(); return g;
+            }
+            case 'rotrect': {
+                if (!c) return line();
+                const len = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / len, ny = (b.x - a.x) / len;
+                const dist = (c.x - a.x) * nx + (c.y - a.y) * ny, a2 = pt(a.x + nx * dist, a.y + ny * dist), b2 = pt(b.x + nx * dist, b.y + ny * dist);
+                shape([a, b, b2, a2], true);
+                handles([[a, 0], [b, 1], [pt((a2.x + b2.x) / 2, (a2.y + b2.y) / 2), 2]]);
+                return g;
+            }
+            case 'triangle': if (!c) return line(); shape([a, b, c], true); handles(); return g;
+            case 'polyline': shape(P, !!d.closed); handles(); return g;
+            case 'path': {
+                // Arrow on the last real segment (skip the zero-length one while placing).
+                let j = P.length - 1;
+                while (j > 0 && Math.hypot(P[j].x - P[j - 1].x, P[j].y - P[j - 1].y) < 2) j--;
+                if (j < 1) return line();
+                const hd = head(P[j - 1], P[j], 12, 11);
+                g.polys.push({ pts: P.slice(0, j).concat(Math.hypot(P[j].x - P[j - 1].x, P[j].y - P[j - 1].y) > 12 ? [hd.base] : []) });
+                g.fills.push({ pts: hd.tri, c: color });
+                handles(); return g;
+            }
+            case 'arc': {
+                // Circular arc from a to b passing through c; the chord side is shaded.
+                if (!c) return line();
+                const D = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
+                const sq = (q) => q.x * q.x + q.y * q.y;
+                if (Math.abs(D) < 1e-6) { g.polys.push({ pts: [a, c, b] }); handles(); return g }
+                const ux = (sq(a) * (b.y - c.y) + sq(b) * (c.y - a.y) + sq(c) * (a.y - b.y)) / D;
+                const uy = (sq(a) * (c.x - b.x) + sq(b) * (a.x - c.x) + sq(c) * (b.x - a.x)) / D;
+                const r = Math.hypot(a.x - ux, a.y - uy), TAU = Math.PI * 2, norm = (x) => ((x % TAU) + TAU) % TAU;
+                const sa = Math.atan2(a.y - uy, a.x - ux), ea = Math.atan2(b.y - uy, b.x - ux), ca = Math.atan2(c.y - uy, c.x - ux);
+                const ccw = norm(ea - sa), span = norm(ca - sa) < ccw ? ccw : ccw - TAU, pts = [];
+                for (let k = 0; k <= 64; k++) { const t = sa + span * k / 64; pts.push(pt(ux + r * Math.cos(t), uy + r * Math.sin(t))) }
+                g.fills.push({ pts, c: tint }); g.polys.push({ pts });
+                handles(); return g;
+            }
+            case 'curve': {
+                if (!c) return line();
+                // The handle sits on the curve: control = 2*handle - midpoint of the ends.
+                const qx = 2 * c.x - (a.x + b.x) / 2, qy = 2 * c.y - (a.y + b.y) / 2, pts = [];
+                for (let k = 0; k <= 48; k++) { const t = k / 48, u = 1 - t; pts.push(pt(u * u * a.x + 2 * u * t * qx + t * t * b.x, u * u * a.y + 2 * u * t * qy + t * t * b.y)) }
+                g.polys.push({ pts }); handles(); return g;
+            }
+            case 'dcurve': {
+                if (P.length < 4) return line();
+                const c1 = P[2], c2 = P[3], pts = [];
+                for (let k = 0; k <= 64; k++) {
+                    const t = k / 64, u = 1 - t, A = u * u * u, B = 3 * u * u * t, C = 3 * u * t * t, E = t * t * t;
+                    pts.push(pt(A * a.x + B * c1.x + C * c2.x + E * b.x, A * a.y + B * c1.y + C * c2.y + E * b.y));
+                }
+                g.polys.push({ pts });
+                if (state.sel || state.hov) g.segs.push({ a, b: c1, w: 1, dash: [3, 3] }, { a: b, b: c2, w: 1, dash: [3, 3] });
+                handles(); return g;
+            }
+        }
+        return line();
+    }
+    // ---- Emoji picker ------------------------------------------------------------
+    // Full Unicode set from emoji-data.js (window.StockChartEmojiData), in tabs with a
+    // Recently used row. Emoji draw as Twemoji images so they look the same on every
+    // OS (Windows has no flag emoji); options.emojiImages = false uses system emoji,
+    // or a string sets another image base URL. Native text is the fallback while an
+    // image loads or if it fails.
+    static emojiImageUrl(e, base) {
+        const s = e.indexOf('‍') < 0 ? e.replace(/️/g, '') : e;
+        return base + Array.from(s).map(ch => ch.codePointAt(0).toString(16)).join('-') + '.svg';
+    }
+    emojiImageBase() {
+        const o = this.options.emojiImages;
+        if (o === false) return null;
+        return typeof o === 'string' ? o : 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/';
+    }
+    _drawEmoji(ctx, e, x, y, size) {
+        const base = this.emojiImageBase();
+        if (base) {
+            const cache = StockChart._emojiImgs || (StockChart._emojiImgs = new Map());
+            const url = StockChart.emojiImageUrl(e, base);
+            let rec = cache.get(url);
+            if (!rec) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous'; // keeps the canvas exportable for the camera button
+                rec = { img, ok: false, bad: false, waiters: new Set() };
+                const done = () => { rec.waiters.forEach(c => c.container.isConnected && c.drawCharts()); rec.waiters.clear() };
+                img.onload = () => { rec.ok = true; done() };
+                img.onerror = () => { rec.bad = true; done() };
+                cache.set(url, rec);
+                img.src = url;
+            }
+            if (rec.ok) { ctx.drawImage(rec.img, x - size / 2, y - size / 2, size, size); return }
+            if (!rec.bad) rec.waiters.add(this);
+        }
+        ctx.font = `${size}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(e, x, y);
+    }
+    // ---- Text and notes -------------------------------------------------------------
+    // Built on the line-tool engine (time/price anchors, select, drag, delete, undo,
+    // eraser). Text is typed straight onto the chart in an inline editor; a floating
+    // toolbar over the selected item sets colour, size, bold and italic. Double-click
+    // an item to edit it again. Empty text is removed when editing ends.
+    static get NT_FONT() { return '-apple-system, BlinkMacSystemFont, "Trebuchet MS", Roboto, Ubuntu, sans-serif' }
+    static textToolDefs() {
+        const blue = '#2962ff';
+        return [
+            { group: 'Text and notes' },
+            { k: 'text', label: 'Text', n: 1, edit: true, style: { color: blue, size: 14 } },
+            { k: 'note', label: 'Note', n: 1, edit: true, style: { color: '#ffffff', bg: blue, size: 14 } },
+            { k: 'pricenote', label: 'Price note', n: 2, style: { color: '#ffffff', bg: blue, size: 13 } },
+            { k: 'pin', label: 'Pin', n: 1, edit: true, keepEmpty: true, style: { color: '#ffffff', bg: blue, size: 14 } },
+            { k: 'table', label: 'Table', n: 1, edit: true, keepEmpty: true, style: { color: '', bg: blue, size: 13 } },
+            { k: 'callout', label: 'Callout', n: 2, edit: true, style: { color: '#ffffff', bg: blue, size: 14 } },
+            { k: 'comment', label: 'Comment', n: 1, edit: true, style: { color: '#ffffff', bg: blue, size: 14 } },
+            { k: 'pricelabel', label: 'Price label', n: 1, style: { color: '#ffffff', bg: blue, size: 13 } },
+            { k: 'signpost', label: 'Signpost', n: 1, edit: true, style: { color: '#ffffff', bg: blue, size: 14 } },
+            { k: 'flagmark', label: 'Flag mark', n: 1, style: { bg: blue } },
+            { group: 'Content' },
+            { k: 'image', label: 'Image', n: 1, keepEmpty: true }
+        ];
+    }
+    static textToolIcons() {
+        const s = (d) => `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+        const stem = '<path d="M14 15v5.5"/><circle cx="14" cy="22.5" r="1.8"/>';
+        return {
+            text: s('<path d="M7.5 6.5h13M14 6.5v15.5M11 22h6"/>'),
+            note: s('<rect x="7" y="3.5" width="14" height="11.5" rx="1.5"/><path d="M11 7h6M14 7v5.5"/>' + stem),
+            pricenote: s('<rect x="7" y="3.5" width="14" height="11.5" rx="1.5"/><path d="M16.2 6.6h-3a1.3 1.3 0 0 0 0 2.6h2a1.3 1.3 0 0 1 0 2.6h-3M14 5.5v8"/>' + stem),
+            pin: s('<path d="M14 24.5s-7-6.6-7-12.2a7 7 0 0 1 14 0c0 5.6-7 12.2-7 12.2z"/><circle cx="14" cy="12.3" r="2.6"/>'),
+            table: s('<rect x="4.5" y="6" width="19" height="16" rx="1"/><path d="M4.5 11.3h19M4.5 16.6h19M10.8 6v16"/>'),
+            callout: s('<path d="M6 6.5h16v10.5H12l-4.5 4v-4H6z"/>'),
+            comment: s('<path d="M10.5 7h8a4.5 4.5 0 0 1 0 9h-12V11.5A4.5 4.5 0 0 1 10.5 7z"/>'),
+            pricelabel: s('<path d="M9 5.5h13.5v12H11L7 21.5V7.5a2 2 0 0 1 2-2z"/>'),
+            signpost: s('<circle cx="14" cy="10" r="6.5"/><path d="M14 16.5V25"/><path d="m14 6.6 1 2.1 2.3.3-1.7 1.6.4 2.3-2-1.1-2 1.1.4-2.3-1.7-1.6 2.3-.3z"/>'),
+            flagmark: s('<path d="M7.5 24.5V5h13l-3.5 4.5 3.5 4.5h-13"/>'),
+            image: s('<rect x="4.5" y="5.5" width="19" height="17" rx="2"/><path d="m4.5 19 5.5-5.5 4.5 4.5 3-3 6 6"/><circle cx="18" cy="10.5" r="1.7"/>')
+        };
+    }
+    setupTextTools() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        if (!area || !this._lt) return;
+        const defs = StockChart.textToolDefs();
+        this._ntTypes = new Set(defs.filter(d => d.k).map(d => d.k));
+        this._ntArea = area;
+        this._ntImgs = new Map();
+        // The new menu takes the old text button's place.
+        const old = this.textToolButton;
+        const m = this._ltMakeMenu({ defs, icons: StockChart.textToolIcons(), store: 'sc-texttool-last', title: 'Text and notes', after: old || null });
+        if (old) old.style.display = 'none';
+        this.textToolButton2 = m.btn;
+
+        // Floating toolbar for the selected text item.
+        const tb = document.createElement('div');
+        tb.className = 'sc-nt-toolbar';
+        area.appendChild(tb);
+        this._ntToolbar = tb;
+        tb.addEventListener('mousedown', (e) => { e.stopPropagation(); if (!/^(INPUT|SELECT|OPTION)$/.test(e.target.tagName)) e.preventDefault() });
+
+        area.addEventListener('dblclick', (e) => {
+            if (e.target !== this.priceCanvas || this._lt.tool) return;
+            const r = this.priceCanvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+            const hit = this._ltHit(x, y); if (!hit) return;
+            const d = this.lineTools[hit.i], def = this._ltDefs[d.type];
+            if (!def || !def.edit) return;
+            e.preventDefault(); e.stopPropagation();
+            let cell = null;
+            const g = this._ltCache && this._ltCache.get(d);
+            if (d.type === 'table' && g && g.cells) g.cells.forEach((row, ri) => row.forEach((c, ci) => { if (x >= c.x && x <= c.x + c.w && y >= c.y && y <= c.y + c.h) cell = [ri, ci] }));
+            if (d.type === 'table' && !cell) cell = [0, 0];
+            this._ntEdit(d, cell);
+        }, true);
+        // Clicking anywhere outside the chart drops the selection (and its toolbar).
+        document.addEventListener('mousedown', (e) => {
+            const lt = this._lt;
+            if (lt.sel === null || this.chartContainer.contains(e.target)) return;
+            if (lt.editing) return; // the editor's own blur handles this
+            lt.sel = lt.hover = null; this.drawCharts();
+        }, true);
+        this._ntAfterCommit = (d) => {
+            const def = this._ltDefs[d.type]; if (!def || !this._ntTypes.has(d.type)) return;
+            if (d.type === 'image') this._ntPickImage(d);
+            else if (def.edit) this._ntEdit(d, d.type === 'table' ? [0, 0] : null);
+        };
+    }
+    _ntMeasure() { return this._ntMeasureCtx || (this._ntMeasureCtx = document.createElement('canvas').getContext('2d')) }
+    _ntLayout(text, st, minW) {
+        const size = st.size || 14, font = `${st.italic ? 'italic ' : ''}${st.bold ? 'bold ' : ''}${size}px ${StockChart.NT_FONT}`;
+        const ctx = this._ntMeasure(); ctx.font = font;
+        const lines = String(text || '').split('\n'), lh = Math.round(size * 1.35);
+        const w = Math.max(minW || 0, ...lines.map(l => ctx.measureText(l).width));
+        return { font, lines, lh, size, w: Math.ceil(w), h: lines.length * lh };
+    }
+    _ntText(ctx, lay, x, y, color) {
+        ctx.font = lay.font; ctx.fillStyle = color; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+        lay.lines.forEach((l, i) => ctx.fillText(l, x, y + lay.lh * (i + 0.5)));
+    }
+    _ntRound(ctx, x, y, w, h, r) {
+        r = Math.min(r, w / 2, h / 2);
+        ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    }
+    _ntShape(d, v, state) {
+        const g = { segs: [], fills: [], handles: [], labels: [], arcs: [], tags: [], draws: [], hit: [] };
+        const st = d.style || {}, P = d.pts.map(v.xy), a = P[0], dark = !!this.config.darkMode;
+        const ed = this._lt.editing && this._lt.editing.d === d ? this._lt.editing : null;
+        const editingText = ed && !ed.cell;
+        const theme = dark ? '#d1d4dc' : '#131722', bg = st.bg || '#2962ff', fg = st.color || theme;
+        const priceText = (i) => s8FormatChartPrice(d.pts[i].p);
+        // A filled, rounded text box. (x, y) = box top-left.
+        const textBox = (lay, x, y, padX, padY, r) => {
+            const w = lay.w + padX * 2, h = lay.h + padY * 2;
+            g.draws.push(ctx => { ctx.fillStyle = bg; this._ntRound(ctx, x, y, w, h, r); ctx.fill(); if (!editingText) this._ntText(ctx, lay, x + padX, y + padY, fg) });
+            g.hit.push({ x, y, w, h });
+            g.box = { x: x + padX, y: y + padY, lay, color: fg };
+            g.frame = { x, y, w, h };
+            return { x, y, w, h };
+        };
+        const minW = editingText ? 6 : 0;
+        switch (d.type) {
+            case 'text': {
+                const lay = this._ntLayout(d.text, st, minW), pad = st.bgOn || st.border ? 6 : 3;
+                const f = { x: a.x - pad, y: a.y - pad, w: lay.w + pad * 2, h: lay.h + pad * 2 };
+                g.draws.push(ctx => {
+                    if (st.bgOn) { ctx.fillStyle = st.bgColor || 'rgba(41,98,255,0.2)'; this._ntRound(ctx, f.x, f.y, f.w, f.h, 3); ctx.fill() }
+                    if (st.border) { ctx.strokeStyle = st.borderColor || fg; ctx.lineWidth = 1; this._ntRound(ctx, f.x, f.y, f.w, f.h, 3); ctx.stroke() }
+                    if (!editingText) this._ntText(ctx, lay, a.x, a.y, fg);
+                });
+                g.hit.push(f); g.frame = f; g.box = { x: a.x, y: a.y, lay, color: fg };
+                break;
+            }
+            case 'note': {
+                const lay = this._ntLayout(d.text, st, Math.max(minW, 8)), w = lay.w + 16, h = lay.h + 12;
+                const bx = a.x - w / 2, by = a.y - 20 - h;
+                g.draws.push(ctx => { ctx.strokeStyle = bg; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(a.x, by + h); ctx.stroke(); ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(a.x, a.y, 3.5, 0, Math.PI * 2); ctx.fill() });
+                textBox(lay, bx, by, 8, 6, 4);
+                g.hit.push({ x: a.x - 6, y: by + h, w: 12, h: 26 });
+                break;
+            }
+            case 'comment': case 'pricelabel': {
+                const text = d.type === 'pricelabel' ? priceText(0) : d.text;
+                const lay = this._ntLayout(text, st, Math.max(minW, 8)), h = lay.h + 12, bx = a.x + 2, by = a.y - 12 - h;
+                g.draws.push(ctx => { ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(bx + 3, by + h - 6); ctx.lineTo(bx + 18, by + h - 1); ctx.closePath(); ctx.fill() });
+                textBox(lay, bx, by, 10, 6, Math.min(12, h / 2));
+                g.hit.push({ pts: [a, { x: bx + 2, y: by + h - 6 }, { x: bx + 20, y: by + h }] });
+                break;
+            }
+            case 'callout': {
+                const b = P[1] || a, lay = this._ntLayout(d.text, st, Math.max(minW, 8)), w = lay.w + 20, h = lay.h + 14;
+                const bx = b.x - w / 2, by = b.y - h / 2;
+                let dx = a.x - b.x, dy = a.y - b.y; const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
+                const k = Math.min(10, w / 3, h / 3), p1 = { x: b.x - dy * k, y: b.y + dx * k }, p2 = { x: b.x + dy * k, y: b.y - dx * k };
+                g.draws.push(ctx => { ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.closePath(); ctx.fill() });
+                textBox(lay, bx, by, 10, 7, 4);
+                g.hit.push({ pts: [a, p1, p2] });
+                g.handles.push({ x: a.x, y: a.y, a: 0 });
+                if (P[1]) g.handles.push({ x: b.x, y: b.y + h / 2, a: 1 });
+                break;
+            }
+            case 'pricenote': {
+                const b = P[1] || a, lay = this._ntLayout(priceText(0), st), w = lay.w + 16, h = lay.h + 10;
+                g.segs.push({ a, b, c: bg, w: 1.5 });
+                g.draws.push(ctx => { ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(a.x, a.y, 3.5, 0, Math.PI * 2); ctx.fill() });
+                textBox(lay, b.x - w / 2, b.y - h / 2, 8, 5, 4);
+                g.handles.push({ x: a.x, y: a.y, a: 0 }, { x: b.x, y: b.y, a: 1 });
+                break;
+            }
+            case 'pin': {
+                const head = { x: a.x, y: a.y - 18 };
+                g.draws.push(ctx => {
+                    ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(a.x, a.y);
+                    ctx.bezierCurveTo(a.x - 4, a.y - 7, head.x - 10, head.y + 5, head.x - 10, head.y);
+                    ctx.arc(head.x, head.y, 10, Math.PI, 0);
+                    ctx.bezierCurveTo(head.x + 10, head.y + 5, a.x + 4, a.y - 7, a.x, a.y); ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(head.x, head.y, 3.8, 0, Math.PI * 2); ctx.fill();
+                });
+                g.hit.push({ x: a.x - 11, y: a.y - 29, w: 22, h: 30 });
+                g.frame = null;
+                // Pin text shows when the pin is hovered, selected or being edited.
+                if ((state.sel || state.hov || ed) && (d.text || ed)) {
+                    const lay = this._ntLayout(d.text, st, Math.max(minW, 8)), w = lay.w + 16, h = lay.h + 12;
+                    textBox(lay, a.x - w / 2, a.y - 36 - h, 8, 6, 4);
+                    g.frame = null;
+                }
+                break;
+            }
+            case 'signpost': {
+                const lay = this._ntLayout(d.text, st, Math.max(minW, 8)), w = lay.w + 22, h = lay.h + 12;
+                const bx = a.x - w / 2, by = a.y - h / 2;
+                const ci = Math.round(v.tToIdx(d.pts[0].t)), c = this.stockData[ci];
+                let pole = null;
+                if (c) { const hy = v.pToY(c.high), ly = v.pToY(c.low); if (by + h < hy) pole = [by + h, hy]; else if (by > ly) pole = [by, ly] }
+                if (pole) g.draws.push(ctx => { ctx.strokeStyle = bg; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a.x, pole[0]); ctx.lineTo(a.x, pole[1]); ctx.stroke(); ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(a.x, pole[1], 3, 0, Math.PI * 2); ctx.fill() });
+                textBox(lay, bx, by, 11, 6, h / 2);
+                break;
+            }
+            case 'flagmark': {
+                g.draws.push(ctx => {
+                    ctx.strokeStyle = bg; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(a.x, a.y - 30); ctx.stroke();
+                    ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(a.x, a.y - 30); ctx.lineTo(a.x + 20, a.y - 30); ctx.lineTo(a.x + 14, a.y - 24); ctx.lineTo(a.x + 20, a.y - 18); ctx.lineTo(a.x, a.y - 18); ctx.closePath(); ctx.fill();
+                });
+                g.hit.push({ x: a.x - 4, y: a.y - 32, w: 26, h: 34 });
+                break;
+            }
+            case 'table': {
+                const cells = d.cells || [['']], cols = Math.max(...cells.map(r => r.length));
+                const ctxm = this._ntMeasure(), lay0 = this._ntLayout('', st), pad = 8, rh = lay0.lh + 10;
+                ctxm.font = lay0.font;
+                const cw = []; for (let c = 0; c < cols; c++) cw[c] = Math.max(56, ...cells.map(r => Math.ceil(ctxm.measureText(r[c] || '').width))) + pad * 2;
+                const W = cw.reduce((s, x) => s + x, 0), H = rh * cells.length;
+                g.cells = cells.map((row, ri) => { let x = a.x; return cw.map((w, ci) => { const r = { x, y: a.y + ri * rh, w, h: rh }; x += w; return r }) });
+                g.draws.push(ctx => {
+                    ctx.fillStyle = dark ? 'rgba(30,34,45,0.92)' : 'rgba(255,255,255,0.95)'; ctx.fillRect(a.x, a.y, W, H);
+                    ctx.strokeStyle = bg; ctx.lineWidth = 1;
+                    g.cells.forEach((row, ri) => row.forEach((c, ci) => {
+                        ctx.strokeRect(c.x + 0.5, c.y + 0.5, c.w, c.h);
+                        if (ed && ed.cell && ed.cell[0] === ri && ed.cell[1] === ci) return;
+                        const t = cells[ri][ci]; if (t) this._ntText(ctx, { font: lay0.font, lines: [t], lh: lay0.lh }, c.x + pad, c.y + 5, fg);
+                    }));
+                });
+                g.hit.push({ x: a.x, y: a.y, w: W, h: H });
+                g.frame = { x: a.x, y: a.y, w: W, h: H };
+                if (ed && ed.cell && g.cells[ed.cell[0]]) {
+                    const c = g.cells[ed.cell[0]][ed.cell[1]];
+                    if (c) g.box = { x: c.x + pad, y: c.y + 5, lay: { ...lay0, w: c.w - pad * 2, h: lay0.lh }, color: fg };
+                }
+                break;
+            }
+            case 'image': {
+                const w = d.w || 200, h = w * (d.ar || 0.6);
+                let img = d.src ? this._ntImgs.get(d.src) : null;
+                if (d.src && !img) { img = new Image(); img.onload = () => this.drawCharts(); img.src = d.src; this._ntImgs.set(d.src, img) }
+                g.draws.push(ctx => {
+                    if (img && img.complete && img.naturalWidth) ctx.drawImage(img, a.x, a.y, w, h);
+                    else { ctx.strokeStyle = '#2962ff'; ctx.setLineDash([4, 4]); ctx.strokeRect(a.x, a.y, w, h); ctx.setLineDash([]); ctx.fillStyle = theme; ctx.font = `12px ${StockChart.NT_FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(d.src ? 'Loading image' : 'Choose an image', a.x + w / 2, a.y + h / 2) }
+                });
+                g.hit.push({ x: a.x, y: a.y, w, h });
+                g.frame = { x: a.x, y: a.y, w, h };
+                g.handles.push({ x: a.x + w, y: a.y + h, a: 'img' });
+                break;
+            }
+        }
+        return g;
+    }
+    _ntResize(d, h, p, v) {
+        if (h !== 'img') return;
+        const a = v.xy(d.pts[0]);
+        d.w = Math.max(24, Math.min(1600, Math.round(p.x - a.x)));
+    }
+    _ntPickImage(d) {
+        const input = document.createElement('input');
+        input.type = 'file'; input.accept = 'image/png,image/jpeg,image/gif,image/webp';
+        const drop = () => { const i = this.lineTools.indexOf(d); if (i >= 0 && !d.src) { this.lineTools.splice(i, 1); this._lt.sel = null; this.drawCharts() } };
+        input.addEventListener('cancel', drop);
+        input.addEventListener('change', () => {
+            const file = input.files && input.files[0]; if (!file) { drop(); return }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    // Keep drawings light: shrink big images before storing them.
+                    const max = 1200, k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+                    const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+                    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                    d.src = c.toDataURL(/png|gif|webp/.test(file.type) ? 'image/png' : 'image/jpeg', 0.9);
+                    d.ar = c.height / c.width; d.w = Math.min(320, c.width);
+                    this.drawCharts(); this.recordDrawingState();
+                };
+                img.onerror = drop;
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        input.click();
+    }
+    _ntEdit(d, cell) {
+        this._ntFinishEdit();
+        const lt = this._lt, i = this.lineTools.indexOf(d); if (i < 0) return;
+        lt.sel = i;
+        const ta = document.createElement('textarea');
+        ta.className = 'sc-nt-editor'; ta.spellcheck = false; ta.setAttribute('wrap', 'off');
+        ta.value = cell ? (d.cells[cell[0]][cell[1]] || '') : (d.text || '');
+        lt.editing = { d, cell, ta };
+        this._ntArea.appendChild(ta);
+        ta.addEventListener('input', () => { if (cell) d.cells[cell[0]][cell[1]] = ta.value; else d.text = ta.value; this.drawCharts() });
+        ta.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey || cell))) { e.preventDefault(); this._ntFinishEdit(); return }
+            if (e.key === 'Tab' && cell) {
+                // Tab / Shift+Tab walk the table cells.
+                e.preventDefault();
+                const rows = d.cells.length, cols = d.cells[0].length;
+                let n = cell[0] * cols + cell[1] + (e.shiftKey ? -1 : 1); n = (n + rows * cols) % (rows * cols);
+                this._ntEdit(d, [Math.floor(n / cols), n % cols]);
+            }
+        });
+        ta.addEventListener('blur', () => { if (lt.editing && lt.editing.ta === ta) this._ntFinishEdit() });
+        this.drawCharts();
+        requestAnimationFrame(() => { ta.focus(); const n = ta.value.length; ta.setSelectionRange(n, n) });
+    }
+    _ntFinishEdit() {
+        const lt = this._lt, ed = lt && lt.editing; if (!ed) return;
+        lt.editing = null;
+        ed.ta.remove();
+        const d = ed.d, def = this._ltDefs[d.type];
+        if (!ed.cell && def && !def.keepEmpty && !String(d.text || '').trim()) {
+            const i = this.lineTools.indexOf(d); if (i >= 0) this.lineTools.splice(i, 1);
+            lt.sel = null;
+        }
+        this.drawCharts();
+        this.recordDrawingState();
+    }
+    // Keeps the inline editor and the floating toolbar on top of their item.
+    _ntSyncUi() {
+        const lt = this._lt, area = this._ntArea; if (!lt || !area) return;
+        const cr = this.priceCanvas.getBoundingClientRect(), ar = area.getBoundingClientRect(), ox = cr.left - ar.left, oy = cr.top - ar.top;
+        const ed = lt.editing;
+        if (ed) {
+            const g = this._ltCache.get(ed.d);
+            if (g && g.box) {
+                const b = g.box, ta = ed.ta;
+                Object.assign(ta.style, { left: (ox + b.x) + 'px', top: (oy + b.y) + 'px', width: (Math.max(b.lay.w, 6) + 14) + 'px', height: Math.max(b.lay.h, b.lay.lh) + 'px', font: b.lay.font, lineHeight: b.lay.lh + 'px', color: b.color, caretColor: b.color });
+            }
+        }
+        const tb = this._ntToolbar, d = lt.sel !== null ? this.lineTools[lt.sel] : null;
+        const hide = () => { tb.classList.remove('active'); this._ntTbFor = null };
+        const isText = !!(d && this._ntTypes.has(d.type));
+        const show = d && !lt.drag && !lt.tool && !this.isDrawingModeOn();
+        if (!show) return hide();
+        const g = this._ltCache.get(d); if (!g) return hide();
+        // Sit above everything the item draws (a pin's text bubble, a note's stem...).
+        // Other drawings: the box round their handles (and a brush's frame).
+        const rects = [g.frame].concat(g.hit || []).filter(r => r && r.w).concat(isText ? [] : g.handles.map(q => ({ x: q.x - 1, y: q.y - 1, w: 2, h: 2 })));
+        if (!rects.length) return hide();
+        const fx = Math.min(...rects.map(r => r.x)), fy = Math.min(...rects.map(r => r.y));
+        const f = { x: fx, y: fy, w: Math.max(...rects.map(r => r.x + r.w)) - fx, h: Math.max(...rects.map(r => r.y + r.h)) - fy };
+        // Hide while the item is panned or zoomed out of the visible plot.
+        const L = this.config.padding.left, R = this.getCanvasWidth() - this.config.padding.right, T = this.config.padding.top, B = T + this.getPriceChartHeight();
+        if (f.x + f.w < L || f.x > R || f.y + f.h < T || f.y > B) return hide();
+        if (this._ntTbFor !== d) { if (isText) this._ntBuildToolbar(d); else this._dsBuildToolbar(d); this._ntTbFor = d }
+        tb.classList.add('active');
+        const w = tb.offsetWidth, h = tb.offsetHeight;
+        let left = ox + f.x + f.w / 2 - w / 2, top = oy + f.y - h - 12;
+        if (top < 4) top = oy + f.y + f.h + 12;
+        top = Math.max(4, Math.min(area.clientHeight - h - 4, top));
+        left = Math.max(4, Math.min(area.clientWidth - w - 4, left));
+        tb.style.left = left + 'px'; tb.style.top = top + 'px';
+    }
+    _ntBuildToolbar(d) {
+        const tb = this._ntToolbar, st = d.style || (d.style = {});
+        const hex = (c, fb) => /^#[0-9a-f]{6}$/i.test(c || '') ? c : fb;
+        const theme = this.config.darkMode ? '#d1d4dc' : '#131722';
+        const parts = [];
+        const hasText = ['text', 'note', 'pin', 'callout', 'comment', 'signpost', 'table', 'pricenote', 'pricelabel'].includes(d.type);
+        if (hasText) parts.push(`<label class="sc-nt-swatch" title="Text color"><span class="sc-nt-a" style="--c:${hex(st.color, theme)}">A</span><input type="color" data-k="color" value="${hex(st.color, theme)}"></label>`);
+        if (st.bg !== undefined) parts.push(`<label class="sc-nt-swatch" title="Background"><span class="sc-nt-fill" style="--c:${hex(st.bg, '#2962ff')}"></span><input type="color" data-k="bg" value="${hex(st.bg, '#2962ff')}"></label>`);
+        if (hasText) {
+            parts.push(`<select data-k="size" title="Font size">${[10, 11, 12, 13, 14, 16, 18, 20, 24, 28, 32, 40].map(n => `<option value="${n}"${n === (st.size || 14) ? ' selected' : ''}>${n}</option>`).join('')}</select>`);
+            parts.push(`<button type="button" data-t="bold" class="${st.bold ? 'on' : ''}" title="Bold"><b>B</b></button><button type="button" data-t="italic" class="${st.italic ? 'on' : ''}" title="Italic"><i>I</i></button>`);
+        }
+        if (d.type === 'text') parts.push(`<button type="button" data-t="bgOn" class="${st.bgOn ? 'on' : ''}" title="Background">Bg</button><button type="button" data-t="border" class="${st.border ? 'on' : ''}" title="Border">Border</button>`);
+        if (d.type === 'table') parts.push('<span class="sc-nt-sep"></span><button type="button" data-a="row+" title="Add row">+ Row</button><button type="button" data-a="col+" title="Add column">+ Col</button><button type="button" data-a="row-" title="Remove last row">− Row</button><button type="button" data-a="col-" title="Remove last column">− Col</button>');
+        parts.push(this._dsTail(d));
+        tb.innerHTML = parts.join('');
+        const apply = () => { this.drawCharts(); this.recordDrawingState() };
+        tb.querySelectorAll('input[type="color"]').forEach(inp => inp.addEventListener('input', () => {
+            st[inp.dataset.k] = inp.value; if (d.type === 'text' && inp.dataset.k === 'color') st.bgColor = null;
+            const sw = inp.parentElement.firstElementChild; if (sw) sw.style.setProperty('--c', inp.value);
+            this.drawCharts();
+        }));
+        tb.querySelectorAll('input[type="color"]').forEach(inp => inp.addEventListener('change', apply));
+        const sel = tb.querySelector('select'); if (sel) sel.addEventListener('change', () => { st.size = +sel.value; apply() });
+        tb.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => { st[b.dataset.t] = !st[b.dataset.t]; b.classList.toggle('on', !!st[b.dataset.t]); apply() }));
+        tb.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => {
+            const act = b.dataset.a, c = d.cells;
+            if (this._dsAction(d, act)) return;
+            if (act === 'row+') c.push(c[0].map(() => ''));
+            if (act === 'col+') c.forEach(r => r.push(''));
+            if (act === 'row-' && c.length > 1) c.pop();
+            if (act === 'col-' && c[0].length > 1) c.forEach(r => r.pop());
+            this._ntFinishEdit(); apply();
+        }));
+    }
+    // ---- Drawing toolbar ------------------------------------------------------------
+    // Floats over the selected drawing (same box as the text toolbar). Line colour,
+    // fill, width and line style where the tool has them; lock, clone and delete for
+    // every drawing. Fib and Gann levels keep their own colours, so those get a
+    // background on/off switch instead.
+    static get DS_FILLED() { return ['rectangle', 'rotrect', 'circle', 'ellipse', 'triangle', 'arc', 'xabcd', 'cypher', 'headshoulders', 'trianglepat', 'parallel', 'flattop', 'disjoint', 'regression'] }
+    _dsTail(d) {
+        const i = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+        return '<span class="sc-nt-sep"></span>'
+            + `<button type="button" data-a="lock" class="${d.locked ? 'on' : ''}" title="${d.locked ? 'Unlock' : 'Lock'}">${i(d.locked ? '<rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/>' : '<rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 6.8-1.2"/>')}</button>`
+            + `<button type="button" data-a="clone" title="Clone">${i('<rect x="8.5" y="8.5" width="11" height="11" rx="1.5"/><path d="M15.5 8.5v-2a1.5 1.5 0 0 0-1.5-1.5H6.5A1.5 1.5 0 0 0 5 6.5V14a1.5 1.5 0 0 0 1.5 1.5h2"/>')}</button>`
+            + `<button type="button" data-a="del" title="Delete">${i('<path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13M10.5 11v6M13.5 11v6"/>')}</button>`;
+    }
+    // Lock / clone / delete. Returns true when it handled the action.
+    _dsAction(d, act) {
+        const lt = this._lt, done = () => { this._ntTbFor = null; this.drawCharts(); this.recordDrawingState() };
+        if (act === 'del') { if (this._ntFinishEdit) this._ntFinishEdit(); const i = this.lineTools.indexOf(d); if (i >= 0) this.lineTools.splice(i, 1); lt.sel = lt.hover = null; done(); return true }
+        if (act === 'lock') { d.locked = !d.locked; done(); return true }
+        if (act === 'clone') {
+            // The copy sits a few bars to the right so it doesn't hide the original.
+            const c = JSON.parse(JSON.stringify(d)), v = this._ltView();
+            c.id = Date.now() + Math.random(); c.locked = false;
+            c.pts = c.pts.map(q => ({ t: v.idxToT(v.tToIdx(q.t) + 5), p: q.p }));
+            this.lineTools.push(c); lt.sel = this.lineTools.length - 1; done(); return true;
+        }
+        return false;
+    }
+    _dsBuildToolbar(d) {
+        const tb = this._ntToolbar, k = d.type, parts = [];
+        const hex = (c, fb) => /^#[0-9a-f]{6}$/i.test(c || '') ? c : fb;
+        const plain = ['longpos', 'shortpos', 'barspattern', 'ghostfeed', 'frvp', 'avp'].includes(k);
+        if (plain) { tb.innerHTML = this._dsTail(d); tb.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => this._dsAction(d, b.dataset.a))); return }
+        const isFib = !!(this._fbTypes && this._fbTypes.has(k)), brush = k === 'brush' || k === 'highlighter';
+        const solid = ['arrowmarker', 'arrowup', 'arrowdown'].includes(k); // filled marks, no outline
+        const filled = StockChart.DS_FILLED.includes(k) || (k === 'polyline' && d.closed);
+        if (!isFib) parts.push(`<label class="sc-nt-swatch" title="${solid ? 'Color' : 'Line color'}"><span class="sc-ds-line" style="--c:${hex(d.color, '#2962ff')}"></span><input type="color" data-k="color" value="${hex(d.color, '#2962ff')}"></label>`);
+        if (filled) parts.push(`<label class="sc-nt-swatch" title="Fill color"><span class="sc-nt-fill" style="--c:${hex(d.fillHex, hex(d.color, '#2962ff'))};opacity:.6"></span><input type="color" data-k="fill" value="${hex(d.fillHex, hex(d.color, '#2962ff'))}"></label>`);
+        if (isFib || filled || ['pitchfork', 'schiff', 'modschiff', 'inside', 'timecycles'].includes(k)) parts.push(`<button type="button" data-a="nofill" class="${d.noFill ? '' : 'on'}" title="Background on/off">Bg</button>`);
+        if (!isFib && !solid) {
+            const w = brush ? ((d.style && d.style.w) || 2) : (d.w || 2), opts = k === 'highlighter' ? [8, 12, 18, 24, 32] : [1, 2, 3, 4];
+            parts.push(`<select data-k="w" title="Line width">${opts.map(n => `<option value="${n}"${n === w ? ' selected' : ''}>${n}px</option>`).join('')}</select>`);
+            if (!brush) parts.push(`<select data-k="dash" title="Line style">${[['', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']].map(([v, l]) => `<option value="${v}"${(d.dash || '') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`);
+        }
+        parts.push(this._dsTail(d));
+        tb.innerHTML = parts.join('');
+        const save = () => { this.drawCharts(); this.recordDrawingState() };
+        tb.querySelectorAll('input[type="color"]').forEach(inp => {
+            const set = () => {
+                if (inp.dataset.k === 'fill') { d.fillHex = inp.value; d.fill = this._shTint(inp.value, 0.2) } else d.color = inp.value;
+                const sw = inp.parentElement.firstElementChild; if (sw) sw.style.setProperty('--c', inp.value);
+                this.drawCharts();
+            };
+            inp.addEventListener('input', set); inp.addEventListener('change', () => { set(); this.recordDrawingState() });
+        });
+        tb.querySelectorAll('select').forEach(sel => sel.addEventListener('change', () => {
+            if (sel.dataset.k === 'w') { if (brush) (d.style || (d.style = {})).w = +sel.value; else d.w = +sel.value }
+            else d.dash = sel.value || undefined;
+            save();
+        }));
+        tb.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => {
+            if (b.dataset.a === 'nofill') { d.noFill = !d.noFill; b.classList.toggle('on', !d.noFill); save(); return }
+            this._dsAction(d, b.dataset.a);
+        }));
+    }
+    // ---- Magnet --------------------------------------------------------------------
+    // Snaps drawing points to the bar's open/high/low/close. Weak: only when the
+    // pointer is near one of them. Strong: always the nearest. Holding Ctrl (Cmd on
+    // Mac) flips the magnet while held. Every drawing point uses it: the line, channel,
+    // pitchfork and text tools, emoji, and the older line and Fibonacci tools.
+    static get MAGNET_WEAK_PX() { return 14 }
+    magnetMode() {
+        const m = this._magnet; if (!m) return 'off';
+        if (this._ctrlHeld) return m.on ? 'off' : m.mode;
+        return m.on ? m.mode : 'off';
+    }
+    // Snap for bar index i at pointer y. Returns { p, x, y } or null.
+    _magnetSnapIdx(i, y, v) {
+        this._magnetHint = null;
+        const mode = this.magnetMode(), c = this.stockData[i];
+        if (mode === 'off' || !c) return null;
+        let best = null;
+        [c.open, c.high, c.low, c.close].forEach(p => { const py = v.pToY(p), d = Math.abs(py - y); if (!best || d < best.d) best = { p, d, y: py } });
+        if (mode === 'weak' && best.d > StockChart.MAGNET_WEAK_PX) return null;
+        this._magnetHint = { x: v.idxToX(i), y: best.y };
+        return { p: best.p, x: this._magnetHint.x, y: best.y };
+    }
+    _magnetSnapXY(x, y) {
+        const v = this._ltView(), i = Math.round(v.xToIdx(x)), s = this._magnetSnapIdx(i, y, v);
+        return s ? { x: s.x, y: s.y, price: s.p } : null;
+    }
+    setupMagnet() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        const bar = root && (root.querySelector('.sc-sidebar') || root.querySelector('.sc-chart-controls-overlay'));
+        if (!area || !bar) return;
+        let saved = {}; try { saved = JSON.parse(localStorage.getItem('sc-magnet') || '{}') || {} } catch (e) { }
+        this._magnet = { on: !!saved.on, mode: saved.mode === 'strong' ? 'strong' : 'weak' };
+        const save = () => { try { localStorage.setItem('sc-magnet', JSON.stringify(this._magnet)) } catch (e) { } };
+        // The older line + Fibonacci tools snap through the same magnet.
+        this.findSnappingPoint = (x, y) => this._magnetSnapXY(x, y);
+        this.findPriceSnappingPoint = (x, y) => this._magnetSnapXY(x, y);
+
+        const icon = (strong) => `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 4.5h4.5v8.5a1.5 1.5 0 0 0 3 0V4.5H20V13a6 6 0 0 1-12 0z"/><path d="M8 8.5h4.5M15.5 8.5H20"/>${strong ? '<path d="m10.5 21.5-1.2 2.5M14 21.5V24M17.5 21.5l1.2 2.5" stroke-linecap="round"/>' : ''}</svg>`;
+        const btn = document.createElement('button');
+        btn.className = 'sc-overlay-button sc-lt-button sc-magnet-button';
+        btn.title = 'Magnet (hold Ctrl to flip)';
+        const sep = document.createElement('span'); sep.className = 'sc-bar-sep';
+        const measure = bar.querySelector('.sc-measure-button');
+        if (measure) { measure.insertAdjacentElement('afterend', sep); sep.insertAdjacentElement('afterend', btn) } else { bar.appendChild(sep); bar.appendChild(btn) }
+        const menu = document.createElement('div');
+        menu.className = 'sc-cursor-menu sc-lt-menu sc-magnet-menu';
+        menu.innerHTML = '<div class="sc-lt-group">Magnet</div>'
+            + `<button type="button" class="sc-cursor-option" data-mag="weak">${icon(false)}<span>Weak magnet</span></button>`
+            + `<button type="button" class="sc-cursor-option" data-mag="strong">${icon(true)}<span>Strong magnet</span></button>`
+            + '<div class="sc-magnet-tip">Weak snaps when you are near a bar\'s open, high, low or close. Strong always snaps. Hold Ctrl to flip it.</div>';
+        area.appendChild(menu);
+        const paint = () => {
+            btn.innerHTML = icon(this._magnet.mode === 'strong') + '<span class="sc-cursor-chev"></span>';
+            btn.classList.toggle('active', this.magnetMode() !== 'off');
+            menu.querySelectorAll('[data-mag]').forEach(o => o.classList.toggle('selected', o.dataset.mag === this._magnet.mode && this._magnet.on));
+        };
+        // Ctrl / Cmd state, from keys and from the pointer events themselves.
+        const setHeld = (v) => { if (this._ctrlHeld !== v) { this._ctrlHeld = v; paint() } };
+        window.addEventListener('keydown', (e) => { if (e.key === 'Control' || e.key === 'Meta') setHeld(true) });
+        window.addEventListener('keyup', (e) => { if (e.key === 'Control' || e.key === 'Meta') setHeld(false) });
+        window.addEventListener('blur', () => setHeld(false));
+        ['mousemove', 'mousedown'].forEach(t => document.addEventListener(t, (e) => setHeld(!!(e.ctrlKey || e.metaKey)), true));
+        const close = () => { menu.classList.remove('active'); btn.classList.remove('open') };
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const r = btn.getBoundingClientRect();
+            if (e.clientX >= r.right - 11 || menu.classList.contains('active')) {
+                const open = !menu.classList.contains('active');
+                if (this.closeLineMenu) this.closeLineMenu();
+                if (!open) return close();
+                const a = area.getBoundingClientRect();
+                menu.style.left = '4px'; menu.classList.add('active'); btn.classList.add('open');
+                menu.style.top = Math.max(4, Math.min(r.top - a.top, area.clientHeight - menu.offsetHeight - 4)) + 'px';
+                return;
+            }
+            this._magnet.on = !this._magnet.on; save(); paint();
+        });
+        menu.addEventListener('mousedown', (e) => e.stopPropagation());
+        menu.querySelectorAll('[data-mag]').forEach(o => o.addEventListener('click', () => { this._magnet.mode = o.dataset.mag; this._magnet.on = true; save(); paint(); close() }));
+        document.addEventListener('mousedown', (e) => { if (!menu.contains(e.target) && !btn.contains(e.target)) close() }, true);
+        paint();
+    }
+    // ---- Remove drawings / indicators (trash) -------------------------------------
+    // Trash icon removes every drawing; its chevron opens a menu that also removes
+    // indicators, or both. Removing drawings is undoable with Ctrl+Z.
+    countDrawings() {
+        const n = (a) => Array.isArray(a) ? a.length : 0;
+        return n(this.lines) + n(this.textAnnotations) + n(this.emoticons) + n(this.fibonacciRetracements) + n(this.drawingShapes)
+            + n(this.arrows) + n(this.rectangles) + n(this.circles) + n(this.lineTools)
+            + (this.priceLines || []).filter(l => l.kind === 'line').length;
+    }
+    countIndicators() {
+        let n = 0;
+        // Volume bars aren't counted: they have their own toggle and people don't think of them as an indicator.
+        for (const k in this.indicators) if (k !== 'volume' && this.indicators[k] && this.indicators[k].enabled) n++;
+        return n + (this.movingAverages || []).filter(m => m.enabled).length;
+    }
+    removeAllDrawings() {
+        if (this._ntFinishEdit) this._ntFinishEdit();
+        if (this._lt) { this._lt.sel = this._lt.hover = null; if (this._lt.tool) this.deactivateLineTool() }
+        this.clearAllDrawings();
+    }
+    removeAllIndicators() {
+        for (const k in this.indicators) {
+            const ind = this.indicators[k];
+            if (k === 'volume' || !ind || !ind.enabled) continue; // volume bars stay (own toggle)
+            ind.enabled = false;
+            const cb = this.indicatorsDropdown && this.indicatorsDropdown.querySelector(`input[type="checkbox"][value="${k}"]`);
+            if (cb) cb.checked = false;
+        }
+        (this.movingAverages || []).forEach(m => {
+            if (!m.enabled) return;
+            m.enabled = false;
+            const cb = this.container.querySelector(`.sc-moving-averages-list input[type="checkbox"][value="${m.id}"]`);
+            if (cb) cb.checked = false;
+        });
+        this.calculateIndicators();
+        this.drawCharts();
+        this.saveSettings();
+    }
+    setupRemoveMenu() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        const bar = root && (root.querySelector('.sc-sidebar') || root.querySelector('.sc-chart-controls-overlay'));
+        if (!area || !bar) return;
+        const trash = '<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h16M11 8V5.5h6V8M8 8l1 15h10l1-15M12 12v7M16 12v7"/></svg>';
+        const btn = document.createElement('button');
+        btn.className = 'sc-overlay-button sc-lt-button sc-remove-button';
+        btn.title = 'Remove drawings';
+        btn.innerHTML = trash + '<span class="sc-cursor-chev"></span>';
+        const sep = document.createElement('span'); sep.className = 'sc-bar-sep';
+        const magnet = bar.querySelector('.sc-magnet-button');
+        if (magnet) { magnet.insertAdjacentElement('afterend', sep); sep.insertAdjacentElement('afterend', btn) } else { bar.appendChild(sep); bar.appendChild(btn) }
+        const menu = document.createElement('div');
+        menu.className = 'sc-cursor-menu sc-lt-menu sc-remove-menu';
+        area.appendChild(menu);
+        const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+        const build = () => {
+            const d = this.countDrawings(), i = this.countIndicators();
+            menu.innerHTML = `<button type="button" class="sc-cursor-option" data-rm="d"${d ? '' : ' disabled'}><span>Remove ${plural(d, 'drawing')}</span></button>`
+                + `<button type="button" class="sc-cursor-option" data-rm="i"${i ? '' : ' disabled'}><span>Remove ${plural(i, 'indicator')}</span></button>`
+                + `<button type="button" class="sc-cursor-option" data-rm="b"${d || i ? '' : ' disabled'}><span>Remove ${plural(d, 'drawing')} &amp; ${plural(i, 'indicator')}</span></button>`;
+        };
+        const close = () => { menu.classList.remove('active'); btn.classList.remove('open') };
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const r = btn.getBoundingClientRect();
+            if (e.clientX >= r.right - 11 || menu.classList.contains('active')) {
+                const open = !menu.classList.contains('active');
+                if (this.closeLineMenu) this.closeLineMenu();
+                if (!open) return close();
+                build();
+                const a = area.getBoundingClientRect();
+                menu.style.left = '4px'; menu.classList.add('active'); btn.classList.add('open');
+                menu.style.top = Math.max(4, Math.min(r.top - a.top, area.clientHeight - menu.offsetHeight - 4)) + 'px';
+                return;
+            }
+            this.removeAllDrawings();
+        });
+        menu.addEventListener('mousedown', (e) => e.stopPropagation());
+        menu.addEventListener('click', (e) => {
+            const b = e.target.closest('[data-rm]'); if (!b || b.disabled) return;
+            const k = b.dataset.rm;
+            if (k === 'd' || k === 'b') this.removeAllDrawings();
+            if (k === 'i' || k === 'b') this.removeAllIndicators();
+            close();
+        });
+        document.addEventListener('mousedown', (e) => { if (!menu.contains(e.target) && !btn.contains(e.target)) close() }, true);
+    }
+    // ---- Collapsible tool strip ---------------------------------------------------------
+    // An arrow at the bottom of the strip tucks it down to a thin edge (TradingView does
+    // the same). The choice is remembered. The class goes on the chart box and, when the
+    // strip has been moved outside the chart, on its wrapper too.
+    _setupStripCollapse() {
+        if (!this.sideLayout) return;
+        const root = this.chartContainer, side = root && root.querySelector('.sc-sidebar');
+        if (!side) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sc-overlay-button sc-strip-toggle';
+        side.appendChild(btn);
+        let collapsed = false;
+        try { collapsed = localStorage.getItem('sc-strip-collapsed') === '1' } catch (e) { }
+        const apply = (save) => {
+            root.classList.toggle('sc-strip-collapsed', collapsed);
+            const wrap = side.parentNode && side.parentNode.classList && side.parentNode.classList.contains('sc-ext-strip') ? side.parentNode : null;
+            if (wrap) wrap.classList.toggle('sc-strip-collapsed', collapsed);
+            btn.title = collapsed ? 'Show drawing tools' : 'Hide drawing tools';
+            // Same bold chevron in the same spot both ways: left = hide, right = show.
+            btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path fill="none" d="'
+                + (collapsed ? 'M6 3.5 10.5 8 6 12.5' : 'M10 3.5 5.5 8 10 12.5') + '"/></svg>';
+            if (save) { try { localStorage.setItem('sc-strip-collapsed', collapsed ? '1' : '0') } catch (e) { } }
+            // The chart gets wider or narrower; let it re-measure.
+            requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+        };
+        btn.addEventListener('click', (e) => { e.stopPropagation(); collapsed = !collapsed; if (this.closeLineMenu) this.closeLineMenu(); apply(true) });
+        // Collapsed, the whole thin bar is a target for bringing the tools back.
+        side.addEventListener('click', (e) => { if (collapsed && !btn.contains(e.target)) { collapsed = false; apply(true) } });
+        this._applyStripCollapse = () => apply(false);
+        apply(false);
+    }
+    // ---- Tool strip outside the chart ---------------------------------------------------
+    // window.S8_CHART_TOOLBAR_HOST (a CSS selector) moves the left tool strip out of the
+    // chart to the front of that element, so other panels (the side timeframe charts) sit
+    // between the tools and the chart, as on TradingView. Fullscreen takes the strip back
+    // inside the chart, and a rebuilt chart replaces the strip it left behind.
+    _mountExternalStrip() {
+        const sel = window.S8_CHART_TOOLBAR_HOST;
+        if (!sel || !this.sideLayout) return;
+        const root = this.chartContainer, host = document.querySelector(sel);
+        const side = root && root.querySelector('.sc-sidebar'), area = root && root.querySelector('.sc-price-chart-container');
+        if (!host || !side || !area) return;
+        Array.from(host.children).forEach(n => { if (n.classList.contains('sc-ext-strip')) n.remove() });
+        const wrap = document.createElement('div');
+        wrap.className = 'sc-layout-side sc-ext-strip';
+        const out = () => { if (side.parentNode === wrap) return; wrap.appendChild(side); if (!wrap.isConnected) host.insertBefore(wrap, host.firstChild); root.classList.add('sc-side-external') };
+        // Strip menus live in the chart area and open at its left edge. With the strip outside
+        // (other panels in between) the one that just opened floats beside its button instead.
+        const MENUS = '.sc-cursor-menu, .sc-emoticon-panel, .sc-text-settings-panel, .sc-drawing-tools-panel';
+        const unfloat = () => area.querySelectorAll(MENUS).forEach(m => { if (m.classList.contains('sc-menu-floating')) { m.classList.remove('sc-menu-floating'); m.style.maxHeight = '' } });
+        const float = (btn) => {
+            if (side.parentNode !== wrap) return unfloat();
+            const r = btn.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+            area.querySelectorAll(MENUS).forEach(m => {
+                if (getComputedStyle(m).display === 'none') return;
+                // Kept within the chart row; taller menus scroll.
+                m.classList.add('sc-menu-floating');
+                m.style.maxHeight = Math.max(120, w.height - 8) + 'px';
+                m.style.left = (w.right + 6) + 'px';
+                m.style.top = Math.max(w.top + 4, Math.min(r.top, w.bottom - m.offsetHeight - 4)) + 'px';
+            });
+        };
+        // Capture: the menu buttons stop their clicks from bubbling.
+        wrap.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) requestAnimationFrame(() => float(b)) }, true);
+        const back = () => { if (side.parentNode === root) return; root.insertBefore(side, area); root.classList.remove('sc-side-external'); unfloat() };
+        out();
+        if (this._applyStripCollapse) this._applyStripCollapse();
+        new MutationObserver(() => {
+            if (!root.isConnected) { wrap.remove(); return }
+            wrap.classList.toggle('dark-mode', root.classList.contains('dark-mode'));
+            if (root.classList.contains('fullscreen')) back(); else out();
+        }).observe(root, { attributes: true, attributeFilter: ['class'] });
+        wrap.classList.toggle('dark-mode', root.classList.contains('dark-mode'));
+        this._extStrip = wrap;
+    }
+    // ---- s8 logo -------------------------------------------------------------------
+    // The s8 mark (favicon) sits in the bottom-left of the price pane, like the
+    // TradingView logo. options.logo: false hides it; { src, href } swaps it.
+    setupChartLogo() {
+        const o = this.options.logo;
+        if (o === false) return;
+        if (o === undefined && Array.isArray(window.S8_CHART_TOOLBAR) && !StockChart._pageWantsSide(this.container && this.container.id)) return;
+        const area = this.chartContainer && this.chartContainer.querySelector('.sc-price-chart-container');
+        if (!area) return;
+        const cfg = Object.assign({ src: StockChart.ASSET_BASE + 's8-logo.svg', href: 'https://simul8or.com/' }, typeof o === 'object' ? o : {});
+        const a = document.createElement('a');
+        a.className = 'sc-chart-logo'; a.href = cfg.href; a.target = '_blank'; a.rel = 'noopener'; a.title = 'simul8or'; a.setAttribute('aria-label', 'simul8or');
+        a.innerHTML = `<img src="${cfg.src}" alt="" draggable="false">`;
+        area.appendChild(a);
+        this.chartContainer.classList.add('sc-has-logo');
+        this._chartLogo = a;
+        this._syncChartLogo = () => {
+            const cr = this.priceCanvas.getBoundingClientRect(), ar = area.getBoundingClientRect();
+            const size = a.offsetHeight || 30;
+            a.style.left = (cr.left - ar.left + this.config.padding.left + 10) + 'px';
+            a.style.top = (cr.top - ar.top + this.config.padding.top + this.getPriceChartHeight() - size - 10) + 'px';
+        };
+        this._syncChartLogo();
+    }
+    // ---- Emoji scale + rotate ------------------------------------------------------
+    // A selected emoji gets a box with four corner handles (drag to resize, centre
+    // stays put) and a handle above it (drag to rotate; Shift snaps to 15 degrees).
+    // The size and angle live on the emoticon, so undo, eraser and dragging all work.
+    static get EMOJI_START_SIZE() { return 64 }
+    _emoticonFrame(em) {
+        const half = em.size / 2 + 6, a = em.angle || 0, cos = Math.cos(a), sin = Math.sin(a);
+        const pt = (lx, ly) => ({ x: em.screenX + lx * cos - ly * sin, y: em.screenY + lx * sin + ly * cos });
+        return {
+            half, a,
+            corners: [pt(-half, -half), pt(half, -half), pt(half, half), pt(-half, half)],
+            top: pt(0, -half), rot: pt(0, -half - 24)
+        };
+    }
+    _drawEmoticonItem(ctx, em, x, y, selected) {
+        const a = em.angle || 0;
+        if (a) { ctx.save(); ctx.translate(x, y); ctx.rotate(a); this._drawEmoji(ctx, em.emoji, 0, 0, em.size); ctx.restore() }
+        else this._drawEmoji(ctx, em.emoji, x, y, em.size);
+        if (!selected) return;
+        const f = this._emoticonFrame(em), blue = '#2962ff', dark = !!this.config.darkMode;
+        ctx.save();
+        ctx.strokeStyle = blue; ctx.lineWidth = 1;
+        ctx.beginPath(); f.corners.forEach((c, i) => i ? ctx.lineTo(c.x, c.y) : ctx.moveTo(c.x, c.y)); ctx.closePath(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(f.top.x, f.top.y); ctx.lineTo(f.rot.x, f.rot.y); ctx.stroke();
+        const dot = (p, r) => { ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fillStyle = dark ? '#131722' : '#fff'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = blue; ctx.stroke() };
+        f.corners.forEach(c => dot(c, 4.5));
+        dot(f.rot, 5.5);
+        // Small circular arrow inside the rotate handle.
+        ctx.beginPath(); ctx.arc(f.rot.x, f.rot.y, 2.4, -Math.PI * 0.9, Math.PI * 0.6); ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.restore();
+    }
+    _emoticonHandleAt(x, y) {
+        const i = this.selectedEmoticonIndex, em = i !== null && i !== undefined ? this.emoticons[i] : null;
+        if (!em || em.screenX == null) return null;
+        const f = this._emoticonFrame(em);
+        if (Math.hypot(x - f.rot.x, y - f.rot.y) <= 9) return { i, kind: 'rotate' };
+        for (let k = 0; k < 4; k++) if (Math.hypot(x - f.corners[k].x, y - f.corners[k].y) <= 8) return { i, kind: 'scale', corner: k };
+        return null;
+    }
+    setupEmojiTransform() {
+        const root = this.chartContainer, area = root && root.querySelector('.sc-price-chart-container');
+        if (!area) return;
+        const local = (e) => { const r = this.priceCanvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top } };
+        let gesture = null;
+        const cursorFor = (h) => {
+            if (!h) return '';
+            if (h.kind === 'rotate') return 'sc-emo-rotate';
+            // Pick the resize arrow that matches the corner's on-screen direction.
+            const em = this.emoticons[h.i], ang = ((h.corner * 90 + 45 + (em.angle || 0) * 180 / Math.PI) % 180 + 180) % 180;
+            return ang < 90 ? 'sc-emo-nwse' : 'sc-emo-nesw';
+        };
+        const setCursor = (cls) => {
+            root.classList.remove('sc-emo-rotate', 'sc-emo-nwse', 'sc-emo-nesw');
+            if (cls) root.classList.add(cls, 'sc-drawing-on');
+        };
+        area.addEventListener('mousedown', (e) => {
+            if (e.target !== this.priceCanvas || e.button !== 0 || this.cursorMode === 'eraser') return;
+            const p = local(e), h = this._emoticonHandleAt(p.x, p.y);
+            if (!h) return;
+            e.preventDefault(); e.stopPropagation();
+            const em = this.emoticons[h.i];
+            gesture = { ...h, startAngle: em.angle || 0, grab: Math.atan2(p.y - em.screenY, p.x - em.screenX) };
+            this._emoGesture = gesture;
+            setCursor(cursorFor(h));
+        }, true);
+        area.addEventListener('mousemove', (e) => {
+            if (gesture || e.target !== this.priceCanvas) return;
+            const p = local(e), h = this._emoticonHandleAt(p.x, p.y);
+            setCursor(cursorFor(h));
+        }, true);
+        document.addEventListener('mousemove', (e) => {
+            if (!gesture) return;
+            const em = this.emoticons[gesture.i]; if (!em) { gesture = null; return }
+            const p = local(e);
+            if (gesture.kind === 'scale') {
+                // Corner distance from the centre is half the box diagonal.
+                const d = Math.hypot(p.x - em.screenX, p.y - em.screenY);
+                em.size = Math.max(12, Math.min(480, Math.round((d / Math.SQRT2 - 6) * 2)));
+            } else {
+                let a = gesture.startAngle + Math.atan2(p.y - em.screenY, p.x - em.screenX) - gesture.grab;
+                if (e.shiftKey) a = Math.round(a / (Math.PI / 12)) * (Math.PI / 12);
+                a = Math.atan2(Math.sin(a), Math.cos(a));
+                em.angle = Math.abs(a) < 0.03 ? 0 : a;
+            }
+            this.drawCharts();
+        });
+        document.addEventListener('mouseup', () => { if (gesture) { gesture = null; this._emoGesture = null; setCursor(''); this.drawCharts() } });
+    }
+    setupEmojiPicker() {
+        this.setupEmojiTransform();
+        const panel = this.emoticonPanel, data = window.StockChartEmojiData;
+        if (!panel || !data) return;
+        if (!this.selectedEmoticonType || /^\?+$/.test(this.selectedEmoticonType)) this.selectedEmoticonType = '\u{1F600}';
+        const s = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+        const cats = [
+            ['recent', 'Recently used', s('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')],
+            ['people', 'Smiles & People', s('<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.9 2 5.1 2 7 0"/><path d="M9 9.5h.01M15 9.5h.01" stroke-width="2.2"/>')],
+            ['nature', 'Animals & Nature', s('<path d="M5 19C5 11 11 5 19 5c0 8-6 14-14 14z"/><path d="m5 19 8-8"/>')],
+            ['food', 'Food & Drink', s('<path d="M5 11h14M6 11a6 6 0 0 1 12 0M5 15h14M6 15v1a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-1"/>')],
+            ['activity', 'Activity', s('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5.6 5.6c3 3.4 3 9.4 0 12.8M18.4 5.6c-3 3.4-3 9.4 0 12.8"/>')],
+            ['travel', 'Travel & Places', s('<path d="M14.5 15.5 8.5 9.5C10.5 5 14 3 20.5 3.5 21 10 19 13.5 14.5 15.5z"/><path d="M8.5 9.5H5l2.5-3h4M14.5 15.5V19l3-2.5v-4M6.5 17.5 4 20"/><circle cx="15.5" cy="8.5" r="1.3"/>')],
+            ['objects', 'Objects', s('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>')],
+            ['symbols', 'Symbols', s('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>')],
+            ['flags', 'Flags', s('<path d="M5 21V4h11l-2 4 2 4H5"/>')]
+        ];
+        const base = this.emojiImageBase();
+        const cell = (e) => `<button type="button" class="sc-emoji" data-emoticon="${e}" aria-label="${e}">${base ? `<img src="${StockChart.emojiImageUrl(e, base)}" alt="${e}" loading="lazy" draggable="false" onerror="this.replaceWith(document.createTextNode(this.alt))">` : e}</button>`;
+        const loadRecent = () => { try { const r = JSON.parse(localStorage.getItem('sc-emoji-recent') || '[]'); return Array.isArray(r) ? r.slice(0, 18) : [] } catch (e) { return [] } };
+        const recentHtml = () => { const r = loadRecent(); return r.length ? r.map(cell).join('') : '<div class="sc-emoji-empty">Emoji you place show up here</div>' };
+        let built = false, body, tabs;
+        const build = () => {
+            if (built) return; built = true;
+            panel.classList.add('sc-emoji-picker');
+            panel.querySelectorAll('.sc-emoticon-header, .sc-emoticon-categories').forEach(n => n.remove());
+            const wrap = document.createElement('div');
+            wrap.innerHTML = `<div class="sc-emoji-tabs">${cats.map(([k, label, icon]) => `<button type="button" class="sc-emoji-tab" data-cat="${k}" title="${label}">${icon}</button>`).join('')}</div>`
+                + `<div class="sc-emoji-body">${cats.map(([k, label]) => `<div class="sc-emoji-section" data-cat="${k}"><div class="sc-emoji-title">${label}</div><div class="sc-emoji-grid">${k === 'recent' ? recentHtml() : data[k].split(' ').map(cell).join('')}</div></div>`).join('')}</div>`;
+            panel.insertBefore(wrap.firstChild, panel.firstChild);
+            panel.insertBefore(wrap.firstChild, panel.children[1]);
+            tabs = panel.querySelector('.sc-emoji-tabs'); body = panel.querySelector('.sc-emoji-body');
+            const setTab = (k) => tabs.querySelectorAll('.sc-emoji-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === k));
+            setTab('recent');
+            tabs.addEventListener('click', (e) => {
+                const t = e.target.closest('.sc-emoji-tab'); if (!t) return;
+                const sec = body.querySelector(`.sc-emoji-section[data-cat="${t.dataset.cat}"]`);
+                body.scrollTop = sec ? sec.offsetTop : 0; setTab(t.dataset.cat);
+            });
+            body.addEventListener('scroll', () => {
+                let cur = 'recent';
+                body.querySelectorAll('.sc-emoji-section').forEach(sec => { if (sec.offsetTop <= body.scrollTop + 12) cur = sec.dataset.cat });
+                if (body.scrollTop + body.clientHeight >= body.scrollHeight - 2) cur = 'flags';
+                setTab(cur);
+            });
+            body.addEventListener('click', (e) => {
+                const b = e.target.closest('[data-emoticon]'); if (!b) return;
+                this.selectedEmoticonType = b.dataset.emoticon;
+                // Pick, then click the chart to place it (the panel gets out of the way).
+                panel.style.display = 'none';
+            });
+        };
+        this._emojiRecentRefresh = () => {
+            if (!built) return;
+            const g = body.querySelector('.sc-emoji-section[data-cat="recent"] .sc-emoji-grid');
+            if (g) g.innerHTML = recentHtml();
+        };
+        const origActivate = this.activateEmoticonMode.bind(this);
+        this.activateEmoticonMode = () => {
+            build();
+            origActivate();
+            const area = panel.parentElement;
+            if (body && area) body.style.maxHeight = Math.max(160, Math.min(440, area.clientHeight - 150)) + 'px';
+            if (body) body.scrollTop = 0; // reopen on Recently used
+            if (area) {
+                const btn = this.emoticonToolButton, a = area.getBoundingClientRect(), r = btn.getBoundingClientRect();
+                if (this.sideLayout) panel.style.top = Math.max(4, Math.min(r.top - a.top, area.clientHeight - panel.offsetHeight - 4)) + 'px';
+            }
+        };
+        const origAdd = this.addEmoticon.bind(this);
+        this.addEmoticon = (x, y) => {
+            const snap = this._magnetSnapXY ? this._magnetSnapXY(x, y) : null;
+            if (snap) { x = snap.x; y = snap.y }
+            const before = this.emoticons.length, r = origAdd(x, y);
+            if (this.emoticons.length > before) {
+                const e = this.emoticons[this.emoticons.length - 1].emoji;
+                try { const list = loadRecent().filter(v => v !== e); list.unshift(e); localStorage.setItem('sc-emoji-recent', JSON.stringify(list.slice(0, 18))) } catch (err) { }
+                this._emojiRecentRefresh();
+                const placed = this.emoticons[this.emoticons.length - 1];
+                placed.size = StockChart.EMOJI_START_SIZE; placed.angle = 0;
+                this.deactivateEmoticonMode();
+                this.selectedEmoticonIndex = this.emoticons.length - 1;
+                this.drawCharts();
+            }
+            return r;
+        };
+    }
+    updateTimeframeButtonLabel() {
+        if (!this.sideLayout) return;
+        const label = this.container.querySelector('.sc-tf-label');
+        if (!label) return;
+        const all = this.options.availableTimeframes || this.config.timeframesToDisplay || this.defaultTimeframes || [];
+        const tf = all.find(t => t.value === this.timeframe);
+        label.textContent = tf ? tf.label : (this.timeframe || '');
+    }
     createDOM() {
         this.container.innerHTML = `
                         <div class="sc-chart-container">
@@ -1818,8 +4599,8 @@ class StockChart {
             const run = {
                 m: () => { if (this.measureMode) this.deactivateMeasureMode(); else { this.measure = null; this.activateMeasureMode(); } this.drawCharts(); },
                 t: () => { this.closeOtherToolbarMenus('drawingTools'); if (!this.drawingToolsMode) this.activateDrawingToolsMode(); this.selectDrawingTool('line'); },
-                f: () => { this.closeOtherToolbarMenus('fibonacci'); if (!this.fibonacciMode) this.activateFibonacciMode(); },
-                r: () => { if (this.fitViewButton) this.fitViewButton.click(); },
+                f: () => { if (this._fbTypes) { this.activateLineTool('fibret'); return } this.closeOtherToolbarMenus('fibonacci'); if (!this.fibonacciMode) this.activateFibonacciMode(); },
+                r: () => { if (e.shiftKey) return; if (this.fitViewButton) this.fitViewButton.click(); }, // Alt+Shift+R = rectangle
                 i: () => { if (this.indicatorsButton) this.indicatorsButton.click(); }
             }[key];
             if (run) { run(); e.preventDefault(); e.stopPropagation(); }
@@ -1901,6 +4682,8 @@ class StockChart {
         if (keepOpen !== 'fibonacci' && this.fibonacciMode) this.deactivateFibonacciMode();
         if (keepOpen !== 'line' && keepOpen !== 'drawingTools' && this.lineDrawingMode) this.deactivateLineDrawingMode();
         if (keepOpen !== 'measure' && this.measureMode) this.deactivateMeasureMode();
+        if (keepOpen !== 'cursor' && this.closeCursorMenu) this.closeCursorMenu();
+        if (keepOpen !== 'linetools' && this._lt) { this.closeLineMenu(); if (this._lt.tool) this.deactivateLineTool(); }
     }
     registerEventListeners() {
         this.timeframeButton = this.container.querySelector('.sc-timeframe-button'); this.timeframeDropdown = this.container.querySelector('.sc-timeframe-dropdown'); this.timeframeButton.addEventListener('click', (e) => { this.closeOtherToolbarMenus('timeframe'); this.timeframeDropdown.classList.toggle('active'); this.timeframeButton.classList.toggle('active'); e.stopPropagation() }); const timeframeOptions = this.timeframeDropdown.querySelectorAll('.sc-timeframe-option'); this.updateTimeframeDropdownVisualState(); timeframeOptions.forEach(option => { option.addEventListener('click', (e) => { this.changeTimeframe(option.getAttribute('data-value')); this.timeframeDropdown.classList.remove('active'); this.timeframeButton.classList.remove('active'); e.stopPropagation(); this.saveSettings() }) }); document.addEventListener('click', (e) => {
@@ -2012,7 +4795,7 @@ class StockChart {
             if (this.selectedCircleIndex !== null) { this.selectedCircleIndex = null; this.drawCharts() }
             if (this.selectedFibonacciIndex !== null) { this.selectedFibonacciIndex = null; this.drawCharts() }
             if (x < this.getCanvasWidth() - this.config.padding.right) { this.isDragging = !0; this.dragStartX = e.clientX; this.dragStartY = e.clientY; this.dragStartOffset = this.config.dataOffset; this.dragStartPriceOffset = this.config.priceOffset; this.priceCanvas.classList.add('dragging'); e.preventDefault() }
-        }); this.priceCanvas.addEventListener('touchstart', (e) => { if (e.touches.length === 1) { const rect = this.priceCanvas.getBoundingClientRect(); const x = e.touches[0].clientX - rect.left; const touchedOrder = this.findLimitOrderAt(x, e.touches[0].clientY - rect.top); if (touchedOrder) { this.startDraggingLimitOrder(touchedOrder, e.touches[0].clientY); e.preventDefault(); return } if (x < this.getCanvasWidth() - this.config.padding.right) { this.isDragging = !0; this.dragStartX = e.touches[0].clientX; this.dragStartY = e.touches[0].clientY; this.dragStartOffset = this.config.dataOffset; this.dragStartPriceOffset = this.config.priceOffset; this.priceCanvas.classList.add('dragging'); e.preventDefault() } } }); this.priceCanvas.addEventListener('contextmenu', (e) => { if (this.lineDrawingMode && this.drawingLine) { this.drawingLine = !1; this.currentLine = null; this.deactivateLineDrawingMode(); this.drawCharts(); e.preventDefault(); return } if (this._longPressMenuAt && Date.now() - this._longPressMenuAt < 1000) { e.preventDefault(); return } const rect = this.priceCanvas.getBoundingClientRect(); if (this.openCandleContextMenu(e.clientX - rect.left, e.clientY - rect.top)) e.preventDefault() }); this.setupLongPressMenu(); this.priceCanvas.addEventListener('mousemove', (e) => {
+        }); this.priceCanvas.addEventListener('touchstart', (e) => { if (e.touches.length === 1) { const rect = this.priceCanvas.getBoundingClientRect(); const x = e.touches[0].clientX - rect.left; const touchedOrder = this.findLimitOrderAt(x, e.touches[0].clientY - rect.top); if (touchedOrder) { this.startDraggingLimitOrder(touchedOrder, e.touches[0].clientY); e.preventDefault(); return } if (x < this.getCanvasWidth() - this.config.padding.right) { this.isDragging = !0; this.dragStartX = e.touches[0].clientX; this.dragStartY = e.touches[0].clientY; this.dragStartOffset = this.config.dataOffset; this.dragStartPriceOffset = this.config.priceOffset; this.priceCanvas.classList.add('dragging'); e.preventDefault() } } }); this.priceCanvas.addEventListener('contextmenu', (e) => { if (this.lineDrawingMode && this.drawingLine) { this.drawingLine = !1; this.currentLine = null; this.deactivateLineDrawingMode(); this.drawCharts(); e.preventDefault(); return } if (this._longPressMenuAt && Date.now() - this._longPressMenuAt < 1000) { e.preventDefault(); return } const rect = this.priceCanvas.getBoundingClientRect(); if (this.openCandleContextMenu(e.clientX - rect.left, e.clientY - rect.top)) e.preventDefault() }); this.setupLongPressMenu(); this.setupCursorTools(); this.setupLineTools(); this.setupTextTools(); this.setupShapeTools(); this.setupFibTools(); this.setupPatternTools(); this.setupForecastTools(); this.setupEmojiPicker(); this.setupMagnet(); this.setupBoxZoom(); this.setupRemoveMenu(); this.setupChartLogo(); this._setupStripCollapse(); this._mountExternalStrip(); this.priceCanvas.addEventListener('mousemove', (e) => {
             if (this.draggedLimitOrder || this.isDragging || this.panelResizing) return;
             const rect = this.priceCanvas.getBoundingClientRect(); const hit = this.findLimitOrderAt(e.clientX - rect.left, e.clientY - rect.top);
             const hoverIndex = hit ? hit.index : null;
@@ -2106,29 +4889,76 @@ class StockChart {
             this.drawCharts();
         })
     }
+    // ---- Crisp rendering -------------------------------------------------------------
+    // The canvas's CSS box is often a fractional size (692.8px tall). Rounding the
+    // backing store makes the browser stretch it to fit, which softens everything.
+    // The device-pixel-content-box observer reports the exact device pixels the box
+    // covers, so the bitmap maps 1:1 to the screen. Browsers without it (Safari) fall
+    // back to rounding.
+    _sizeBacking(rect, dpr) {
+        const c = this.priceCanvas, b = this._devBox;
+        let w = Math.round(rect.width * dpr), h = Math.round(rect.height * dpr);
+        if (b && Math.abs(b.cw - rect.width) < 0.01 && Math.abs(b.ch - rect.height) < 0.01) { w = b.w; h = b.h }
+        if (c.width !== w) c.width = w;
+        if (c.height !== h) c.height = h;
+        this._watchDevicePixels();
+    }
+    _watchDevicePixels() {
+        if (this._dpro !== undefined) return;
+        this._dpro = null;
+        if (typeof ResizeObserver === 'undefined') return;
+        try {
+            const ro = new ResizeObserver((entries) => {
+                const e = entries[entries.length - 1], dp = e.devicePixelContentBoxSize && e.devicePixelContentBoxSize[0];
+                if (!dp) return;
+                const c = this.priceCanvas, r = this._contentRect();
+                this._devBox = { w: dp.inlineSize, h: dp.blockSize, cw: r.width, ch: r.height };
+                this._cssWidth = r.width; this._cssHeight = r.height;
+                if (c.width !== dp.inlineSize || c.height !== dp.blockSize) { c.width = dp.inlineSize; c.height = dp.blockSize; this.drawCharts() }
+            });
+            ro.observe(this.priceCanvas, { box: 'device-pixel-content-box' });
+            this._dpro = ro;
+        } catch (e) { this._dpro = null }
+    }
+    // Scale from CSS px to device px on each axis (equal to devicePixelRatio, give or take the fit).
+    _scaleX() { return this._sx || this._dpr || 1 }
+    _scaleY() { return this._sy || this._dpr || 1 }
+    // Snap a CSS coordinate to a device-pixel edge (for filled rects).
+    _snapX(x) { const s = this._scaleX(); return Math.round(x * s) / s }
+    _snapY(y) { const s = this._scaleY(); return Math.round(y * s) / s }
+    // Centre of the device pixel a 1-device-pixel line through x / y should use.
+    _lineX(x) { const s = this._scaleX(); return (Math.floor(x * s) + 0.5) / s }
+    _lineY(y) { const s = this._scaleY(); return (Math.floor(y * s) + 0.5) / s }
+    // Horizontal line at the current lineWidth rounded to whole device pixels, edges on device pixels (pane levels, zero lines, separators).
+    _hLine(ctx, x1, x2, y) { const s = this._scaleY(), n = Math.max(1, Math.round(ctx.lineWidth * s)), yy = (Math.round(y * s - n / 2) + n / 2) / s; const lw = ctx.lineWidth; ctx.lineWidth = n / s; ctx.beginPath(); ctx.moveTo(x1, yy); ctx.lineTo(x2, yy); ctx.stroke(); ctx.lineWidth = lw }
+    // The canvas's drawing area in CSS px: its box minus any border (padding is 0).
+    _contentRect() {
+        const c = this.priceCanvas, r = c.getBoundingClientRect(), cs = getComputedStyle(c);
+        const bx = (parseFloat(cs.borderLeftWidth) || 0) + (parseFloat(cs.borderRightWidth) || 0);
+        const by = (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+        return { width: Math.max(0, r.width - bx), height: Math.max(0, r.height - by) };
+    }
     resizeCanvases() {
         const dpr = window.devicePixelRatio || 1;
-        if (this.chartContainer.classList.contains('fullscreen')) {
+        if (this.chartContainer.classList.contains('fullscreen') && !this.sideLayout) {
             this.priceCanvas.style.height = 'calc(100vh - 10px)';
             this.priceCanvas.style.width = '100%';
             setTimeout(() => {
-                const rect = this.priceCanvas.getBoundingClientRect();
+                const rect = this._contentRect();
                 this._cssWidth = rect.width;
                 this._cssHeight = rect.height;
                 this._dpr = dpr;
-                this.priceCanvas.width = Math.floor(rect.width * dpr);
-                this.priceCanvas.height = Math.floor(rect.height * dpr);
+                this._sizeBacking(rect, dpr);
                 this.drawCharts();
             }, 50);
         } else {
             this.priceCanvas.style.height = '100%';
             this.priceCanvas.style.width = '100%';
-            const rect = this.priceCanvas.getBoundingClientRect();
+            const rect = this._contentRect();
             this._cssWidth = rect.width;
             this._cssHeight = rect.height;
             this._dpr = dpr;
-            this.priceCanvas.width = Math.floor(rect.width * dpr);
-            this.priceCanvas.height = Math.floor(rect.height * dpr);
+            this._sizeBacking(rect, dpr);
             this.drawCharts();
         }
     }
@@ -2196,12 +5026,15 @@ class StockChart {
         this._syncDensity();
         const ctx = this.priceCtx;
         const dpr = this._dpr || window.devicePixelRatio || 1;
+        const cw = this.getCanvasWidth(), chh = this._cssHeight || this.priceCanvas.clientHeight;
+        this._sx = cw ? this.priceCanvas.width / cw : dpr; this._sy = chh ? this.priceCanvas.height / chh : dpr;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(dpr, dpr);
+        ctx.scale(this._sx, this._sy);
         this.drawPriceChart();
         if (this.pixelOffset !== 0) { ctx.save(); ctx.translate(this.pixelOffset, 0); }
         this.updateLinePositions();
         this.drawLines(ctx);
+        if (this.drawLineTools) this.drawLineTools(ctx);
         this.drawArrows(ctx);
         this.drawRectangles(ctx);
         this.drawCircles(ctx);
@@ -2297,7 +5130,7 @@ class StockChart {
             const txt = s8FormatChartPrice(price);
             if (txt === lastGridLabel) continue;
             lastGridLabel = txt;
-            const y = this.priceToYInRegion(price, min, max, priceChartH, chartTop);
+            const y = this._lineY(this.priceToYInRegion(price, min, max, priceChartH, chartTop));
             ctx.beginPath();
             ctx.moveTo(chartLeft - this.pixelOffset, y);
             ctx.lineTo(chartLeft + chartW - this.pixelOffset, y);
@@ -2309,7 +5142,8 @@ class StockChart {
         const gridStep = this.getGridStep(); for (let i = Math.floor((this.config.dataOffset - 1) / gridStep) * gridStep; i < this.config.dataOffset + this.config.visibleCandles; i += gridStep) {
             if (i >= this.config.dataOffset - 1 && i >= 0 && i < this.stockData.length) {
                 const idx = i - this.config.dataOffset;
-                const x = chartLeft + idx * (cW + this.config.spacing) + cW * 0.5;
+                const x = this._lineX(chartLeft + idx * (cW + this.config.spacing) + cW * 0.5);
+                ctx.lineWidth = 0.5;
                 ctx.beginPath();
                 ctx.moveTo(x, chartTop);
                 ctx.lineTo(x, chartTop + priceChartH);
@@ -2444,7 +5278,7 @@ class StockChart {
                 const hex = candle.close >= candle.open ? this.config.currentBullColor : this.config.currentBearColor;
                 const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
                 ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.3)`;
-                ctx.fillRect(col, bottomY - barHeight, 1, barHeight);
+                this._crispRect(ctx, col, bottomY - barHeight, 1, barHeight);
             });
             return;
         }
@@ -2459,7 +5293,7 @@ class StockChart {
             const g = parseInt(baseColorHex.slice(3, 5), 16);
             const b = parseInt(baseColorHex.slice(5, 7), 16);
             ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.3)`;
-            ctx.fillRect(x, bottomY - barHeight, cW, barHeight);
+            this._crispRect(ctx, x, bottomY - barHeight, cW, barHeight);
         });
 
         // Draw Volume MA if enabled
@@ -2511,7 +5345,7 @@ class StockChart {
         const gridStep = this.getGridStep(); for (let i = Math.floor((this.config.dataOffset - 1) / gridStep) * gridStep; i < this.config.dataOffset + this.config.visibleCandles; i += gridStep) {
             if (i >= this.config.dataOffset - 1 && i >= 0 && i < this.stockData.length) {
                 const idx = i - this.config.dataOffset;
-                const x = leftX + idx * (cW + this.config.spacing) + cW * 0.5;
+                const x = this._lineX(leftX + idx * (cW + this.config.spacing) + cW * 0.5);
                 ctx.beginPath();
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
@@ -2522,10 +5356,7 @@ class StockChart {
         // Panel separator line at top
         ctx.strokeStyle = this.config.darkMode ? '#000000' : '#999999';
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(leftX - this.pixelOffset, topY);
-        ctx.lineTo(rightX - this.pixelOffset, topY);
-        ctx.stroke();
+        this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, topY);
 
         // RSI reference levels
         const valueToY = (val) => topY + ((100 - val) / 100) * height;
@@ -2538,10 +5369,7 @@ class StockChart {
 
         levels.forEach(level => {
             const y = valueToY(level);
-            ctx.beginPath();
-            ctx.moveTo(leftX - this.pixelOffset, y);
-            ctx.lineTo(rightX - this.pixelOffset, y);
-            ctx.stroke();
+            this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, y);
         });
         ctx.setLineDash([]);
 
@@ -2636,7 +5464,7 @@ class StockChart {
         const gridStep = this.getGridStep(); for (let i = Math.floor((this.config.dataOffset - 1) / gridStep) * gridStep; i < this.config.dataOffset + this.config.visibleCandles; i += gridStep) {
             if (i >= this.config.dataOffset - 1 && i >= 0 && i < this.stockData.length) {
                 const idx = i - this.config.dataOffset;
-                const x = leftX + idx * (cW + this.config.spacing) + cW * 0.5;
+                const x = this._lineX(leftX + idx * (cW + this.config.spacing) + cW * 0.5);
                 ctx.beginPath();
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
@@ -2647,10 +5475,7 @@ class StockChart {
         // Panel separator line at top
         ctx.strokeStyle = this.config.darkMode ? '#000000' : '#999999';
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(leftX - this.pixelOffset, topY);
-        ctx.lineTo(rightX - this.pixelOffset, topY);
-        ctx.stroke();
+        this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, topY);
 
         // Calculate min/max for visible MACD data
         let min = Infinity, max = -Infinity;
@@ -2682,12 +5507,9 @@ class StockChart {
         const zeroY = valueToY(0);
 
         // Draw zero line
-        ctx.beginPath();
-        ctx.moveTo(leftX - this.pixelOffset, zeroY);
-        ctx.lineTo(rightX - this.pixelOffset, zeroY);
         ctx.strokeStyle = this.config.darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
         ctx.lineWidth = 1;
-        ctx.stroke();
+        this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, zeroY);
 
         // Draw histogram bars
         const barWidth = Math.max(1, cW * 0.8);
@@ -2716,9 +5538,9 @@ class StockChart {
 
                 ctx.fillStyle = barColor;
                 if (value > 0) {
-                    ctx.fillRect(x, barY, barWidth, barHeight);
+                    this._crispRect(ctx, x, barY, barWidth, barHeight);
                 } else {
-                    ctx.fillRect(x, zeroY, barWidth, barHeight);
+                    this._crispRect(ctx, x, zeroY, barWidth, barHeight);
                 }
             }
         }
@@ -2821,7 +5643,7 @@ class StockChart {
         const gridStep = this.getGridStep(); for (let i = Math.floor((this.config.dataOffset - 1) / gridStep) * gridStep; i < this.config.dataOffset + this.config.visibleCandles; i += gridStep) {
             if (i >= this.config.dataOffset - 1 && i >= 0 && i < this.stockData.length) {
                 const idx = i - this.config.dataOffset;
-                const x = leftX + idx * (cW + this.config.spacing) + cW * 0.5;
+                const x = this._lineX(leftX + idx * (cW + this.config.spacing) + cW * 0.5);
                 ctx.beginPath();
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
@@ -2832,10 +5654,7 @@ class StockChart {
         // Panel separator line at top
         ctx.strokeStyle = this.config.darkMode ? '#000000' : '#999999';
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(leftX - this.pixelOffset, topY);
-        ctx.lineTo(rightX - this.pixelOffset, topY);
-        ctx.stroke();
+        this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, topY);
 
         // Stochastic range is 0-100
         const valueToY = (val) => topY + ((100 - val) / 100) * height;
@@ -2848,10 +5667,7 @@ class StockChart {
 
         levels.forEach(level => {
             const y = valueToY(level);
-            ctx.beginPath();
-            ctx.moveTo(leftX - this.pixelOffset, y);
-            ctx.lineTo(rightX - this.pixelOffset, y);
-            ctx.stroke();
+            this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, y);
         });
         ctx.setLineDash([]);
 
@@ -2974,7 +5790,7 @@ class StockChart {
         const gridStep = this.getGridStep(); for (let i = Math.floor((this.config.dataOffset - 1) / gridStep) * gridStep; i < this.config.dataOffset + this.config.visibleCandles; i += gridStep) {
             if (i >= this.config.dataOffset - 1 && i >= 0 && i < this.stockData.length) {
                 const idx = i - this.config.dataOffset;
-                const x = leftX + idx * (cW + this.config.spacing) + cW * 0.5;
+                const x = this._lineX(leftX + idx * (cW + this.config.spacing) + cW * 0.5);
                 ctx.beginPath();
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
@@ -2985,10 +5801,7 @@ class StockChart {
         // Panel separator line at top
         ctx.strokeStyle = this.config.darkMode ? '#000000' : '#999999';
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(leftX - this.pixelOffset, topY);
-        ctx.lineTo(rightX - this.pixelOffset, topY);
-        ctx.stroke();
+        this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, topY);
 
         // Horizontal reference lines
         ctx.setLineDash([2, 4]);
@@ -2997,10 +5810,7 @@ class StockChart {
         levels.forEach(level => {
             if (level >= scaleMin && level <= scaleMax) {
                 const y = valueToY(level);
-                ctx.beginPath();
-                ctx.moveTo(leftX - this.pixelOffset, y);
-                ctx.lineTo(rightX - this.pixelOffset, y);
-                ctx.stroke();
+                this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, y);
             }
         });
         ctx.setLineDash([]);
@@ -3119,7 +5929,7 @@ class StockChart {
         const gridStep = this.getGridStep(); for (let i = Math.floor((this.config.dataOffset - 1) / gridStep) * gridStep; i < this.config.dataOffset + this.config.visibleCandles; i += gridStep) {
             if (i >= this.config.dataOffset - 1 && i >= 0 && i < this.stockData.length) {
                 const idx = i - this.config.dataOffset;
-                const x = leftX + idx * (cW + this.config.spacing) + cW * 0.5;
+                const x = this._lineX(leftX + idx * (cW + this.config.spacing) + cW * 0.5);
                 ctx.beginPath();
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
@@ -3130,10 +5940,7 @@ class StockChart {
         // Panel separator
         ctx.strokeStyle = this.config.darkMode ? '#000000' : '#999999';
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(leftX - this.pixelOffset, topY);
-        ctx.lineTo(rightX - this.pixelOffset, topY);
-        ctx.stroke();
+        this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, topY);
 
         // Horizontal reference lines
         ctx.setLineDash([2, 4]);
@@ -3141,10 +5948,7 @@ class StockChart {
         ctx.lineWidth = 1;
         levels.forEach(level => {
             const y = valueToY(level);
-            ctx.beginPath();
-            ctx.moveTo(leftX - this.pixelOffset, y);
-            ctx.lineTo(rightX - this.pixelOffset, y);
-            ctx.stroke();
+            this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, y);
         });
         ctx.setLineDash([]);
 
@@ -3204,7 +6008,7 @@ class StockChart {
         const gridStep = this.getGridStep(); for (let i = Math.floor((this.config.dataOffset - 1) / gridStep) * gridStep; i < this.config.dataOffset + this.config.visibleCandles; i += gridStep) {
             if (i >= this.config.dataOffset - 1 && i >= 0 && i < this.stockData.length) {
                 const idx = i - this.config.dataOffset;
-                const x = leftX + idx * (cW + this.config.spacing) + cW * 0.5;
+                const x = this._lineX(leftX + idx * (cW + this.config.spacing) + cW * 0.5);
                 ctx.beginPath();
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
@@ -3215,10 +6019,7 @@ class StockChart {
         // Panel separator
         ctx.strokeStyle = this.config.darkMode ? '#000000' : '#999999';
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(leftX - this.pixelOffset, topY);
-        ctx.lineTo(rightX - this.pixelOffset, topY);
-        ctx.stroke();
+        this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, topY);
 
         // Horizontal reference lines
         ctx.setLineDash([2, 4]);
@@ -3226,10 +6027,7 @@ class StockChart {
         ctx.lineWidth = 1;
         levels.forEach(level => {
             const y = valueToY(level);
-            ctx.beginPath();
-            ctx.moveTo(leftX - this.pixelOffset, y);
-            ctx.lineTo(rightX - this.pixelOffset, y);
-            ctx.stroke();
+            this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, y);
         });
         ctx.setLineDash([]);
 
@@ -3301,7 +6099,7 @@ class StockChart {
         const gridStep = this.getGridStep(); for (let i = Math.floor((this.config.dataOffset - 1) / gridStep) * gridStep; i < this.config.dataOffset + this.config.visibleCandles; i += gridStep) {
             if (i >= this.config.dataOffset - 1 && i >= 0 && i < this.stockData.length) {
                 const idx = i - this.config.dataOffset;
-                const x = leftX + idx * (cW + this.config.spacing) + cW * 0.5;
+                const x = this._lineX(leftX + idx * (cW + this.config.spacing) + cW * 0.5);
                 ctx.beginPath();
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
@@ -3312,18 +6110,12 @@ class StockChart {
         // Panel separator
         ctx.strokeStyle = this.config.darkMode ? '#000000' : '#999999';
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(leftX - this.pixelOffset, topY);
-        ctx.lineTo(rightX - this.pixelOffset, topY);
-        ctx.stroke();
+        this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, topY);
 
         // Zero line
         ctx.strokeStyle = this.config.darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
         ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(leftX - this.pixelOffset, zeroY);
-        ctx.lineTo(rightX - this.pixelOffset, zeroY);
-        ctx.stroke();
+        this._hLine(ctx, leftX - this.pixelOffset, rightX - this.pixelOffset, zeroY);
 
         // Draw histogram bars
         const barWidth = Math.max(1, cW * 0.8);
@@ -3342,9 +6134,9 @@ class StockChart {
                     : (this.config.darkMode ? 'rgba(244,67,54,0.8)' : 'rgba(244,67,54,0.6)');
 
                 if (val >= 0) {
-                    ctx.fillRect(x, zeroY - barHeight, barWidth, barHeight);
+                    this._crispRect(ctx, x, zeroY - barHeight, barWidth, barHeight);
                 } else {
-                    ctx.fillRect(x, zeroY, barWidth, barHeight);
+                    this._crispRect(ctx, x, zeroY, barWidth, barHeight);
                 }
             }
         }
@@ -3427,7 +6219,7 @@ class StockChart {
         const gridStep = this.getGridStep(); for (let i = Math.floor((this.config.dataOffset - 1) / gridStep) * gridStep; i < this.config.dataOffset + this.config.visibleCandles; i += gridStep) {
             if (i >= this.config.dataOffset - 1 && i >= 0 && i < this.stockData.length) {
                 const idx = i - this.config.dataOffset;
-                const x = leftX + idx * (cW + this.config.spacing) + cW * 0.5;
+                const x = this._lineX(leftX + idx * (cW + this.config.spacing) + cW * 0.5);
                 ctx.beginPath();
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
@@ -3762,15 +6554,34 @@ class StockChart {
             ctx.stroke();
             return;
         }
+        // Built from the same device-pixel box the candle was drawn with, so the
+        // outline hugs the body with no gap at any zoom. The border is a whole
+        // number of device pixels sitting just outside the body; the wick is
+        // repainted at the wick's own width in the outline colour.
+        const b = this._crispBox(g), sx = b.sx;
+        const lw = Math.max(1, Math.round(ctx.lineWidth * sx)) / sx, gap = Math.round(pad * sx) / sx, half = lw / 2 + gap;
+        ctx.lineWidth = b.ww;
         ctx.beginPath();
-        ctx.moveTo(g.midX, g.yHigh);
-        ctx.lineTo(g.midX, g.top);
-        ctx.moveTo(g.midX, g.top + g.bodyH);
-        ctx.lineTo(g.midX, g.yLow);
+        ctx.moveTo(b.wx, b.hT);
+        ctx.lineTo(b.wx, b.by - gap - lw);
+        ctx.moveTo(b.wx, b.by + b.bh + gap + lw);
+        ctx.lineTo(b.wx, b.hB);
         ctx.stroke();
+        ctx.lineWidth = lw;
         ctx.beginPath();
-        ctx.rect(g.x - pad, g.top - pad, g.cW + pad * 2, g.bodyH + pad * 2);
+        ctx.rect(b.bx - half, b.by - half, b.bw + half * 2, b.bh + half * 2);
         ctx.stroke();
+    }
+    // A candle's body and wick in CSS px, snapped exactly as _crispCandle draws them.
+    _crispBox(g) {
+        const sx = this._scaleX(), sy = this._scaleY();
+        const L = Math.round(g.x * sx); let W = Math.max(1, Math.round(g.cW * sx));
+        const ww = Math.max(1, Math.floor(sx));
+        if (W > ww && (W - ww) % 2) W -= 1;
+        const wl = W > ww ? L + (W - ww) / 2 : L + Math.floor((W - ww) / 2);
+        const yT = Math.round(Math.min(g.yOpen, g.yClose) * sy), yB = Math.max(yT + 1, Math.round(Math.max(g.yOpen, g.yClose) * sy));
+        const hT = Math.round(g.yHigh * sy), hB = Math.max(hT + 1, Math.round(g.yLow * sy));
+        return { sx, sy, bx: L / sx, bw: W / sx, by: yT / sy, bh: (yB - yT) / sy, wx: (wl + ww / 2) / sx, ww: ww / sx, hT: hT / sy, hB: hB / sy };
     }
 
     // Hollow candles: same geometry as filled candles, but up bars are drawn
@@ -3788,27 +6599,9 @@ class StockChart {
             // high to low. A filled body hides the middle of a full-length wick,
             // but a hollow one does not - it leaves a line bisecting the body,
             // which is not what a hollow candle looks like anywhere else.
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 1;
-            ctx.moveTo(g.midX, g.yHigh);
-            ctx.lineTo(g.midX, g.top);
-            ctx.moveTo(g.midX, g.top + g.bodyH);
-            ctx.lineTo(g.midX, g.yLow);
-            ctx.stroke();
-
-            if (hollow) {
-                // Inset by half a line width so the stroke lands inside the body
-                // slot and hollow bodies keep the same footprint as filled ones.
-                const lw = Math.max(1, Math.min(2, g.cW * 0.12));
-                ctx.strokeStyle = color;
-                ctx.lineWidth = lw;
-                ctx.strokeRect(g.x + lw / 2, g.top + lw / 2,
-                               Math.max(1, g.cW - lw), Math.max(1, g.bodyH - lw));
-            } else {
-                ctx.fillStyle = color;
-                ctx.fillRect(g.x, g.top, g.cW, g.bodyH);
-            }
+            // Hollow bodies draw as a crisp outline inside the body slot, with the wick
+            // stopping at the body so no line bisects it.
+            this._crispCandle(ctx, color, g.x, g.cW, g.yHigh, g.yLow, g.top, g.top + g.bodyH, hollow ? Math.max(1, Math.min(2, g.cW * 0.12)) : 0);
         }
     }
 
@@ -3831,9 +6624,9 @@ class StockChart {
             if (col === null) return;
             ctx.beginPath();
             ctx.strokeStyle = gClose >= gOpen ? this.config.currentBullColor : this.config.currentBearColor;
-            ctx.lineWidth = 1;
-            // Half-pixel offset keeps a 1px stroke on the pixel instead of straddling two.
-            const x = Math.floor(gX) + 0.5;
+            ctx.lineWidth = 1 / this._scaleX();
+            // Centre of a device pixel, so the 1px stroke doesn't straddle two (at any screen scale).
+            const x = this._lineX(gX);
             ctx.moveTo(x, this.priceToY(gHigh, min, max, chartH, h));
             ctx.lineTo(x, this.priceToY(gLow, min, max, chartH, h));
             ctx.stroke();
@@ -3868,21 +6661,46 @@ class StockChart {
             const color = g.candle.close >= g.candle.open ? this.config.currentBullColor : this.config.currentBearColor;
             // calculateCandleWidth floors at 2px, which would leave a 1px tick
             // either side - invisible. Give bars their own floor.
-            const tick = Math.max(2, g.cW * 0.5);
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = Math.max(1, Math.min(2, g.cW * 0.18));
-            ctx.moveTo(g.midX, g.yHigh);
-            ctx.lineTo(g.midX, g.yLow);
-            ctx.moveTo(g.midX - tick, g.yOpen);
-            ctx.lineTo(g.midX, g.yOpen);
-            ctx.moveTo(g.midX, g.yClose);
-            ctx.lineTo(g.midX + tick, g.yClose);
-            ctx.stroke();
+            const tick = Math.max(2, g.cW * 0.5), sx = this._scaleX(), sy = this._scaleY();
+            const lw = Math.max(1, Math.round(Math.max(1, Math.min(2, g.cW * 0.18)) * sx)), lh = Math.max(1, Math.round(Math.max(1, Math.min(2, g.cW * 0.18)) * sy));
+            const mx = Math.round(g.midX * sx - lw / 2), tk = Math.max(1, Math.round(tick * sx));
+            const hT = Math.round(g.yHigh * sy), hB = Math.max(hT + 1, Math.round(g.yLow * sy));
+            const yo = Math.round(g.yOpen * sy - lh / 2), yc = Math.round(g.yClose * sy - lh / 2);
+            ctx.fillStyle = color;
+            ctx.fillRect(mx / sx, hT / sy, lw / sx, (hB - hT) / sy);
+            ctx.fillRect((mx - tk) / sx, yo / sy, tk / sx, lh / sy);
+            ctx.fillRect((mx + lw) / sx, yc / sy, tk / sx, lh / sy);
         }
     }
 
-    drawCandles(ctx, min, max, chartW, chartH) { const start = Math.max(0, this.config.dataOffset - 1); const data = this.stockData.slice(start, this.config.dataOffset + this.config.visibleCandles); const firstIndex = start - this.config.dataOffset; const w = this.getCanvasWidth(), h = this.getCanvasHeight(); const cW = this.calculateCandleWidth(); data.forEach((candle, index) => { const i = index + firstIndex; const isUp = candle.close >= candle.open; const color = isUp ? this.config.currentBullColor : this.config.currentBearColor; const x = this.config.padding.left + i * (cW + this.config.spacing); const yHigh = this.priceToY(candle.high, min, max, chartH, h); const yLow = this.priceToY(candle.low, min, max, chartH, h); const yOpen = this.priceToY(candle.open, min, max, chartH, h); const yClose = this.priceToY(candle.close, min, max, chartH, h); ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.moveTo(x + cW * 0.5, yHigh); ctx.lineTo(x + cW * 0.5, yLow); ctx.stroke(); ctx.fillStyle = color; const top = Math.min(yOpen, yClose), bot = Math.max(yOpen, yClose); const bodyH = Math.max(1, bot - top); ctx.fillRect(x, top, cW, bodyH) }) }
+    drawCandles(ctx, min, max, chartW, chartH) { const start = Math.max(0, this.config.dataOffset - 1); const data = this.stockData.slice(start, this.config.dataOffset + this.config.visibleCandles); const firstIndex = start - this.config.dataOffset; const w = this.getCanvasWidth(), h = this.getCanvasHeight(); const cW = this.calculateCandleWidth(); data.forEach((candle, index) => { const i = index + firstIndex; const isUp = candle.close >= candle.open; const color = isUp ? this.config.currentBullColor : this.config.currentBearColor; const x = this.config.padding.left + i * (cW + this.config.spacing); const yHigh = this.priceToY(candle.high, min, max, chartH, h); const yLow = this.priceToY(candle.low, min, max, chartH, h); const yOpen = this.priceToY(candle.open, min, max, chartH, h); const yClose = this.priceToY(candle.close, min, max, chartH, h); this._crispCandle(ctx, color, x, cW, yHigh, yLow, yOpen, yClose) }) }
+    // One candle in device pixels: whole-pixel body edges, a wick 1 CSS px wide (rounded
+    // to device pixels) sitting dead centre, and at least one device pixel of body.
+    // hollowLw > 0 draws the body as an outline that many CSS px thick, with the wick
+    // stopping at the body.
+    _crispCandle(ctx, color, x, cW, yHigh, yLow, yOpen, yClose, hollowLw) {
+        const sx = this._scaleX(), sy = this._scaleY();
+        let L = Math.round(x * sx), W = Math.max(1, Math.round(cW * sx));
+        const ww = Math.max(1, Math.floor(sx));
+        if (W > ww && (W - ww) % 2) W -= 1; // keep the wick centred
+        const wl = W > ww ? L + (W - ww) / 2 : L + Math.floor((W - ww) / 2);
+        const yT = Math.round(Math.min(yOpen, yClose) * sy), yB = Math.max(yT + 1, Math.round(Math.max(yOpen, yClose) * sy));
+        const hT = Math.round(yHigh * sy), hB = Math.max(hT + 1, Math.round(yLow * sy));
+        ctx.fillStyle = color;
+        const R = (a, b, w, h) => { if (w > 0 && h > 0) ctx.fillRect(a / sx, b / sy, w / sx, h / sy) };
+        if (!hollowLw) { R(wl, hT, ww, hB - hT); R(L, yT, W, yB - yT); return }
+        R(wl, hT, ww, yT - hT); R(wl, yB, ww, hB - yB);
+        const bx = Math.max(1, Math.round(hollowLw * sx)), by = Math.max(1, Math.round(hollowLw * sy));
+        if (W <= bx * 2 || yB - yT <= by * 2) { R(L, yT, W, yB - yT); return }
+        R(L, yT, W, by); R(L, yB - by, W, by); R(L, yT + by, bx, yB - yT - by * 2); R(L + W - bx, yT + by, bx, yB - yT - by * 2);
+    }
+    // A filled rect with its edges on device pixels (at least one device pixel each way).
+    _crispRect(ctx, x, y, w, h) {
+        const sx = this._scaleX(), sy = this._scaleY();
+        const L = Math.round(x * sx), T = Math.round(y * sy), Rr = Math.max(L + 1, Math.round((x + w) * sx)), B = Math.max(T + 1, Math.round((y + h) * sy));
+        if (h <= 0) return;
+        ctx.fillRect(L / sx, T / sy, (Rr - L) / sx, (B - T) / sy);
+    }
     // Index into stockData of the candle sitting under a canvas x coordinate,
     // or null if that x is outside the data. Mirrors the crosshair's own math,
     // including the drag pixel offset, so both land on the same candle.
@@ -3972,16 +6790,16 @@ class StockChart {
         // proportional so it reads as a border, not a repainted candle
         ctx.lineWidth = Math.max(1, Math.min(1.5, cW * 0.25));
         ctx.shadowColor = color;
-        ctx.shadowBlur = 6;
+        ctx.shadowBlur = 4;
         // Shape follows the chart type - see traceBarOutline.
-        this.traceBarOutline(ctx, this.candleGeometry(dataIndex, min, max, chartH), 0.5);
+        this.traceBarOutline(ctx, this.candleGeometry(dataIndex, min, max, chartH), 0);
         ctx.restore();
     }
 
     drawPriceScale(ctx, min, max, nMin, nMax, spacing) { const w = this.getCanvasWidth(), h = this.getCanvasHeight(); ctx.fillStyle = this.config.currentTextColor; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = '12px Arial'; const chartTop = this.config.padding.top; const chartH = this.getPriceChartHeight(); const chartBottom = chartTop + chartH; let lastLabel = null; for (let price = nMin; price <= nMax + 1e-8; price += spacing) { const y = this.priceToY(price, min, max, chartH, h); if (y < chartTop || y > chartBottom) continue; const txt = s8FormatChartPrice(price); if (txt === lastLabel) continue; ctx.fillText(txt, w - this.config.padding.right + 5, y); lastLabel = txt } }
     drawDateLabels(ctx) { const start = Math.max(0, this.config.dataOffset - 1); const data = this.stockData.slice(start, this.config.dataOffset + this.config.visibleCandles); const firstIndex = start - this.config.dataOffset; const w = this.getCanvasWidth(), h = this.getCanvasHeight(); const cW = this.calculateCandleWidth(); ctx.fillStyle = this.config.currentTextColor; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.font = '12px Arial'; /* Every 10th bar is fine at normal zoom but becomes a smear once bars are a couple of pixels wide, so the step grows with density: aim for ~90px between labels, rounded to a multiple of 10 bars to keep the familiar rhythm. */ const labelStep = this.getGridStep(); data.forEach((candle, index) => { const i = index + firstIndex; const globalIdx = i + this.config.dataOffset; if (globalIdx % labelStep === 0) { const x = this.config.padding.left + i * (cW + this.config.spacing) + cW * 0.5; ctx.fillText(this.formatTimestamp(candle.t, this.timeframe), x, h - this.config.padding.bottom + 5) } }) }
-    drawLastPriceLabel(ctx, min, max) { if (!this.stockData.length) return; const w = this.getCanvasWidth(), h = this.getCanvasHeight(); const last = this.stockData[this.stockData.length - 1]; const currentPriceValue = last.close; const chartH = this.getPriceChartHeight(); const chartBottom = this.config.padding.top + chartH; const currentPriceY = this.priceToY(currentPriceValue, min, max, chartH, h); const chartLeft = this.config.padding.left, lineEndX = w - this.config.padding.right; const isUpCandle = last.close >= last.open; const baseColor = isUpCandle ? this.config.currentBullColor : this.config.currentBearColor; ctx.save(); ctx.setLineDash([1, 2]); ctx.strokeStyle = baseColor; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(chartLeft, currentPriceY); ctx.lineTo(lineEndX, currentPriceY); ctx.stroke(); ctx.restore(); const tagExtra = (typeof window.S8_CHART_PRICE_TAG_EXTRA === 'function') ? window.S8_CHART_PRICE_TAG_EXTRA(this) : null; this._s8TagExtra = tagExtra || null; const labelHeight = tagExtra ? 30 : 20, labelPadding = 5, borderRadius = 3; let y = Math.max(this.config.padding.top + labelHeight / 2, Math.min(chartBottom - labelHeight / 2, currentPriceY)); const label = s8FormatChartPrice(currentPriceValue); ctx.font = '12px Arial'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; let txtW = ctx.measureText(label).width; if (tagExtra) { ctx.font = '10px Arial'; txtW = Math.max(txtW, ctx.measureText(tagExtra).width); ctx.font = '12px Arial' } const x = w - this.config.padding.right; const rectX = x, rectY = y - labelHeight / 2; const labelWidth = txtW + 2 * labelPadding; ctx.fillStyle = baseColor; ctx.beginPath(); ctx.moveTo(rectX + borderRadius, rectY); ctx.lineTo(rectX + labelWidth - borderRadius, rectY); ctx.arcTo(rectX + labelWidth, rectY, rectX + labelWidth, rectY + borderRadius, borderRadius); ctx.lineTo(rectX + labelWidth, rectY + labelHeight - borderRadius); ctx.arcTo(rectX + labelWidth, rectY + labelHeight, rectX + labelWidth - borderRadius, rectY + labelHeight, borderRadius); ctx.lineTo(rectX + borderRadius, rectY + labelHeight); ctx.arcTo(rectX, rectY + labelHeight, rectX, rectY + labelHeight - borderRadius, borderRadius); ctx.lineTo(rectX, rectY + borderRadius); ctx.arcTo(rectX, rectY, rectX + borderRadius, rectY, borderRadius); ctx.closePath(); ctx.strokeStyle = 'rgba(0,0,0,0.9)'; ctx.lineWidth = 2; ctx.stroke(); ctx.fill(); ctx.fillStyle = '#FFFFFF'; if (tagExtra) { ctx.fillText(label, x + labelPadding, y - 6); ctx.font = '10px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillText(tagExtra, x + labelPadding, y + 8) } else ctx.fillText(label, x + labelPadding, y) }
-    drawIndicatorPriceLabels(ctx, priceScaleMin, priceScaleMax) { if (!this.stockData || !this.stockData.length) return; const w = this.getCanvasWidth(), h = this.getCanvasHeight(); const chartH = this.getPriceChartHeight(); const chartBottom = this.config.padding.top + chartH; const labelXPosition = w - this.config.padding.right; const labelHeight = 20, labelPadding = 5, labelFontSize = 12, borderRadius = 3; ctx.font = `${labelFontSize}px Arial`; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; this.movingAverages.forEach(ma => { if (ma.enabled && ma.data && ma.data.length) { const data = ma.data; const indicatorColor = ma.color; const processValue = (val, bandName = '') => { if (val === null || val === undefined) return; const y = this.priceToY(val, priceScaleMin, priceScaleMax, chartH, h); const clampedY = Math.max(this.config.padding.top + labelHeight / 2, Math.min(y, chartBottom - labelHeight / 2)); const labelText = s8FormatChartPrice(val); const textWidth = ctx.measureText(labelText).width; const labelWidth = textWidth + 2 * labelPadding; const rectX = labelXPosition, rectY = clampedY - labelHeight / 2; ctx.fillStyle = indicatorColor; ctx.beginPath(); ctx.moveTo(rectX + borderRadius, rectY); ctx.lineTo(rectX + labelWidth - borderRadius, rectY); ctx.arcTo(rectX + labelWidth, rectY, rectX + labelWidth, rectY + borderRadius, borderRadius); ctx.lineTo(rectX + labelWidth, rectY + labelHeight - borderRadius); ctx.arcTo(rectX + labelWidth, rectY + labelHeight, rectX + labelWidth - borderRadius, rectY + labelHeight, borderRadius); ctx.lineTo(rectX + borderRadius, rectY + labelHeight); ctx.arcTo(rectX, rectY + labelHeight, rectX, rectY + labelHeight - borderRadius, borderRadius); ctx.lineTo(rectX, rectY + borderRadius); ctx.arcTo(rectX, rectY, rectX + borderRadius, rectY, borderRadius); ctx.closePath(); ctx.save(); ctx.strokeStyle = 'rgba(0,0,0,0.9)'; ctx.lineWidth = 3; ctx.stroke(); ctx.fillStyle = 'rgba(8,10,14,0.94)'; ctx.fill(); ctx.strokeStyle = indicatorColor; ctx.lineWidth = 1; ctx.stroke(); ctx.restore(); ctx.fillStyle = indicatorColor; ctx.fillText(labelText, labelXPosition + labelPadding, clampedY) }; if (data && data.length > 0) { processValue(data[data.length - 1]) } } }); const staticIndicatorsToDraw = [{ key: 'vwap', name: 'VWAP' }, { key: 'bollinger', name: 'BB' }, { key: 'parabolicSAR', name: 'SAR' }]; staticIndicatorsToDraw.forEach(info => { if (this.indicators[info.key] && this.indicators[info.key].enabled) { const indicator = this.indicators[info.key]; const indicatorColor = indicator.color; const data = indicator.data; const processValue = (val, bandName = '') => { if (val === null || val === undefined) return; const y = this.priceToY(val, priceScaleMin, priceScaleMax, chartH, h); const clampedY = Math.max(this.config.padding.top + labelHeight / 2, Math.min(y, chartBottom - labelHeight / 2)); const labelText = s8FormatChartPrice(val); const textWidth = ctx.measureText(labelText).width; const labelWidth = textWidth + 2 * labelPadding; const rectX = labelXPosition, rectY = clampedY - labelHeight / 2; ctx.fillStyle = indicatorColor; ctx.beginPath(); ctx.moveTo(rectX + borderRadius, rectY); ctx.lineTo(rectX + labelWidth - borderRadius, rectY); ctx.arcTo(rectX + labelWidth, rectY, rectX + labelWidth, rectY + borderRadius, borderRadius); ctx.lineTo(rectX + labelWidth, rectY + labelHeight - borderRadius); ctx.arcTo(rectX + labelWidth, rectY + labelHeight, rectX + labelWidth - borderRadius, rectY + labelHeight, borderRadius); ctx.lineTo(rectX + borderRadius, rectY + labelHeight); ctx.arcTo(rectX, rectY + labelHeight, rectX, rectY + labelHeight - borderRadius, borderRadius); ctx.lineTo(rectX, rectY + borderRadius); ctx.arcTo(rectX, rectY, rectX + borderRadius, rectY, borderRadius); ctx.closePath(); ctx.save(); ctx.strokeStyle = 'rgba(0,0,0,0.9)'; ctx.lineWidth = 3; ctx.stroke(); ctx.fillStyle = 'rgba(8,10,14,0.94)'; ctx.fill(); ctx.strokeStyle = indicatorColor; ctx.lineWidth = 1; ctx.stroke(); ctx.restore(); ctx.fillStyle = indicatorColor; ctx.fillText(labelText, labelXPosition + labelPadding, clampedY) }; if (info.key === 'bollinger' && data && data.upper && data.middle && data.lower) { processValue(data.upper[data.upper.length - 1], 'BB Up'); processValue(data.middle[data.middle.length - 1], 'BB Mid'); processValue(data.lower[data.lower.length - 1], 'BB Low') } else if (data && data.length > 0) { processValue(data[data.length - 1]) } } }) }
+    drawLastPriceLabel(ctx, min, max) { if (!this.stockData.length) return; const w = this.getCanvasWidth(), h = this.getCanvasHeight(); const last = this.stockData[this.stockData.length - 1]; const currentPriceValue = last.close; const chartH = this.getPriceChartHeight(); const chartBottom = this.config.padding.top + chartH; const currentPriceY = this.priceToY(currentPriceValue, min, max, chartH, h); const chartLeft = this.config.padding.left, lineEndX = w - this.config.padding.right; const isUpCandle = last.close >= last.open; const baseColor = isUpCandle ? this.config.currentBullColor : this.config.currentBearColor; ctx.save(); ctx.setLineDash([1, 2]); ctx.strokeStyle = baseColor; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(chartLeft, currentPriceY); ctx.lineTo(lineEndX, currentPriceY); ctx.stroke(); ctx.restore(); const tagExtra = (typeof window.S8_CHART_PRICE_TAG_EXTRA === 'function') ? window.S8_CHART_PRICE_TAG_EXTRA(this) : null; this._s8TagExtra = tagExtra || null; const labelHeight = tagExtra ? 30 : 20, labelPadding = 5, borderRadius = 3; let y = Math.max(this.config.padding.top + labelHeight / 2, Math.min(chartBottom - labelHeight / 2, currentPriceY)); const label = s8FormatChartPrice(currentPriceValue); ctx.font = '12px Arial'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; let txtW = ctx.measureText(label).width; if (tagExtra) { ctx.font = '10px Arial'; txtW = Math.max(txtW, ctx.measureText(tagExtra).width); ctx.font = '12px Arial' } const x = w - this.config.padding.right; const rectX = x, rectY = y - labelHeight / 2; const labelWidth = txtW + 2 * labelPadding; ctx.fillStyle = baseColor; ctx.beginPath(); ctx.moveTo(rectX + borderRadius, rectY); ctx.lineTo(rectX + labelWidth - borderRadius, rectY); ctx.arcTo(rectX + labelWidth, rectY, rectX + labelWidth, rectY + borderRadius, borderRadius); ctx.lineTo(rectX + labelWidth, rectY + labelHeight - borderRadius); ctx.arcTo(rectX + labelWidth, rectY + labelHeight, rectX + labelWidth - borderRadius, rectY + labelHeight, borderRadius); ctx.lineTo(rectX + borderRadius, rectY + labelHeight); ctx.arcTo(rectX, rectY + labelHeight, rectX, rectY + labelHeight - borderRadius, borderRadius); ctx.lineTo(rectX, rectY + borderRadius); ctx.arcTo(rectX, rectY, rectX + borderRadius, rectY, borderRadius); ctx.closePath(); ctx.strokeStyle = this.config.darkMode ? 'rgba(0,0,0,0.9)' : '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.fill(); ctx.fillStyle = '#FFFFFF'; if (tagExtra) { ctx.fillText(label, x + labelPadding, y - 6); ctx.font = '10px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillText(tagExtra, x + labelPadding, y + 8) } else ctx.fillText(label, x + labelPadding, y) }
+    drawIndicatorPriceLabels(ctx, priceScaleMin, priceScaleMax) { if (!this.stockData || !this.stockData.length) return; const w = this.getCanvasWidth(), h = this.getCanvasHeight(); const chartH = this.getPriceChartHeight(); const chartBottom = this.config.padding.top + chartH; const labelXPosition = w - this.config.padding.right; const labelHeight = 20, labelPadding = 5, labelFontSize = 12, borderRadius = 3; ctx.font = `${labelFontSize}px Arial`; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; this.movingAverages.forEach(ma => { if (ma.enabled && ma.data && ma.data.length) { const data = ma.data; const indicatorColor = ma.color; const processValue = (val, bandName = '') => { if (val === null || val === undefined) return; const y = this.priceToY(val, priceScaleMin, priceScaleMax, chartH, h); const clampedY = Math.max(this.config.padding.top + labelHeight / 2, Math.min(y, chartBottom - labelHeight / 2)); const labelText = s8FormatChartPrice(val); const textWidth = ctx.measureText(labelText).width; const labelWidth = textWidth + 2 * labelPadding; const rectX = labelXPosition, rectY = clampedY - labelHeight / 2; ctx.fillStyle = indicatorColor; ctx.beginPath(); ctx.moveTo(rectX + borderRadius, rectY); ctx.lineTo(rectX + labelWidth - borderRadius, rectY); ctx.arcTo(rectX + labelWidth, rectY, rectX + labelWidth, rectY + borderRadius, borderRadius); ctx.lineTo(rectX + labelWidth, rectY + labelHeight - borderRadius); ctx.arcTo(rectX + labelWidth, rectY + labelHeight, rectX + labelWidth - borderRadius, rectY + labelHeight, borderRadius); ctx.lineTo(rectX + borderRadius, rectY + labelHeight); ctx.arcTo(rectX, rectY + labelHeight, rectX, rectY + labelHeight - borderRadius, borderRadius); ctx.lineTo(rectX, rectY + borderRadius); ctx.arcTo(rectX, rectY, rectX + borderRadius, rectY, borderRadius); ctx.closePath(); ctx.save(); if (this.config.darkMode) { ctx.strokeStyle = 'rgba(0,0,0,0.9)'; ctx.lineWidth = 3; ctx.stroke(); ctx.fillStyle = 'rgba(8,10,14,0.94)'; ctx.fill(); ctx.strokeStyle = indicatorColor; ctx.lineWidth = 1; ctx.stroke() } else { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.fill() } ctx.restore(); ctx.fillStyle = this.config.darkMode ? indicatorColor : '#fff'; ctx.fillText(labelText, labelXPosition + labelPadding, clampedY) }; if (data && data.length > 0) { processValue(data[data.length - 1]) } } }); const staticIndicatorsToDraw = [{ key: 'vwap', name: 'VWAP' }, { key: 'bollinger', name: 'BB' }, { key: 'parabolicSAR', name: 'SAR' }]; staticIndicatorsToDraw.forEach(info => { if (this.indicators[info.key] && this.indicators[info.key].enabled) { const indicator = this.indicators[info.key]; const indicatorColor = indicator.color; const data = indicator.data; const processValue = (val, bandName = '') => { if (val === null || val === undefined) return; const y = this.priceToY(val, priceScaleMin, priceScaleMax, chartH, h); const clampedY = Math.max(this.config.padding.top + labelHeight / 2, Math.min(y, chartBottom - labelHeight / 2)); const labelText = s8FormatChartPrice(val); const textWidth = ctx.measureText(labelText).width; const labelWidth = textWidth + 2 * labelPadding; const rectX = labelXPosition, rectY = clampedY - labelHeight / 2; ctx.fillStyle = indicatorColor; ctx.beginPath(); ctx.moveTo(rectX + borderRadius, rectY); ctx.lineTo(rectX + labelWidth - borderRadius, rectY); ctx.arcTo(rectX + labelWidth, rectY, rectX + labelWidth, rectY + borderRadius, borderRadius); ctx.lineTo(rectX + labelWidth, rectY + labelHeight - borderRadius); ctx.arcTo(rectX + labelWidth, rectY + labelHeight, rectX + labelWidth - borderRadius, rectY + labelHeight, borderRadius); ctx.lineTo(rectX + borderRadius, rectY + labelHeight); ctx.arcTo(rectX, rectY + labelHeight, rectX, rectY + labelHeight - borderRadius, borderRadius); ctx.lineTo(rectX, rectY + borderRadius); ctx.arcTo(rectX, rectY, rectX + borderRadius, rectY, borderRadius); ctx.closePath(); ctx.save(); if (this.config.darkMode) { ctx.strokeStyle = 'rgba(0,0,0,0.9)'; ctx.lineWidth = 3; ctx.stroke(); ctx.fillStyle = 'rgba(8,10,14,0.94)'; ctx.fill(); ctx.strokeStyle = indicatorColor; ctx.lineWidth = 1; ctx.stroke() } else { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.fill() } ctx.restore(); ctx.fillStyle = this.config.darkMode ? indicatorColor : '#fff'; ctx.fillText(labelText, labelXPosition + labelPadding, clampedY) }; if (info.key === 'bollinger' && data && data.upper && data.middle && data.lower) { processValue(data.upper[data.upper.length - 1], 'BB Up'); processValue(data.middle[data.middle.length - 1], 'BB Mid'); processValue(data.lower[data.lower.length - 1], 'BB Low') } else if (data && data.length > 0) { processValue(data[data.length - 1]) } } }) }
     drawWatermark(ctx, w, h) { ctx.save(); const fontParts = this.config.watermark.font.split(' '); const sizeIndex = fontParts.findIndex(part => part.includes('px')); const mainFontSize = parseInt(fontParts[sizeIndex]); const verticalSpacing = mainFontSize * 0.4; ctx.font = this.config.watermark.font; ctx.fillStyle = this.config.darkMode ? `rgba(255,255,255,${this.config.watermark.opacity})` : `rgba(0,0,0,${this.config.watermark.opacity})`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(this.config.watermark.text, w * 0.5, h * 0.5 - verticalSpacing); const timeframeFontSize = Math.max(Math.floor(mainFontSize * 0.5), 12); ctx.font = this.config.watermark.font.replace(/\d+px/, `${timeframeFontSize}px`); ctx.fillText(this.formatTimeframeLabel(this.timeframe), w * 0.5, h * 0.5 + verticalSpacing); ctx.restore() }
     // Fullscreen brand mark: the same outlined wordmark and 15px corner inset the
     // clipboard screenshot uses, but smaller (24px vs 36px). It is a DOM node, not canvas paint, so it is
@@ -4474,8 +7292,8 @@ class StockChart {
     }
     drawEmoticons(ctx) {
         if (!this.emoticons.length) return; ctx.save(); ctx.beginPath(); ctx.rect(this.config.padding.left - this.pixelOffset, this.config.padding.top, this.getCanvasWidth() - this.config.padding.left - this.config.padding.right, this.getPriceChartHeight()); ctx.clip(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; this.emoticons.forEach((emoticon, index) => {
-            const chartH = this.getPriceChartHeight(); const chartBottom = this.config.padding.top + chartH; const rawRange = this.calculateRawPriceRange(this.stockData, this.config.dataOffset, this.config.visibleCandles); let { min: priceMin, max: priceMax } = this.applyVerticalScale(rawRange); priceMin += this.config.priceOffset; priceMax += this.config.priceOffset; const candleIndex = this.findCandleIndexByTime(emoticon.timestamp); if (candleIndex === -1) return; const visibleIndex = candleIndex - this.config.dataOffset; if (visibleIndex < 0 || visibleIndex >= this.config.visibleCandles) return; const cW = this.calculateCandleWidth(); const screenX = this.config.padding.left + visibleIndex * (cW + this.config.spacing) + cW / 2; const relY = (emoticon.price - priceMin) / (priceMax - priceMin); const screenY = chartBottom - (relY * chartH); emoticon.screenX = screenX; emoticon.screenY = screenY; if (index === this.selectedEmoticonIndex) { const selectionSize = emoticon.size + 8; ctx.save(); ctx.strokeStyle = this.emoticonMode ? '#00ff00' : '#ffaa00'; ctx.lineWidth = 2; ctx.setLineDash([3, 3]); ctx.strokeRect(screenX - selectionSize / 2, screenY - selectionSize / 2, selectionSize, selectionSize); ctx.restore() }
-            ctx.font = `${emoticon.size}px Arial`; ctx.fillText(emoticon.emoji, screenX, screenY)
+            const chartH = this.getPriceChartHeight(); const chartBottom = this.config.padding.top + chartH; const rawRange = this.calculateRawPriceRange(this.stockData, this.config.dataOffset, this.config.visibleCandles); let { min: priceMin, max: priceMax } = this.applyVerticalScale(rawRange); priceMin += this.config.priceOffset; priceMax += this.config.priceOffset; const candleIndex = this.findCandleIndexByTime(emoticon.timestamp); if (candleIndex === -1) return; const visibleIndex = candleIndex - this.config.dataOffset; if (visibleIndex < 0 || visibleIndex >= this.config.visibleCandles) return; const cW = this.calculateCandleWidth(); const screenX = this.config.padding.left + visibleIndex * (cW + this.config.spacing) + cW / 2; const relY = (emoticon.price - priceMin) / (priceMax - priceMin); const screenY = chartBottom - (relY * chartH); emoticon.screenX = screenX; emoticon.screenY = screenY;
+            this._drawEmoticonItem(ctx, emoticon, screenX, screenY, index === this.selectedEmoticonIndex)
         }); ctx.restore()
     }
     drawFibonacciRetracements(ctx) {
@@ -5255,7 +8073,7 @@ class StockChart {
     drawMACD(ctx, volumeHeight) {
         if (!this.indicators.macd || !this.indicators.macd.enabled || !this.indicators.macd.data.macdLine || !this.indicators.macd.data.macdLine.length) return; const { macdLine, signalLine, histogram } = this.indicators.macd.data; const cW = this.calculateCandleWidth(); const volumeBottomY = this.getCanvasHeight() - this.config.padding.bottom, volumeTopY = volumeBottomY - volumeHeight; ctx.save(); ctx.beginPath(); ctx.rect(this.config.padding.left, volumeTopY, this.getCanvasWidth() - this.config.padding.left - this.config.padding.right, volumeHeight); ctx.clip(); let min = Infinity, max = -Infinity; const updateMinMax = val => { if (val !== null && val !== undefined && isFinite(val)) { min = Math.min(min, val); max = Math.max(max, val) } }; for (let i = this.config.dataOffset; i < this.config.dataOffset + this.config.visibleCandles; i++) { if (i >= 0 && i < macdLine.length) { updateMinMax(macdLine[i]); updateMinMax(signalLine[i]) } }
         if (min === Infinity || max === -Infinity || min === max) { min = -1; max = 1 }
-        const absMax = Math.max(Math.abs(min), Math.abs(max)); min = -absMax * 1.5; max = absMax * 1.5; const mid = volumeTopY + (volumeHeight / 2); ctx.beginPath(); ctx.moveTo(this.config.padding.left, mid); ctx.lineTo(this.getCanvasWidth() - this.config.padding.right, mid); ctx.strokeStyle = this.config.darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1; ctx.stroke(); const barWidth = Math.max(1, cW * 0.8), scaleFactor = volumeHeight / (max - min); for (let i = 0; i < this.config.visibleCandles; i++) { const dataIndex = i + this.config.dataOffset; if (dataIndex >= 0 && dataIndex < histogram.length && histogram[dataIndex] !== null) { const x = this.config.padding.left + i * (cW + this.config.spacing) + (cW - barWidth) / 2; const value = histogram[dataIndex]; let height = Math.max(1, Math.abs(value) * scaleFactor); ctx.fillStyle = value > 0 ? (this.config.darkMode ? 'rgba(76,175,80,0.7)' : 'rgba(76,175,80,0.5)') : (this.config.darkMode ? 'rgba(244,67,54,0.7)' : 'rgba(244,67,54,0.5)'); ctx.fillRect(x, value > 0 ? mid - height : mid, barWidth, height) } }
+        const absMax = Math.max(Math.abs(min), Math.abs(max)); min = -absMax * 1.5; max = absMax * 1.5; const mid = volumeTopY + (volumeHeight / 2); ctx.beginPath(); ctx.moveTo(this.config.padding.left, mid); ctx.lineTo(this.getCanvasWidth() - this.config.padding.right, mid); ctx.strokeStyle = this.config.darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1; ctx.stroke(); const barWidth = Math.max(1, cW * 0.8), scaleFactor = volumeHeight / (max - min); for (let i = 0; i < this.config.visibleCandles; i++) { const dataIndex = i + this.config.dataOffset; if (dataIndex >= 0 && dataIndex < histogram.length && histogram[dataIndex] !== null) { const x = this.config.padding.left + i * (cW + this.config.spacing) + (cW - barWidth) / 2; const value = histogram[dataIndex]; let height = Math.max(1, Math.abs(value) * scaleFactor); ctx.fillStyle = value > 0 ? (this.config.darkMode ? 'rgba(76,175,80,0.7)' : 'rgba(76,175,80,0.5)') : (this.config.darkMode ? 'rgba(244,67,54,0.7)' : 'rgba(244,67,54,0.5)'); this._crispRect(ctx, x, value > 0 ? mid - height : mid, barWidth, height) } }
         const drawLine = (lineData, color) => {
             ctx.beginPath(); let started = !1; for (let i = 0; i < this.config.visibleCandles; i++) { const dataIndex = i + this.config.dataOffset; if (dataIndex >= 0 && dataIndex < lineData.length && lineData[dataIndex] !== null) { const x = this.config.padding.left + i * (cW + this.config.spacing) + cW * 0.5; const y = volumeTopY + ((1 - (lineData[dataIndex] - min) / (max - min)) * volumeHeight); if (!started) { ctx.moveTo(x, y); started = !0 } else ctx.lineTo(x, y) } }
             ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.stroke()
@@ -5615,7 +8433,7 @@ class StockChart {
         } catch (e) { console.error('Failed to load chart settings:', e); this.indicatorsDropdown.querySelectorAll('input[type="checkbox"]').forEach(t => { if (this.indicators[t.value]) this.indicators[t.value].enabled = t.checked }); this.calculateIndicators(); this.updateTimeframeDropdownVisualState() }
     }
     updateWatermark() { if (this.config.watermark.enabled) this.drawWatermark(this.priceCtx, this.getCanvasWidth(), this.getCanvasHeight()); }
-    updateTimeframeDropdownVisualState() { if (!this.timeframeDropdown) this.timeframeDropdown = this.container.querySelector('.sc-timeframe-dropdown'); if (!this.timeframeDropdown) return; this.timeframeDropdown.querySelectorAll('.sc-timeframe-option').forEach(opt => { opt.classList.remove('selected'); if (opt.getAttribute('data-value') === this.timeframe) opt.classList.add('selected'); }) }
+    updateTimeframeDropdownVisualState() { if (!this.timeframeDropdown) this.timeframeDropdown = this.container.querySelector('.sc-timeframe-dropdown'); if (!this.timeframeDropdown) return; this.timeframeDropdown.querySelectorAll('.sc-timeframe-option').forEach(opt => { opt.classList.remove('selected'); if (opt.getAttribute('data-value') === this.timeframe) opt.classList.add('selected'); }); this.updateTimeframeButtonLabel() }
     _showNotification(message) {
         const existingNotifications = this.chartContainer.querySelectorAll('.chart-notification'); existingNotifications.forEach(notification => { notification.parentNode?.removeChild(notification) }); const n = document.createElement('div'); n.classList.add('chart-notification'); if (message.includes('<') && message.includes('>')) { n.innerHTML = message } else { n.textContent = message }
         n.style.cssText = `position:absolute;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:5px;z-index:100;transition:opacity .5s ease-in-out;opacity:1;background-color:${this.config.darkMode ? 'black' : 'rgba(240,240,240,0.9)'};color:${this.config.darkMode ? '#e0e0e0' : '#333'};border:1px solid ${this.config.darkMode ? '#666' : '#ccc'};`; this.chartContainer.appendChild(n); setTimeout(() => { n.style.opacity = '0'; setTimeout(() => n.parentNode?.removeChild(n), 500) }, 5000)
