@@ -1,4 +1,4 @@
-/*! StockChart v4.0 | free JavaScript stock chart by simul8or | https://simul8or.com/Javascript-Stock-Chart.php */
+/*! StockChart v4.1 | free JavaScript stock chart by simul8or | https://simul8or.com/Javascript-Stock-Chart.php */
 class StockChart {
     constructor(container, options = {}) {
         this.container = typeof container === 'string' ? document.getElementById(container) : container; if (!this.container) throw new Error('Container not found'); this.aiPriceLevels = []; this.aiPriceLevelHitAreas = []; this.hoveredAIPriceLevelCloseIndex = null; this.priceLines = []; this._nextPriceLineId = 1; this.options = options; this.isDragging = !1; this.scalingActive = !1; this.dragStartX = 0; this.dragStartY = 0; this.dragStartOffset = 0; this.dragStartPriceOffset = 0; this.pixelOffset = 0; this.scalingDragStartY = 0; this.screenSize = this.getScreenSizeCategory(); this.isViewPinnedToRightEdge = !0; this.defaultTimeframes = [{ value: '1min', label: '1 Minute' }, { value: '5min', label: '5 Minutes' }, { value: '15min', label: '15 Minutes' }, { value: '30min', label: '30 Minutes' }, { value: '1hour', label: '1 Hour' }, { value: '1day', label: '1 Day' }, { value: '1week', label: '1 Week' }, { value: '1month', label: '1 Month' }]; this.lastMouseX = null; this.lastMouseY = null; this.mouseIsOverChart = !1; this.lineDrawingMode = !1; this.drawingLine = !1; this.currentLine = null; this.lines = []; this.selectedLineIndex = null; this.draggedLine = null; this.snappingPoint = null; this.snappingActive = !1; this.tradeMarkers = []; this.limitOrders = []; this.limitOrderHitAreas = []; this.draggedLimitOrder = null; this.hoveredLimitOrderIndex = null; this.textMode = !1; this.textAnnotations = []; this.selectedTextIndex = null; this.editingTextIndex = null; this.draggingTextIndex = null; this.textDragStartX = 0; this.textDragStartY = 0; this.textClickTimer = null; this.textDragStarted = !1; this.activeTextInput = null; this.textInputReady = !1; this._textInputClickOutside = null; this.emoticonMode = !1; this.emoticons = []; this.selectedEmoticonIndex = null; this.draggingEmoticonIndex = null; this.emoticonDragStartX = 0; this.emoticonDragStartY = 0; this.emoticonDragStarted = !1; this.selectedEmoticonType = '??'; this.textSettings = { fontSize: 12, fontFamily: 'Arial', color: '#ffffff', fontWeight: 'normal' }; this.fibonacciMode = !1; this.drawingFibonacci = !1; this.currentFibonacci = null; this.fibonacciRetracements = []; this.selectedFibonacciIndex = null; this.draggingFibonacciIndex = null; this.fibonacciDragStartX = 0; this.fibonacciDragStartY = 0; this.fibonacciDragStarted = !1; this.fibonacciSnapPoint = null; this.drawingToolsMode = !1; this.selectedDrawingTool = 'line'; this.drawingShapes = []; this.selectedShapeIndex = null; this.drawingArrow = !1; this.currentArrow = null; this.arrows = []; this.selectedArrowIndex = null; this.draggingArrowIndex = null; this.arrowDragStartX = 0; this.arrowDragStartY = 0; this.arrowDragStarted = !1; this.drawingRectangle = !1; this.currentRectangle = null; this.rectangles = []; this.selectedRectangleIndex = null; this.draggingRectangleIndex = null; this.rectangleDragStartX = 0; this.rectangleDragStartY = 0; this.rectangleDragStarted = !1; this.drawingCircle = !1; this.currentCircle = null; this.circles = []; this.selectedCircleIndex = null; this.draggingCircleIndex = null; this.circleDragStartX = 0; this.circleDragStartY = 0; this.circleDragStarted = !1; this.movingAverages = [{ type: 'ema', period: 9, enabled: !0, id: 'ema_9' }, { type: 'ema', period: 20, enabled: !0, id: 'ema_20' }, { type: 'sma', period: 9, enabled: !1, id: 'sma_9' }, { type: 'sma', period: 20, enabled: !1, id: 'sma_20' }]; this.indicators = {
@@ -53,6 +53,7 @@ class StockChart {
             forceIndex: { height: 80 },
             kst: { height: 100 }
         };
+        this._initStudies();
         // Panel resize state
         this.panelResizing = false;
         this.panelResizeKey = null;
@@ -81,7 +82,7 @@ class StockChart {
     getTotalPanelHeight() {
         let height = 0;
         // Iterate through all panel-based indicators
-        const panelIndicators = ['rsi', 'macd', 'stochastic', 'williamsR', 'mfi', 'roc', 'cci', 'adx', 'stochasticRSI', 'awesomeOscillator', 'trix', 'obv', 'adl', 'forceIndex', 'kst'];
+        const panelIndicators = this.panelKeys();
         panelIndicators.forEach(key => {
             if (this.indicators[key] && this.indicators[key].enabled && this.indicatorPanels[key]) {
                 height += this.indicatorPanels[key].height;
@@ -182,7 +183,7 @@ class StockChart {
     // Panel system: Get array of enabled panels with their Y boundaries
     getEnabledPanelBounds() {
         const panels = [];
-        const panelIndicators = ['rsi', 'macd', 'stochastic', 'williamsR', 'mfi', 'roc', 'cci', 'adx', 'stochasticRSI', 'awesomeOscillator', 'trix', 'obv', 'adl', 'forceIndex', 'kst'];
+        const panelIndicators = this.panelKeys();
         let y = this.getPanelsTopY();
         panelIndicators.forEach(key => {
             if (this.indicators[key] && this.indicators[key].enabled && this.indicatorPanels[key]) {
@@ -2525,21 +2526,8 @@ class StockChart {
                 if (i0 > i1) [i0, i1] = [i1, i0];
                 i0 = Math.max(0, i0); i1 = Math.min(N - 1, i1);
                 if (i1 < i0) return done();
-                let lo = Infinity, hi = -Infinity;
-                for (let i = i0; i <= i1; i++) { lo = Math.min(lo, data[i].low); hi = Math.max(hi, data[i].high) }
-                const rows = 24, step = (hi - lo) / rows || 1, upV = new Array(rows).fill(0), dnV = new Array(rows).fill(0);
-                // Spread each bar's volume over the rows its high-low covers.
-                for (let i = i0; i <= i1; i++) {
-                    const k = data[i], vol = k.volume || 0, rng = (k.high - k.low) || step, arr = k.close >= k.open ? upV : dnV;
-                    const r0 = Math.max(0, Math.floor((k.low - lo) / step)), r1 = Math.min(rows - 1, Math.floor((k.high - lo) / step));
-                    for (let r = r0; r <= r1; r++) { const ov = Math.min(k.high, lo + (r + 1) * step) - Math.max(k.low, lo + r * step); arr[r] += vol * (k.high === k.low ? 1 / (r1 - r0 + 1) : Math.max(0, ov) / rng) }
-                }
-                const tot = upV.map((u, r) => u + dnV[r]), all = tot.reduce((x, y) => x + y, 0), maxV = Math.max(...tot) || 1;
-                let poc = tot.indexOf(maxV), va = new Set([poc]), sum = maxV, lo2 = poc, hi2 = poc;
-                while (sum < all * 0.7 && (lo2 > 0 || hi2 < rows - 1)) {
-                    const dn = lo2 > 0 ? tot[lo2 - 1] : -1, upn = hi2 < rows - 1 ? tot[hi2 + 1] : -1;
-                    if (upn >= dn) { hi2++; va.add(hi2); sum += upn } else { lo2--; va.add(lo2); sum += dn }
-                }
+                const rows = 24, P = StockChart.volumeProfile(data, i0, i1, rows, 0.7);
+                const { lo, hi, step, upV, dnV, maxV, poc } = P, va = { has: r => r >= P.vaLo && r <= P.vaHi };
                 const x0 = v.idxToX(i0) - v.cW / 2, x1 = v.idxToX(i1) + v.cW / 2, W = Math.max(30, (x1 - x0) * 0.3);
                 g.fills.push({ pts: [pt(x0, v.pToY(hi)), pt(x1, v.pToY(hi)), pt(x1, v.pToY(lo)), pt(x0, v.pToY(lo))], c: tint('#2962ff', 0.04) });
                 for (let r = 0; r < rows; r++) {
@@ -4302,7 +4290,8 @@ class StockChart {
             stochasticRSI: [['color', '%K'], ['dColor', '%D']], roc: [['color', 'ROC']], trix: [['color', 'TRIX']], kst: [['color', 'KST'], ['signalColor', 'Signal']],
             adx: [['color', 'ADX'], ['pdiColor', '+DI'], ['mdiColor', '-DI']], ichimoku: [['tenkanColor', 'Conversion line'], ['kijunColor', 'Base line']],
             obv: [['color', 'OBV']], adl: [['color', 'A/D Line']], forceIndex: [['color', 'Force Index']], atr: [['color', 'ATR']],
-            wma: [['color', 'WMA']], wema: [['color', 'WEMA']], typicalPrice: [['color', 'Typical Price']]
+            wma: [['color', 'WMA']], wema: [['color', 'WEMA']], typicalPrice: [['color', 'Typical Price']],
+            ...StockChart.studySpec('slots')
         };
     }
     // Editable inputs: [field, label, default, step]. A step under 1 means a decimal value.
@@ -4313,11 +4302,12 @@ class StockChart {
             macd: [['fast', 'Fast', 12, 1], ['slow', 'Slow', 26, 1], ['signal', 'Signal', 9, 1]],
             stochastic: [['period', '%K', 14, 1], ['dPeriod', '%D', 3, 1], ['slowing', 'Smooth', 3, 1]],
             atr: len(14), volumeMA: len(20), williamsR: len(14), mfi: len(14), roc: len(12), cci: len(20), adx: len(14),
-            stochasticRSI: len(14), trix: len(15), forceIndex: len(13), wma: len(20), wema: len(14)
+            stochasticRSI: len(14), trix: len(15), forceIndex: len(13), wma: len(20), wema: len(14),
+            ...StockChart.studySpec('params')
         };
     }
     // Indicators drawn as lines (Parabolic SAR is dots, ATR is a readout, candles aren't lines)
-    static hasWidth(target) { return target.indexOf('ma:') === 0 || ['vwap', 'bollinger', 'rsi', 'macd', 'stochastic', 'williamsR', 'mfi', 'roc', 'cci', 'trix', 'obv', 'adl', 'forceIndex', 'adx', 'stochasticRSI', 'kst', 'ichimoku', 'wma', 'wema', 'typicalPrice', 'volumeMA'].indexOf(target) > -1; }
+    static hasWidth(target) { return target.indexOf('ma:') === 0 || (StockChart.STUDIES[target] && (StockChart.STUDIES[target].draw || StockChart.STUDIES[target].lines.some(l => !l[3] || l[3] === 'levels'))) || ['vwap', 'bollinger', 'rsi', 'macd', 'stochastic', 'williamsR', 'mfi', 'roc', 'cci', 'trix', 'obv', 'adl', 'forceIndex', 'adx', 'stochasticRSI', 'kst', 'ichimoku', 'wma', 'wema', 'typicalPrice', 'volumeMA'].indexOf(target) > -1; }
     static styleKey(target) { return target.indexOf('ma:') === 0 ? 'ma.' + target.slice(3) : target; }
     static colorSwatches() { return ['#2196F3', '#00BCD4', '#26A69A', '#4CAF50', '#CDDC39', '#FFEB3B', '#FF9800', '#F44336', '#E91E63', '#C71585', '#9C27B0', '#7E57C2', '#FFFFFF', '#9E9E9E']; }
     static loadColorPrefs() {
@@ -4421,17 +4411,18 @@ class StockChart {
         p.remove(); (this._colorPopCleanup || []).forEach(fn => fn()); this._colorPopCleanup = null;
     }
     openColorPopover(dot) {
-        const target = dot.dataset.scColor;
+        let target = dot.dataset.scColor; // let: changing an MA's length renames it
         if (this._colorPop && this._colorPopTarget === target) { this.closeColorPopover(); return; }
         this.closeColorPopover(); this._colorPopTarget = target;
         const row = dot.closest('.sc-indicator-toggle'), nameEl = row && row.querySelector('.sc-indicator-name');
+        const titleText = () => nameEl ? nameEl.textContent.trim() : target === 'new' ? 'New moving average' : this.indicatorLabel(target);
         const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
         const pop = mk('div', 'sc-color-pop'); pop.setAttribute('role', 'dialog');
-        const title = mk('div', 'sc-color-pop__title', nameEl ? nameEl.textContent.trim() : 'New moving average'); pop.appendChild(title);
+        const title = mk('div', 'sc-color-pop__title', titleText()); pop.appendChild(title);
         const body = mk('div'); pop.appendChild(body);
         const build = () => {
             body.innerHTML = '';
-            if (nameEl) title.textContent = nameEl.textContent.trim();
+            title.textContent = titleText();
             // Colors: one swatch row per line
             const slots = this.getColorSlots(target);
             slots.forEach((slot, i) => {
@@ -4467,20 +4458,38 @@ class StockChart {
                 });
                 body.appendChild(seg);
             }
+            // Moving average length. Its id is type_length, so a new length renames it.
+            const ma = target.indexOf('ma:') === 0 && this.movingAverages.find(m => m.id === target.slice(3));
+            if (ma) {
+                body.appendChild(mk('div', 'sc-color-pop__label', 'Settings'));
+                const grid = mk('div', 'sc-color-pop__params'), cell = mk('label', 'sc-color-pop__param');
+                cell.appendChild(mk('span', null, 'Length'));
+                const input = mk('input'); input.type = 'number'; input.step = '1'; input.min = '1'; input.max = '500'; input.value = String(ma.period);
+                let t = null;
+                const commit = () => {
+                    clearTimeout(t); const id = this.setMaPeriod(ma.id, parseInt(input.value, 10));
+                    input.classList.toggle('is-bad', !id); input.title = id ? '' : 'Already on the chart, or not 1-500';
+                    if (id) { target = 'ma:' + id; this._colorPopTarget = target; title.textContent = titleText(); }
+                };
+                input.addEventListener('input', () => { clearTimeout(t); t = setTimeout(commit, 450); });
+                input.addEventListener('change', commit);
+                input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } });
+                cell.appendChild(input); grid.appendChild(cell); body.appendChild(grid);
+            }
             // Settings (lengths etc.)
             const params = StockChart.paramSpec()[target], ind = this.indicators[target];
             if (params && ind) {
                 body.appendChild(mk('div', 'sc-color-pop__label', 'Settings'));
                 const grid = mk('div', 'sc-color-pop__params');
-                params.forEach(([f, label, d, step]) => {
+                params.forEach(([f, label, d, step, lo, hi]) => {
                     const cell = mk('label', 'sc-color-pop__param'); cell.appendChild(mk('span', null, label));
-                    const input = mk('input'); input.type = 'number'; input.step = String(step); input.min = step < 1 ? '0.1' : '1'; input.max = step < 1 ? '10' : '500'; input.value = String(ind[f]);
+                    const input = mk('input'); input.type = 'number'; input.step = String(step); input.min = String(lo != null ? lo : step < 1 ? 0.1 : 1); input.max = String(hi != null ? hi : step < 1 ? 10 : 500); input.value = String(ind[f]);
                     let t = null;
                     const commit = () => {
-                        clearTimeout(t); const v = step < 1 ? Math.round(parseFloat(input.value) * 10) / 10 : parseInt(input.value, 10);
+                        clearTimeout(t); const v = step < 1 ? +parseFloat(input.value).toFixed((String(step).split('.')[1] || '').length) : parseInt(input.value, 10);
                         const ok = isFinite(v) && v >= parseFloat(input.min) && v <= parseFloat(input.max);
                         input.classList.toggle('is-bad', !ok); if (!ok || v === ind[f]) return;
-                        this.setParam(target, f, v); if (nameEl) title.textContent = nameEl.textContent.trim();
+                        this.setParam(target, f, v); title.textContent = titleText();
                     };
                     input.addEventListener('input', () => { clearTimeout(t); t = setTimeout(commit, 450); });
                     input.addEventListener('change', commit);
@@ -4538,6 +4547,522 @@ class StockChart {
             + '.sc-shortcuts__row kbd{flex:none;min-width:56px;padding:2px 7px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:5px;font:600 11px/1.5 "IBM Plex Mono",ui-monospace,monospace;color:#fff;text-align:center}'
             + '.sc-shortcuts__row span{color:rgba(255,255,255,.75);text-align:right}.sc-shortcuts__note{margin-top:10px;font-size:11px;color:rgba(255,255,255,.45)}'
             + '.sc-color-pop__reset{display:block;margin-top:10px;padding:0;background:none;border:0;color:rgba(255,255,255,.6);font:inherit;cursor:pointer;text-decoration:none}.sc-color-pop__reset:hover{color:#fff}';
+        document.head.appendChild(s);
+    }
+    // ── Studies (indicators defined as data, see StockChart.STUDIES) ─────────
+    _initStudies() {
+        for (const k in StockChart.STUDIES) {
+            const def = StockChart.STUDIES[k], ind = { enabled: false, data: {}, color: def.lines[0][2] };
+            def.lines.forEach(([f, , c]) => { ind['c_' + f] = c });
+            def.params.forEach(([f, , v]) => { ind[f] = v });
+            this.indicators[k] = ind;
+            if (def.pane) this.indicatorPanels[k] = { height: def.height || 80 };
+        }
+    }
+    // Every indicator that gets its own panel, top to bottom
+    panelKeys() {
+        return ['rsi', 'macd', 'stochastic', 'williamsR', 'mfi', 'roc', 'cci', 'adx', 'stochasticRSI', 'awesomeOscillator', 'trix', 'obv', 'adl', 'forceIndex', 'kst']
+            .concat(Object.keys(StockChart.STUDIES).filter(k => StockChart.STUDIES[k].pane));
+    }
+    // Color slots ('slots') or editable inputs ('params') for every study, in colorSlots()/paramSpec() form
+    static studySpec(kind) {
+        const out = {};
+        for (const k in StockChart.STUDIES) {
+            const def = StockChart.STUDIES[k];
+            if (kind === 'slots') out[k] = def.lines.map(([f, label]) => ['c_' + f, label]);
+            else if (def.params.length) out[k] = def.params;
+        }
+        return out;
+    }
+    studyLabel(key) {
+        const def = StockChart.STUDIES[key], ind = this.indicators[key];
+        return (def.short || def.name) + (def.params.length ? ' (' + def.params.map(([f]) => ind[f]).join(', ') + ')' : '');
+    }
+    studyColor(key, i) { const def = StockChart.STUDIES[key]; return this.indicators[key]['c_' + def.lines[i][0]] || def.lines[i][2]; }
+    // Lines, histograms, dots, step levels and band fills for one study. toY maps a value to canvas y.
+    _drawStudySeries(ctx, key, toY, cW, zeroY, baseWidth) {
+        const def = StockChart.STUDIES[key], data = this.indicators[key].data || {};
+        const off = this.config.dataOffset, step = cW + this.config.spacing, left = this.config.padding.left, vis = this.config.visibleCandles;
+        const from = -Math.min(2, Math.max(0, off)), xAt = (i) => left + i * step + cW * 0.5;
+        (def.fills || []).forEach(([a, b, color]) => {
+            const A = data[a], B = data[b]; if (!A || !B) return;
+            ctx.fillStyle = color; let seg = [];
+            const flush = () => {
+                if (seg.length > 1) { ctx.beginPath(); seg.forEach((p, j) => j ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); for (let j = seg.length - 1; j >= 0; j--) ctx.lineTo(seg[j][0], seg[j][2]); ctx.closePath(); ctx.fill() }
+                seg = [];
+            };
+            for (let i = from; i < vis; i++) { const va = A[i + off], vb = B[i + off]; if (va == null || vb == null) { flush(); continue } seg.push([xAt(i), toY(va), toY(vb)]) }
+            flush();
+        });
+        def.lines.forEach(([f, , , style, neg], li) => {
+            const a = data[f]; if (!a) return;
+            const color = this.studyColor(key, li);
+            if (style === 'hist') {
+                const bw = Math.max(1, cW * 0.8);
+                for (let i = from; i < vis; i++) { const v = a[i + off]; if (v == null) continue; const y = toY(v); ctx.fillStyle = v < 0 && neg ? neg : color; ctx.fillRect(xAt(i) - bw / 2, Math.min(y, zeroY), bw, Math.max(1, Math.abs(zeroY - y))) }
+                return;
+            }
+            if (style === 'markAbove' || style === 'markBelow') {
+                // Small triangles just off the value: above pointing down, below pointing up (TradingView fractals)
+                ctx.fillStyle = color; const s = Math.max(3, Math.min(5, cW * 0.45)), above = style === 'markAbove';
+                for (let i = from; i < vis; i++) {
+                    const v = a[i + off]; if (v == null) continue;
+                    const x = xAt(i), y = toY(v) + (above ? -(s + 4) : s + 4);
+                    ctx.beginPath(); ctx.moveTo(x - s, above ? y - s : y + s); ctx.lineTo(x + s, above ? y - s : y + s); ctx.lineTo(x, y); ctx.closePath(); ctx.fill();
+                }
+                return;
+            }
+            if (style === 'dots') {
+                ctx.fillStyle = color; const r = Math.max(1.2, Math.min(2.5, cW * 0.25));
+                for (let i = from; i < vis; i++) { const v = a[i + off]; if (v == null) continue; ctx.beginPath(); ctx.arc(xAt(i), toY(v), r, 0, Math.PI * 2); ctx.fill() }
+                return;
+            }
+            // 'levels' lifts the pen where the value changes, so each period is its own flat segment
+            ctx.strokeStyle = color; ctx.lineWidth = baseWidth * this.lineScale(key); ctx.beginPath();
+            let on = false, prev = null;
+            for (let i = from; i < vis; i++) {
+                const v = a[i + off]; if (v == null) { on = false; continue }
+                const x = xAt(i), y = toY(v);
+                if (on && style === 'levels' && v !== prev) on = false;
+                if (on) ctx.lineTo(x, y); else { ctx.moveTo(x, y); on = true }
+                prev = v;
+            }
+            ctx.stroke();
+        });
+    }
+    // Volume at price for bars i0..i1: each bar's volume spread evenly over the rows its high-low
+    // covers, split by up (close >= open) and down bars, plus the point of control (busiest row)
+    // and the value area (rows vaLo..vaHi grown out from the POC until they hold vaPct of the volume).
+    static volumeProfile(data, i0, i1, rows, vaPct) {
+        let lo = Infinity, hi = -Infinity;
+        for (let i = i0; i <= i1; i++) { lo = Math.min(lo, data[i].low); hi = Math.max(hi, data[i].high) }
+        const step = (hi - lo) / rows || 1, upV = new Array(rows).fill(0), dnV = new Array(rows).fill(0);
+        for (let i = i0; i <= i1; i++) {
+            const k = data[i], vol = k.volume || 0, rng = (k.high - k.low) || step, arr = k.close >= k.open ? upV : dnV;
+            const r0 = Math.max(0, Math.floor((k.low - lo) / step)), r1 = Math.min(rows - 1, Math.floor((k.high - lo) / step));
+            for (let r = r0; r <= r1; r++) { const ov = Math.min(k.high, lo + (r + 1) * step) - Math.max(k.low, lo + r * step); arr[r] += vol * (k.high === k.low ? 1 / (r1 - r0 + 1) : Math.max(0, ov) / rng) }
+        }
+        const tot = upV.map((u, r) => u + dnV[r]), all = tot.reduce((x, y) => x + y, 0), maxV = Math.max(...tot) || 1;
+        const poc = tot.indexOf(Math.max(...tot)); let sum = tot[poc], vaLo = poc, vaHi = poc;
+        while (sum < all * vaPct && (vaLo > 0 || vaHi < rows - 1)) {
+            const dn = vaLo > 0 ? tot[vaLo - 1] : -1, upn = vaHi < rows - 1 ? tot[vaHi + 1] : -1;
+            if (upn >= dn) { vaHi++; sum += upn } else { vaLo--; sum += dn }
+        }
+        return { lo, hi, step, upV, dnV, maxV, poc, vaLo, vaHi, pocPrice: lo + (poc + 0.5) * step };
+    }
+    // Profile bars from x, growing left (dir -1) or right (dir 1), widest row = maxW px. Value area rows are stronger.
+    _drawProfile(ctx, P, x, maxW, dir, toY, key) {
+        const rgba = (c, a) => { const m = /^#([0-9a-f]{6})$/i.exec(c || ''); if (!m) return c; const n = parseInt(m[1], 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})` };
+        const up = this.studyColor(key, 0), dn = this.studyColor(key, 1);
+        for (let r = 0; r < P.upV.length; r++) {
+            const yT = toY(P.lo + (r + 1) * P.step) + 0.5, yB = toY(P.lo + r * P.step) - 0.5, h = Math.max(1, yB - yT), a = r >= P.vaLo && r <= P.vaHi ? 0.42 : 0.18;
+            const wu = P.upV[r] / P.maxV * maxW, wd = P.dnV[r] / P.maxV * maxW;
+            if (wu > 0) { ctx.fillStyle = rgba(up, a); ctx.fillRect(dir > 0 ? x : x - wu, yT, wu, h) }
+            if (wd > 0) { ctx.fillStyle = rgba(dn, a); ctx.fillRect(dir > 0 ? x + wu : x - wu - wd, yT, wd, h) }
+        }
+    }
+    _drawPocLine(ctx, key, x0, x1, y) { ctx.strokeStyle = this.studyColor(key, 2); ctx.lineWidth = 1.5 * this.lineScale(key); ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke() }
+    // Session volume profile: one profile per session, cached on the study's data (rebuilt every recalculation)
+    _sessionProfile(key, a, b) {
+        const ind = this.indicators[key], c = ind.data._cache || (ind.data._cache = {}), k = a + ':' + b + ':' + ind.rows + ':' + ind.va;
+        return c[k] || (c[k] = StockChart.volumeProfile(this.stockData, a, b, ind.rows, ind.va / 100));
+    }
+    _sessionAt(key, i) { const st = (this.indicators[key].data && this.indicators[key].data.starts) || []; for (let s = st.length - 1; s >= 0; s--) if (st[s] <= i) return [st[s], s + 1 < st.length ? st[s + 1] - 1 : this.stockData.length - 1]; return null }
+    drawStudyOverlays(ctx, min, max, chartH, cW) {
+        const h = this.getCanvasHeight(), toY = (v) => this.priceToY(v, min, max, chartH, h);
+        for (const k in StockChart.STUDIES) {
+            const ind = this.indicators[k];
+            const def = StockChart.STUDIES[k];
+            if (def.pane || !ind || !ind.enabled || !ind.data) continue;
+            if (def.draw) def.draw.call(this, ctx, k, { toY, cW, min, max, chartH }); else this._drawStudySeries(ctx, k, toY, cW, 0, 1);
+        }
+    }
+    // Same frame as the built-in oscillator panels: background, grid, separator, dashed bands, label, value tag
+    drawStudyPanel(ctx, topY, height, key) {
+        const def = StockChart.STUDIES[key], ind = this.indicators[key];
+        if (!def || !ind || !ind.enabled || !ind.data) return;
+        const data = ind.data, cW = this.calculateCandleWidth(), off = this.config.dataOffset, step = cW + this.config.spacing;
+        const leftX = this.config.padding.left, rightX = this.getCanvasWidth() - this.config.padding.right, bottomY = topY + height, px = this.pixelOffset;
+        let lo, hi;
+        if (def.range) [lo, hi] = def.range;
+        else {
+            lo = Infinity; hi = -Infinity;
+            def.lines.forEach(([f, , , style]) => {
+                const a = data[f]; if (!a) return;
+                for (let i = 0; i < this.config.visibleCandles; i++) { const v = a[i + off]; if (v != null && isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v } }
+                if (style === 'hist') { lo = Math.min(lo, 0); hi = Math.max(hi, 0) }
+            });
+            if (lo === Infinity) { lo = 0; hi = 1 }
+            const pad = (hi - lo) * 0.1 || Math.abs(hi) * 0.1 || 1; lo -= pad; hi += pad;
+        }
+        const toY = (v) => topY + (hi - v) / (hi - lo) * height;
+        const fmt = (v) => { const a = Math.abs(v); return a >= 1e9 ? (v / 1e9).toFixed(2) + 'B' : a >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : a >= 1e4 ? (v / 1e3).toFixed(1) + 'K' : a >= 100 ? v.toFixed(1) : a >= 1 ? v.toFixed(2) : v.toFixed(3) };
+        ctx.fillStyle = this.config.darkMode ? 'rgba(30, 34, 45, 0.8)' : 'rgba(245, 245, 245, 0.8)';
+        ctx.fillRect(leftX - px, topY, rightX - leftX, height);
+        ctx.strokeStyle = this.config.currentGridColor; ctx.lineWidth = 0.5;
+        const gridStep = this.getGridStep();
+        for (let i = Math.floor((off - 1) / gridStep) * gridStep; i < off + this.config.visibleCandles; i += gridStep) {
+            if (i < off - 1 || i < 0 || i >= this.stockData.length) continue;
+            const x = this._lineX(leftX + (i - off) * step + cW * 0.5); ctx.beginPath(); ctx.moveTo(x, topY); ctx.lineTo(x, bottomY); ctx.stroke();
+        }
+        ctx.strokeStyle = this.config.darkMode ? '#000000' : '#999999'; ctx.lineWidth = 2;
+        this._hLine(ctx, leftX - px, rightX - px, topY);
+        const bands = (def.bands || []).filter(b => b >= lo && b <= hi);
+        ctx.setLineDash([2, 4]); ctx.strokeStyle = this.config.darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'; ctx.lineWidth = 1;
+        bands.forEach(b => this._hLine(ctx, leftX - px, rightX - px, toY(b)));
+        ctx.setLineDash([]);
+        ctx.save(); ctx.beginPath(); ctx.rect(leftX - px, topY, rightX - leftX, height); ctx.clip();
+        this._drawStudySeries(ctx, key, toY, cW, toY(Math.max(lo, Math.min(hi, 0))), 1.5);
+        ctx.restore();
+        const labelX = this.drawPanelCloseButton(ctx, topY, key);
+        ctx.font = '10px Arial'; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillStyle = this.studyColor(key, 0);
+        ctx.fillText(this.studyLabel(key), labelX, topY + 4);
+        // Scale: the bands, or the top and bottom of the range when there are none
+        ctx.textBaseline = 'middle'; ctx.fillStyle = this.config.darkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+        // Skip a band label that would overlap the one above it (short panels, close bands)
+        let lastY = -Infinity;
+        (bands.length ? bands.slice().sort((a, b) => b - a) : [hi - (hi - lo) * 0.1, lo + (hi - lo) * 0.1]).forEach(b => {
+            const y = toY(b); if (y - lastY < 11) return; lastY = y;
+            ctx.fillText(bands.length ? String(b) : fmt(b), rightX + 5, y);
+        });
+        const first = data[def.lines[0][0]] || []; let last = null;
+        for (let i = first.length - 1; i >= 0; i--) if (first[i] != null && isFinite(first[i])) { last = first[i]; break }
+        if (last !== null) {
+            const text = fmt(last), w = ctx.measureText(text).width + 8, y = Math.max(topY + 8, Math.min(toY(last), bottomY - 8));
+            ctx.fillStyle = this.studyColor(key, 0); ctx.fillRect(rightX, y - 8, w, 16);
+            ctx.fillStyle = '#ffffff'; ctx.fillText(text, rightX + 4, y);
+        }
+    }
+    // ── Indicators dialog (TradingView style) ───────────────────────────────
+    // The Indicators button opens a searchable list instead of the old dropdown. It drives
+    // the same state (this.indicators / this.movingAverages, through the dropdown's hidden
+    // checkboxes), so pages that set indicators in code keep working. Moving averages can
+    // be added more than once. Legend rows get settings (gear) and remove (x) on hover.
+    static indicatorCatalog() {
+        return [
+            { id: 'ma:ema', name: 'Moving average exponential', cat: 'ma', alias: 'ema' },
+            { id: 'ma:sma', name: 'Moving average simple', cat: 'ma', alias: 'sma' },
+            { id: 'wma', name: 'Moving average weighted', cat: 'ma', alias: 'wma' },
+            { id: 'wema', name: "Wilder's moving average", cat: 'ma', alias: 'wema smma rma' },
+            { id: 'vwap', name: 'VWAP', cat: 'volume', alias: 'volume weighted average price' },
+            { id: 'bollinger', name: 'Bollinger Bands', cat: 'volatility', alias: 'bb bands channel' },
+            { id: 'atr', name: 'Average true range', cat: 'volatility', alias: 'atr' },
+            { id: 'rsi', name: 'Relative strength index', cat: 'osc', alias: 'rsi' },
+            { id: 'macd', name: 'MACD', cat: 'osc', alias: 'moving average convergence divergence' },
+            { id: 'stochastic', name: 'Stochastic', cat: 'osc', alias: 'stoch' },
+            { id: 'stochasticRSI', name: 'Stochastic RSI', cat: 'osc', alias: 'stoch rsi' },
+            { id: 'williamsR', name: 'Williams %R', cat: 'osc', alias: 'williams r' },
+            { id: 'mfi', name: 'Money flow index', cat: 'osc', alias: 'mfi' },
+            { id: 'cci', name: 'Commodity channel index', cat: 'osc', alias: 'cci' },
+            { id: 'awesomeOscillator', name: 'Awesome oscillator', cat: 'osc', alias: 'ao' },
+            { id: 'roc', name: 'Rate of change', cat: 'osc', alias: 'roc momentum' },
+            { id: 'trix', name: 'TRIX', cat: 'trend', alias: 'triple exponential' },
+            { id: 'kst', name: 'Know sure thing', cat: 'trend', alias: 'kst' },
+            { id: 'adx', name: 'Average directional index', cat: 'trend', alias: 'adx dmi di' },
+            { id: 'parabolicSAR', name: 'Parabolic SAR', cat: 'trend', alias: 'sar psar' },
+            { id: 'ichimoku', name: 'Ichimoku cloud', cat: 'trend', alias: 'ichimoku kinko hyo' },
+            { id: 'typicalPrice', name: 'Typical price', cat: 'trend', alias: 'hlc3' },
+            { id: 'volume', name: 'Volume', cat: 'volume', alias: 'vol' },
+            { id: 'volumeMA', name: 'Volume moving average', cat: 'volume', alias: 'vol ma' },
+            { id: 'obv', name: 'On balance volume', cat: 'volume', alias: 'obv' },
+            { id: 'adl', name: 'Accumulation/distribution', cat: 'volume', alias: 'a/d adl' },
+            { id: 'forceIndex', name: 'Elder force index', cat: 'volume', alias: 'efi force' },
+            { id: 'keyLevels', name: 'Key levels (HOD, LOD, PMH, PML, PC)', cat: 'levels', alias: 'high low of day premarket prior close' }
+        ].concat(Object.keys(StockChart.STUDIES).map(k => ({ id: k, name: StockChart.STUDIES[k].name, cat: StockChart.STUDIES[k].cat, alias: (StockChart.STUDIES[k].short || '') + ' ' + (StockChart.STUDIES[k].alias || '') })))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }
+    static indicatorCategories() { return [['all', 'All'], ['ma', 'Moving averages'], ['trend', 'Trend'], ['osc', 'Oscillators'], ['volatility', 'Volatility'], ['volume', 'Volume'], ['levels', 'Levels']]; }
+    static loadIndicatorFavs() { try { const a = JSON.parse(localStorage.getItem('scIndicatorFavs') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+    static saveIndicatorFavs(a) { try { localStorage.setItem('scIndicatorFavs', JSON.stringify(a)); } catch (e) { } }
+    // 'ma:ema_9' -> 'EMA 9'; indicator keys use the menu name, which carries the current settings
+    indicatorLabel(target) {
+        if (target.indexOf('ma:') === 0) { const ma = this.movingAverages.find(m => m.id === target.slice(3)); return ma ? ma.type.toUpperCase() + ' ' + ma.period : target.slice(3); }
+        return this.getIndicatorConfig(target).name;
+    }
+    _indOnCount(e) {
+        if (e.id.indexOf('ma:') === 0) { const t = e.id.slice(3); return this.movingAverages.filter(m => m.enabled && m.type === t).length; }
+        const ind = this.indicators[e.id]; return ind && ind.enabled ? 1 : 0;
+    }
+    // Goes through the dropdown checkbox when there is one so its change handler stays the single path
+    setIndicatorEnabled(key, on) {
+        const ind = this.indicators[key]; if (!ind) return;
+        if (!on) ind.hidden = false;
+        const cb = this.indicatorsDropdown && this.indicatorsDropdown.querySelector(`input[type="checkbox"][value="${key}"]`);
+        if (cb) { cb.checked = on; cb.dispatchEvent(new Event('change', { bubbles: true })); }
+        else { ind.enabled = on; this.calculateIndicators(); this.drawCharts(); this.saveSettings(); }
+        this.updateOHLCOverlay();
+    }
+    _refreshMaUI() { this.populateMovingAveragesUI(); this.setupMovingAverageToggleHandlers(); this.calculateIndicators(); this.saveSettings(); this.drawCharts(); this.updateOHLCOverlay(); }
+    // Another EMA/SMA: the first free common length, re-enabling a switched-off one before adding
+    _nextMaLength(type) {
+        const lengths = [9, 20, 50, 100, 200]; for (let p = 1; p <= 500; p++) if (lengths.indexOf(p) < 0) lengths.push(p);
+        return lengths.find(p => { const ma = this.movingAverages.find(m => m.id === type + '_' + p); return !ma || !ma.enabled }) || null;
+    }
+    addMovingAverageInstance(type, length, color) {
+        const p = length || this._nextMaLength(type); if (!p) return null;
+        const id = type + '_' + p, ma = this.movingAverages.find(m => m.id === id);
+        if (ma && ma.enabled) return null;
+        if (ma) ma.enabled = true; else this.addMovingAverage(type, p);
+        if (color) { StockChart.loadColorPrefs()['ma.' + id] = color; StockChart.saveColorPrefs(); this.movingAverages.find(m => m.id === id).color = color; this.broadcastColorChange() }
+        this._refreshMaUI(); return id;
+    }
+    // New length for an MA. Returns its (new) id, or null when the length is invalid or already on the chart.
+    setMaPeriod(id, period) {
+        const ma = this.movingAverages.find(m => m.id === id);
+        if (!ma || !(period >= 1 && period <= 500)) return null;
+        const newId = ma.type + '_' + period; if (newId === id) return id;
+        const other = this.movingAverages.find(m => m.id === newId);
+        if (other && other.enabled) return null;
+        if (other) this.movingAverages.splice(this.movingAverages.indexOf(other), 1);
+        const prefs = StockChart.loadColorPrefs();
+        ['', '.width'].forEach(s => { if (prefs['ma.' + id + s]) { prefs['ma.' + newId + s] = prefs['ma.' + id + s]; delete prefs['ma.' + id + s]; } });
+        StockChart.saveColorPrefs();
+        ma.id = newId; ma.period = period; this._refreshMaUI(); this.broadcastColorChange(true);
+        return newId;
+    }
+    isIndicatorHidden(target) {
+        if (target.indexOf('ma:') === 0) { const ma = this.movingAverages.find(m => m.id === target.slice(3)); return !!(ma && ma.hidden) }
+        return !!(this.indicators[target] && this.indicators[target].hidden);
+    }
+    // Legend eye: keeps the indicator on (values, legend row, panel) but stops drawing it
+    setIndicatorHidden(target, hidden) {
+        const o = target.indexOf('ma:') === 0 ? this.movingAverages.find(m => m.id === target.slice(3)) : this.indicators[target];
+        if (!o) return; o.hidden = !!hidden;
+        this.saveSettings(); this.drawCharts(); this.updateOHLCOverlay();
+    }
+    // Runs a price-chart drawing pass with hidden overlays (not panels) switched off for its duration
+    _hideOverlaysWhile(fn) {
+        const panels = this.panelKeys(), off = [];
+        for (const k in this.indicators) { const ind = this.indicators[k]; if (ind && ind.enabled && ind.hidden && panels.indexOf(k) < 0) { ind.enabled = false; off.push(ind) } }
+        (this.movingAverages || []).forEach(m => { if (m.enabled && m.hidden) { m.enabled = false; off.push(m) } });
+        try { return fn() } finally { off.forEach(o => { o.enabled = true }) }
+    }
+    drawHiddenPanel(ctx, topY, height, key) {
+        const leftX = this.config.padding.left, rightX = this.getCanvasWidth() - this.config.padding.right, px = this.pixelOffset;
+        ctx.fillStyle = this.config.darkMode ? 'rgba(30, 34, 45, 0.8)' : 'rgba(245, 245, 245, 0.8)';
+        ctx.fillRect(leftX - px, topY, rightX - leftX, height);
+        ctx.strokeStyle = this.config.darkMode ? '#000000' : '#999999'; ctx.lineWidth = 2;
+        this._hLine(ctx, leftX - px, rightX - px, topY);
+        const x = this.drawPanelCloseButton(ctx, topY, key);
+        ctx.font = '10px Arial'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        ctx.fillStyle = this.config.darkMode ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)';
+        ctx.fillText(this.getIndicatorConfig(key).name + ' (hidden)', x, topY + 4);
+    }
+    removeIndicatorTarget(target) {
+        if (target.indexOf('ma:') === 0) { if (this.removeMovingAverage(target.slice(3))) this._refreshMaUI(); }
+        else this.setIndicatorEnabled(target, false);
+    }
+    _legendActions(item, target) {
+        const hidden = this.isIndicatorHidden(target);
+        item.classList.add('sc-lg-item'); item.classList.toggle('sc-lg-hidden', hidden); item.dataset.lgKey = target;
+        const acts = document.createElement('span'); acts.className = 'sc-lg-acts'; acts.dataset.state = hidden ? '1' : '0';
+        const svg = (p) => `<svg viewBox="0 0 18 18" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+        const eye = '<path d="M1.8 9S4.5 4.2 9 4.2 16.2 9 16.2 9 13.5 13.8 9 13.8 1.8 9 1.8 9z"/><circle cx="9" cy="9" r="2.2"/>';
+        acts.innerHTML += `<button type="button" class="sc-lg-btn" data-sc-target="${target}" data-act="eye" title="${hidden ? 'Show' : 'Hide'}" aria-label="${hidden ? 'Show' : 'Hide'}" aria-pressed="${hidden}">${svg(hidden ? eye + '<path d="M3 15L15 3"/>' : eye)}</button>`;
+        if (target.indexOf('ma:') === 0 || this.getColorSlots(target).length || StockChart.paramSpec()[target])
+            acts.innerHTML += `<button type="button" class="sc-lg-btn sc-color-dot" data-sc-color="${target}" data-act="gear" title="Settings" aria-label="Settings">${svg('<circle cx="9" cy="9" r="2.3"/><path d="M9 1.8v2M9 14.2v2M1.8 9h2M14.2 9h2M3.9 3.9l1.4 1.4M12.7 12.7l1.4 1.4M3.9 14.1l1.4-1.4M12.7 5.3l1.4-1.4"/>')}</button>`;
+        acts.innerHTML += `<button type="button" class="sc-lg-btn" data-sc-target="${target}" data-act="remove" title="Remove" aria-label="Remove">${svg('<path d="M4.5 4.5l9 9M13.5 4.5l-9 9"/>')}</button>`;
+        item.appendChild(acts);
+    }
+    setupLegendActions() {
+        const box = this.indicatorValuesDisplay; if (!box || this._legendActionsReady) return; this._legendActionsReady = true;
+        StockChart.injectIndicatorDialogStyles();
+        box.addEventListener('click', (e) => {
+            const b = e.target.closest && e.target.closest('.sc-lg-btn'); if (!b || !box.contains(b)) return;
+            e.preventDefault(); e.stopPropagation();
+            if (b.dataset.act === 'gear') this.openColorPopover(b);
+            else if (b.dataset.act === 'eye') this.setIndicatorHidden(b.dataset.scTarget, !this.isIndicatorHidden(b.dataset.scTarget));
+            else { this.closeColorPopover(); this.removeIndicatorTarget(b.dataset.scTarget); }
+        });
+    }
+    closeIndicatorDialog() {
+        const d = this._indDlg; if (!d) return; this._indDlg = null;
+        d.el.remove(); document.removeEventListener('keydown', d.onKey, true);
+        if (this.indicatorsButton) { this.indicatorsButton.classList.remove('active'); this.indicatorsButton.focus({ preventScroll: true }); }
+    }
+    openIndicatorDialog() {
+        if (this._indDlg) { this.closeIndicatorDialog(); return; }
+        StockChart.injectIndicatorDialogStyles(); this.closeColorPopover();
+        const all = StockChart.indicatorCatalog().filter(e => e.id.indexOf('ma:') === 0 || this.indicators[e.id]);
+        const favs = new Set(StockChart.loadIndicatorFavs());
+        const st = { view: 'tech', cat: 'all', active: 0, rows: [] };
+        const svg = (p, s = 18) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+        const STAR = '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>';
+        const el = document.createElement('div');
+        el.className = 'sc-ind-back' + (this.config.darkMode ? '' : ' is-light');
+        el.innerHTML = `<div class="sc-ind-dlg" role="dialog" aria-modal="true" aria-labelledby="sc-ind-title">
+            <div class="sc-ind-head"><h2 id="sc-ind-title">Indicators</h2><button type="button" class="sc-ind-x" aria-label="Close">${svg('<path d="M6 6l12 12M18 6L6 18"/>', 20)}</button></div>
+            <label class="sc-ind-search">${svg('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5l5 5"/>')}<input type="text" placeholder="Search" aria-label="Search indicators" autocomplete="off" spellcheck="false"></label>
+            <div class="sc-ind-body">
+              <nav class="sc-ind-side">
+                <div class="sc-ind-sec">Personal</div>
+                <button type="button" data-view="fav">${svg(STAR)}<span>Favorites</span></button>
+                <button type="button" data-view="on">${svg('<path d="M12 4l8.5 4.5L12 13 3.5 8.5z"/><path d="M3.5 12.5L12 17l8.5-4.5"/><path d="M3.5 16.5L12 21l8.5-4.5"/>')}<span>On chart</span></button>
+                <div class="sc-ind-sec">Built-in</div>
+                <button type="button" data-view="tech">${svg('<path d="M3 20h18"/><path d="M4 16l4-6 4 3 4-7 4 5"/><path d="M5 20v-2M9 20v-4M13 20v-3M17 20v-5"/>')}<span>Technicals</span></button>
+              </nav>
+              <div class="sc-ind-main">
+                <div class="sc-ind-pills" role="tablist">${StockChart.indicatorCategories().map(([v, l]) => `<button type="button" role="tab" data-cat="${v}">${l}</button>`).join('')}</div>
+                <div class="sc-ind-colhead">Script name</div>
+                <div class="sc-ind-list" role="listbox" aria-label="Indicators"></div>
+              </div>
+            </div></div>`;
+        const q = el.querySelector('.sc-ind-search input'), list = el.querySelector('.sc-ind-list');
+        // Inline add form under a moving-average row: pick EMA/SMA, length and color in one go
+        const maForm = () => {
+            const m = st.ma;
+            return `<div class="sc-ind-ma"><div class="sc-ind-seg" role="group" aria-label="Type">${['ema', 'sma'].map(t => `<button type="button" data-matype="${t}" class="${m.type === t ? 'is-on' : ''}" aria-pressed="${m.type === t}">${t.toUpperCase()}</button>`).join('')}</div>`
+                + `<label class="sc-ind-len">Length<input type="number" min="1" max="500" step="1" value="${m.len}" aria-label="Length"></label>`
+                + `<label class="sc-ind-col" title="Line color"><span style="background:${m.color}"></span><input type="color" value="${m.color}" aria-label="Line color"></label>`
+                + `<button type="button" class="sc-ind-add">Add</button><span class="sc-ind-msg${m.err ? ' is-err' : ''}" role="status">${m.msg || ''}</span></div>`;
+        };
+        const hexColor = () => { const c = this.nextMaColor(); return /^#[0-9a-f]{6}$/i.test(c) ? c : '#2196f3' };
+        const openMa = (rowId) => {
+            st.ma = st.ma && st.ma.row === rowId ? null : { row: rowId, type: rowId.slice(3), len: this._nextMaLength(rowId.slice(3)) || '', color: hexColor() };
+            render(true);
+            const f = list.querySelector('.sc-ind-len input'); if (f) { f.focus(); f.select() }
+        };
+        const addMa = () => {
+            const m = st.ma, n = parseInt(m.len, 10), label = m.type.toUpperCase() + ' ' + n;
+            if (!(n >= 1 && n <= 500)) { m.msg = 'Length 1 to 500'; m.err = true }
+            else if (!this.addMovingAverageInstance(m.type, n, m.color)) { m.msg = label + ' is already on the chart'; m.err = true }
+            else { Object.assign(m, { msg: 'Added ' + label, err: false, len: this._nextMaLength(m.type) || '', color: hexColor() }) }
+            render(true);
+            const f = list.querySelector('.sc-ind-len input'); if (f) { f.focus(); f.select() }
+        };
+        const render = (keepScroll) => {
+            const term = q.value.trim().toLowerCase(), top = list.scrollTop;
+            let rows = all;
+            if (st.view === 'fav') rows = rows.filter(e => favs.has(e.id));
+            if (st.view === 'on') rows = rows.filter(e => this._indOnCount(e));
+            if (st.cat !== 'all') rows = rows.filter(e => e.cat === st.cat);
+            // Best matches first: name starts with it, a word in the name does, name contains it, then keywords only
+            const score = (e) => { const n = e.name.toLowerCase(); return n.indexOf(term) === 0 ? 0 : (' ' + n).indexOf(' ' + term) > -1 ? 1 : n.indexOf(term) > -1 ? 2 : (e.alias || '').toLowerCase().indexOf(term) > -1 ? 3 : -1 };
+            if (term) rows = rows.map(e => [score(e), e]).filter(x => x[0] >= 0).sort((x, y) => x[0] - y[0] || x[1].name.localeCompare(y[1].name)).map(x => x[1]);
+            st.rows = rows; st.active = Math.max(0, Math.min(st.active, rows.length - 1));
+            list.innerHTML = rows.length ? rows.map((e, i) => {
+                const n = this._indOnCount(e), many = e.id.indexOf('ma:') === 0;
+                const tag = n ? `<span class="sc-ind-on">${many && n > 1 ? n + ' on chart' : 'On chart'}</span>` : '';
+                const hint = many ? 'Add another' : n ? 'Remove from chart' : 'Add to chart';
+                return `<div class="sc-ind-row${i === st.active ? ' is-active' : ''}${n ? ' is-on' : ''}" role="option" aria-selected="${n ? 'true' : 'false'}" data-i="${i}" title="${hint}">`
+                    + `<button type="button" class="sc-ind-star${favs.has(e.id) ? ' is-fav' : ''}" data-star="${e.id}" aria-label="${favs.has(e.id) ? 'Remove from' : 'Add to'} favorites" title="${favs.has(e.id) ? 'Remove from' : 'Add to'} favorites">${svg(STAR, 15)}</button>`
+                    + `<span class="sc-ind-name">${e.name}</span>${tag}</div>` + (st.ma && st.ma.row === e.id ? maForm() : '');
+            }).join('') : `<div class="sc-ind-empty">${term ? 'No indicators match your search.' : st.view === 'fav' ? 'Star an indicator to keep it here.' : 'Nothing on the chart yet.'}</div>`;
+            if (keepScroll) list.scrollTop = top;
+            el.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('is-on', b.dataset.view === st.view));
+            el.querySelectorAll('[data-cat]').forEach(b => { b.classList.toggle('is-on', b.dataset.cat === st.cat); b.setAttribute('aria-selected', b.dataset.cat === st.cat ? 'true' : 'false'); });
+        };
+        const pick = (e) => {
+            if (e.id.indexOf('ma:') === 0) { openMa(e.id); return }
+            else this.setIndicatorEnabled(e.id, !this.indicators[e.id].enabled);
+            render(true);
+        };
+        const moveActive = (d) => {
+            if (!st.rows.length) return; st.active = (st.active + d + st.rows.length) % st.rows.length;
+            list.querySelectorAll('.sc-ind-row').forEach((r, i) => r.classList.toggle('is-active', i === st.active));
+            const r = list.querySelector('.sc-ind-row.is-active'); if (r) r.scrollIntoView({ block: 'nearest' });
+        };
+        q.addEventListener('input', () => { st.active = 0; render(); list.scrollTop = 0; });
+        list.addEventListener('input', (ev) => {
+            if (!st.ma) return;
+            if (ev.target.matches('.sc-ind-len input')) st.ma.len = ev.target.value;
+            if (ev.target.matches('.sc-ind-col input')) { st.ma.color = ev.target.value; ev.target.previousElementSibling.style.background = ev.target.value }
+        });
+        list.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && ev.target.matches('.sc-ind-len input')) { ev.preventDefault(); ev.stopPropagation(); addMa() } });
+        el.querySelector('.sc-ind-x').addEventListener('click', () => this.closeIndicatorDialog());
+        el.addEventListener('mousedown', (e) => { if (e.target === el) this.closeIndicatorDialog(); });
+        el.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { st.view = b.dataset.view; st.active = 0; render(); }));
+        el.querySelectorAll('[data-cat]').forEach(b => b.addEventListener('click', () => { st.cat = b.dataset.cat; st.active = 0; render(); }));
+        list.addEventListener('click', (ev) => {
+            const star = ev.target.closest('.sc-ind-star');
+            if (star) { const id = star.dataset.star; if (favs.has(id)) favs.delete(id); else favs.add(id); StockChart.saveIndicatorFavs([...favs]); render(true); return; }
+            const form = ev.target.closest('.sc-ind-ma');
+            if (form) {
+                const t = ev.target.closest('[data-matype]');
+                if (t) { st.ma.type = t.dataset.matype; st.ma.len = this._nextMaLength(t.dataset.matype) || ''; st.ma.msg = ''; render(true) }
+                else if (ev.target.closest('.sc-ind-add')) addMa();
+                return;
+            }
+            const row = ev.target.closest('.sc-ind-row'); if (!row) return;
+            st.active = +row.dataset.i; pick(st.rows[st.active]);
+        });
+        const onKey = (ev) => {
+            if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); this.closeIndicatorDialog(); }
+            else if ((ev.key === 'ArrowDown' || ev.key === 'ArrowUp') && !(document.activeElement && document.activeElement.matches('.sc-ind-ma input'))) { ev.preventDefault(); moveActive(ev.key === 'ArrowDown' ? 1 : -1); }
+            else if (ev.key === 'Enter' && document.activeElement === q && st.rows[st.active]) { ev.preventDefault(); ev.stopPropagation(); pick(st.rows[st.active]); }
+        };
+        // Clicks and keys inside must not reach the chart's own document handlers
+        el.addEventListener('click', (e) => e.stopPropagation());
+        document.addEventListener('keydown', onKey, true);
+        document.body.appendChild(el);
+        this._indDlg = { el, onKey };
+        if (this.indicatorsButton) this.indicatorsButton.classList.add('active');
+        render(); q.focus();
+    }
+    static injectIndicatorDialogStyles() {
+        if (document.getElementById('sc-ind-dlg-css')) return;
+        const s = document.createElement('style'); s.id = 'sc-ind-dlg-css';
+        s.textContent = '.sc-ind-back{--bg:#141417;--line:#2a2a30;--tx:#d1d4dc;--dim:#878a94;--hov:#232328;--sel:#2a2a30;--pill:#26262b;--pillOn:#f0f0f0;--pillOnTx:#0f0f0f;position:fixed;inset:0;z-index:2147482500;display:flex;align-items:center;justify-content:center;padding:16px;background:rgb(0 0 0 / .45);font:13px/1.3 -apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,Ubuntu,sans-serif;color:var(--tx)}'
+            + '.sc-ind-back.is-light{--bg:#fff;--line:#e0e3eb;--tx:#131722;--dim:#6a6d78;--hov:#f0f3fa;--sel:#e9ecf2;--pill:#f0f3fa;--pillOn:#131722;--pillOnTx:#fff;background:rgb(0 0 0 / .25)}'
+            + '.sc-ind-dlg{display:flex;flex-direction:column;width:min(760px,100%);height:min(560px,100%);background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 20px 60px rgb(0 0 0 / .5);overflow:hidden}'
+            + '.sc-ind-head{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 0 20px}'
+            + '.sc-ind-head h2{margin:0;font-size:17px;font-weight:600;color:var(--tx)}'
+            + '.sc-ind-x{display:flex;padding:4px;border:0;border-radius:6px;background:none;color:var(--tx);cursor:pointer}.sc-ind-x:hover{background:var(--hov)}'
+            + '.sc-ind-search{display:flex;align-items:center;gap:10px;margin:12px 20px 8px;padding:0 10px;height:36px;border:1px solid var(--line);border-radius:8px;color:var(--dim)}'
+            + '.sc-ind-search:focus-within{border-color:#2962ff}'
+            + '.sc-ind-search input{flex:1;min-width:0;height:100%;border:0;outline:0;background:none;color:var(--tx);font:inherit;font-size:14px}'
+            + '.sc-ind-search input::placeholder{color:var(--dim)}'
+            + '.sc-ind-body{display:flex;flex:1;min-height:0}'
+            + '.sc-ind-side{flex:none;width:180px;padding:4px 0 12px 20px;overflow-y:auto}'
+            + '.sc-ind-sec{margin:12px 0 4px 10px;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}.sc-ind-sec:first-child{margin-top:6px}'
+            + '.sc-ind-side button{display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 10px;border:0;border-radius:6px;background:none;color:var(--tx);font:inherit;text-align:left;cursor:pointer}'
+            + '.sc-ind-side button:hover{background:var(--hov)}.sc-ind-side button.is-on{background:var(--sel);font-weight:600}'
+            + '.sc-ind-main{display:flex;flex-direction:column;flex:1;min-width:0;padding:6px 20px 0 24px}'
+            + '.sc-ind-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}'
+            + '.sc-ind-pills button{height:26px;padding:0 11px;border:0;border-radius:13px;background:var(--pill);color:var(--tx);font:inherit;font-size:12px;cursor:pointer}'
+            + '.sc-ind-pills button:hover{filter:brightness(1.15)}.sc-ind-pills button.is-on{background:var(--pillOn);color:var(--pillOnTx);filter:none}'
+            + '.sc-ind-colhead{padding:0 0 6px;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}'
+            + '.sc-ind-list{flex:1;min-height:0;overflow-y:auto;margin:0 -10px;padding-bottom:12px}'
+            + '.sc-ind-row{position:relative;display:flex;align-items:center;gap:8px;height:30px;padding:0 10px 0 32px;border-radius:5px;cursor:pointer}'
+            + '.sc-ind-row:hover,.sc-ind-row.is-active{background:var(--hov)}'
+            + '.sc-ind-name{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}'
+            + '.sc-ind-star{position:absolute;left:7px;top:50%;display:flex;padding:2px;transform:translateY(-50%);border:0;background:none;color:var(--dim);cursor:pointer;opacity:0}'
+            + '.sc-ind-row:hover .sc-ind-star,.sc-ind-row.is-active .sc-ind-star,.sc-ind-star:focus-visible,.sc-ind-star.is-fav{opacity:1}'
+            + '.sc-ind-star:hover{color:var(--tx)}.sc-ind-star.is-fav{color:#f7b500}.sc-ind-star.is-fav svg{fill:currentColor}'
+            + '.sc-ind-on{flex:none;margin-left:auto;padding:1px 6px;border-radius:4px;background:rgb(41 98 255 / .18);color:#5b8cff;font-size:10px;font-weight:600;letter-spacing:.02em;text-transform:uppercase}'
+            + '.sc-ind-back.is-light .sc-ind-on{color:#2962ff;background:rgb(41 98 255 / .1)}'
+            + '.sc-ind-empty{padding:24px 12px;color:var(--dim)}'
+            + '.sc-ind-ma{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 6px;padding:8px 10px 8px 32px;border-radius:6px;background:var(--hov)}'
+            + '.sc-ind-seg{display:inline-flex;padding:2px;border-radius:6px;background:var(--bg)}'
+            + '.sc-ind-seg button{height:24px;padding:0 10px;border:0;border-radius:4px;background:none;color:var(--dim);font:inherit;font-size:12px;font-weight:600;cursor:pointer}'
+            + '.sc-ind-seg button.is-on{background:var(--pillOn);color:var(--pillOnTx)}'
+            + '.sc-ind-len{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)}'
+            + '.sc-ind-len input{width:58px;height:28px;padding:0 8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--tx);font:inherit;font-size:13px}'
+            + '.sc-ind-len input:focus{outline:none;border-color:#2962ff}'
+            + '.sc-ind-col{position:relative;display:inline-flex;width:28px;height:28px;border:1px solid var(--line);border-radius:5px;background:var(--bg);cursor:pointer}'
+            + '.sc-ind-col span{margin:5px;flex:1;border-radius:3px}.sc-ind-col input{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;opacity:0;cursor:pointer}'
+            + '.sc-ind-add{height:28px;padding:0 14px;border:0;border-radius:5px;background:#2962ff;color:#fff;font:inherit;font-size:13px;font-weight:600;cursor:pointer}.sc-ind-add:hover{background:#1e53e5}'
+            + '.sc-ind-msg{font-size:12px;color:#26a69a}.sc-ind-msg.is-err{color:#ef5350}'
+            // Thin rounded scrollbars in the dialog's own colors (Chromium/Safari, then Firefox)
+            + '.sc-ind-back{--thumb:rgb(255 255 255 / .16);--thumbHov:rgb(255 255 255 / .3)}.sc-ind-back.is-light{--thumb:rgb(0 0 0 / .18);--thumbHov:rgb(0 0 0 / .32)}'
+            + '.sc-ind-list::-webkit-scrollbar,.sc-ind-side::-webkit-scrollbar{width:10px}'
+            + '.sc-ind-list::-webkit-scrollbar-track,.sc-ind-side::-webkit-scrollbar-track{background:transparent}'
+            + '.sc-ind-list::-webkit-scrollbar-thumb,.sc-ind-side::-webkit-scrollbar-thumb{background:var(--thumb);border:3px solid transparent;border-radius:10px;background-clip:padding-box;min-height:40px}'
+            + '.sc-ind-list::-webkit-scrollbar-thumb:hover,.sc-ind-side::-webkit-scrollbar-thumb:hover{background-color:var(--thumbHov)}'
+            + '.sc-ind-list::-webkit-scrollbar-button,.sc-ind-side::-webkit-scrollbar-button{display:none}'
+            + '@supports (-moz-appearance:none){.sc-ind-list,.sc-ind-side{scrollbar-width:thin;scrollbar-color:var(--thumb) transparent}}'
+            + '@media(max-width:720px){.sc-ind-side{display:none}.sc-ind-main{padding:0 16px}.sc-ind-head{padding:16px 16px 0}.sc-ind-search{margin:14px 16px 10px}.sc-ind-back{padding:0}.sc-ind-dlg{border-radius:0;height:100%}}'
+            // Legend rows: settings + remove appear on hover
+            // One indicator per line (TradingView style), so the buttons can sit after the value:
+            // showing them only widens that line, and the fixed row height means nothing jumps
+            + '.sc-indicator-values-display{flex-direction:column;align-items:flex-start!important}'
+            + '.sc-indicator-values-display>.sc-lg-item{min-height:20px;pointer-events:auto}'
+            + '.sc-lg-acts{display:none;align-items:center;gap:2px;margin-left:6px;border-radius:5px}'
+            + '.sc-lg-item:hover .sc-lg-acts,.sc-lg-item:focus-within .sc-lg-acts{display:inline-flex}'
+            // Hidden rows stay listed, dimmed, with the eye always showing so they're easy to bring back
+            + '.sc-lg-item.sc-lg-hidden>:not(.sc-lg-acts){opacity:.4}.sc-lg-item.sc-lg-hidden .sc-lg-acts{display:inline-flex}.sc-lg-item.sc-lg-hidden:not(:hover) .sc-lg-btn:not([data-act=eye]){display:none}'
+            + '.sc-lg-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:20px;padding:0;border:0;border-radius:4px;background:none;color:inherit;cursor:pointer}'
+            + '.sc-lg-btn svg{stroke-width:1.7}.sc-lg-btn:hover{background:rgb(128 128 128 / .3)}';
         document.head.appendChild(s);
     }
     // ── Measure tool + keyboard shortcuts ───────────────────────────────────
@@ -4693,7 +5218,7 @@ class StockChart {
             if (!this.activeTextInput && !this.textSettingsPanel.contains(e.target) && !this.textToolButton.contains(e.target) && !this.priceCanvas.contains(e.target)) { if (this.textMode && this.textSettingsPanel.style.display === 'block') { this.deactivateTextMode() } }
             if (!this.emoticonPanel.contains(e.target) && !this.emoticonToolButton.contains(e.target) && !this.priceCanvas.contains(e.target)) { if (this.emoticonMode && this.emoticonPanel.style.display === 'block') { this.deactivateEmoticonMode() } }
             if (!this.drawingToolsPanel.contains(e.target) && !this.drawingToolsButton.contains(e.target) && !this.priceCanvas.contains(e.target)) { if (this.drawingToolsMode && this.drawingToolsPanel.style.display === 'block') { this.deactivateDrawingToolsMode() } }
-        }); const staticIndicatorToggles = this.indicatorsDropdown.querySelectorAll('input[type="checkbox"]:not([value^="ema_"]):not([value^="sma_"])'); staticIndicatorToggles.forEach(toggle => { toggle.addEventListener('change', (e) => { const indicatorType = e.target.value; if (this.indicators[indicatorType]) { this.indicators[indicatorType].enabled = e.target.checked; this.calculateIndicators(); this.drawCharts(); this.saveSettings() } }) }); this.lineToolButton.addEventListener('click', () => { this.closeOtherToolbarMenus('line'); if (this.lineDrawingMode) this.deactivateLineDrawingMode(); else this.activateLineDrawingMode() }); this.textToolButton.addEventListener('click', () => { this.closeOtherToolbarMenus('text'); if (this.textMode) this.deactivateTextMode(); else this.activateTextMode() }); this.fontSizeSlider.addEventListener('input', (e) => { this.textSettings.fontSize = parseInt(e.target.value); this.fontSizeDisplay.textContent = `${e.target.value}px` }); this.fontFamilySelect.addEventListener('change', (e) => { this.textSettings.fontFamily = e.target.value }); this.textColorPicker.addEventListener('change', (e) => { this.textSettings.color = e.target.value }); this.textBoldButton.addEventListener('click', () => { this.textSettings.fontWeight = this.textSettings.fontWeight === 'bold' ? 'normal' : 'bold'; this.textBoldButton.classList.toggle('active') }); this.textApplyButton.addEventListener('click', () => { this.applyTextSettingsToSelected() }); this.emoticonToolButton.addEventListener('click', () => { this.closeOtherToolbarMenus('emoticon'); if (this.emoticonMode) this.deactivateEmoticonMode(); else this.activateEmoticonMode() }); this.fibonacciToolButton.addEventListener('click', () => { this.closeOtherToolbarMenus('fibonacci'); if (this.fibonacciMode) this.deactivateFibonacciMode(); else this.activateFibonacciMode() }); this.drawingToolsButton.addEventListener('click', () => { this.closeOtherToolbarMenus('drawingTools'); if (this.drawingToolsMode) this.deactivateDrawingToolsMode(); else this.activateDrawingToolsMode() }); const drawingToolOptions = this.container.querySelectorAll('.sc-drawing-tool-option'); drawingToolOptions.forEach(option => { option.addEventListener('click', () => { const action = option.dataset.action; if (action === 'undo') { this.undoDrawing(); return } if (action === 'clear') { this.clearAllDrawings(); return } const tool = option.dataset.tool; this.selectDrawingTool(tool) }) }); const emoticonOptions = this.container.querySelectorAll('.sc-emoticon-option'); emoticonOptions.forEach(option => { option.addEventListener('click', () => { emoticonOptions.forEach(opt => opt.classList.remove('selected')); option.classList.add('selected'); this.selectedEmoticonType = option.dataset.emoticon }) }); this.emoticonSizeSlider.addEventListener('input', (e) => { this.emoticonSizeDisplay.textContent = `${e.target.value}px` }); this.indicatorsButton.addEventListener('click', (e) => { this.closeOtherToolbarMenus('indicators'); this.indicatorsDropdown.classList.toggle('active'); this.indicatorsButton.classList.toggle('active'); e.stopPropagation() }); this.indicatorsDropdown.addEventListener('click', (e) => e.stopPropagation()); this.setupColorPickers(); this.measureButton = this.container.querySelector('.sc-measure-button'); this.setupMeasureAndShortcuts(); this.setupDrawingHistory(); this.darkModeButton.addEventListener('click', () => { this.chartContainer.classList.toggle('dark-mode'); this.config.darkMode = this.chartContainer.classList.contains('dark-mode'); this.updateDarkModeIcon(); this.updateConfig(); this.drawCharts() }); this.chartTypeButton.addEventListener('click', (e) => {
+        }); const staticIndicatorToggles = this.indicatorsDropdown.querySelectorAll('input[type="checkbox"]:not([value^="ema_"]):not([value^="sma_"])'); staticIndicatorToggles.forEach(toggle => { toggle.addEventListener('change', (e) => { const indicatorType = e.target.value; if (this.indicators[indicatorType]) { this.indicators[indicatorType].enabled = e.target.checked; this.calculateIndicators(); this.drawCharts(); this.saveSettings() } }) }); this.lineToolButton.addEventListener('click', () => { this.closeOtherToolbarMenus('line'); if (this.lineDrawingMode) this.deactivateLineDrawingMode(); else this.activateLineDrawingMode() }); this.textToolButton.addEventListener('click', () => { this.closeOtherToolbarMenus('text'); if (this.textMode) this.deactivateTextMode(); else this.activateTextMode() }); this.fontSizeSlider.addEventListener('input', (e) => { this.textSettings.fontSize = parseInt(e.target.value); this.fontSizeDisplay.textContent = `${e.target.value}px` }); this.fontFamilySelect.addEventListener('change', (e) => { this.textSettings.fontFamily = e.target.value }); this.textColorPicker.addEventListener('change', (e) => { this.textSettings.color = e.target.value }); this.textBoldButton.addEventListener('click', () => { this.textSettings.fontWeight = this.textSettings.fontWeight === 'bold' ? 'normal' : 'bold'; this.textBoldButton.classList.toggle('active') }); this.textApplyButton.addEventListener('click', () => { this.applyTextSettingsToSelected() }); this.emoticonToolButton.addEventListener('click', () => { this.closeOtherToolbarMenus('emoticon'); if (this.emoticonMode) this.deactivateEmoticonMode(); else this.activateEmoticonMode() }); this.fibonacciToolButton.addEventListener('click', () => { this.closeOtherToolbarMenus('fibonacci'); if (this.fibonacciMode) this.deactivateFibonacciMode(); else this.activateFibonacciMode() }); this.drawingToolsButton.addEventListener('click', () => { this.closeOtherToolbarMenus('drawingTools'); if (this.drawingToolsMode) this.deactivateDrawingToolsMode(); else this.activateDrawingToolsMode() }); const drawingToolOptions = this.container.querySelectorAll('.sc-drawing-tool-option'); drawingToolOptions.forEach(option => { option.addEventListener('click', () => { const action = option.dataset.action; if (action === 'undo') { this.undoDrawing(); return } if (action === 'clear') { this.clearAllDrawings(); return } const tool = option.dataset.tool; this.selectDrawingTool(tool) }) }); const emoticonOptions = this.container.querySelectorAll('.sc-emoticon-option'); emoticonOptions.forEach(option => { option.addEventListener('click', () => { emoticonOptions.forEach(opt => opt.classList.remove('selected')); option.classList.add('selected'); this.selectedEmoticonType = option.dataset.emoticon }) }); this.emoticonSizeSlider.addEventListener('input', (e) => { this.emoticonSizeDisplay.textContent = `${e.target.value}px` }); this.indicatorsButton.addEventListener('click', (e) => { this.closeOtherToolbarMenus('indicators'); e.stopPropagation(); this.openIndicatorDialog() }); this.indicatorsDropdown.addEventListener('click', (e) => e.stopPropagation()); this.setupColorPickers(); this.measureButton = this.container.querySelector('.sc-measure-button'); this.setupMeasureAndShortcuts(); this.setupDrawingHistory(); this.darkModeButton.addEventListener('click', () => { this.chartContainer.classList.toggle('dark-mode'); this.config.darkMode = this.chartContainer.classList.contains('dark-mode'); this.updateDarkModeIcon(); this.updateConfig(); this.drawCharts() }); this.chartTypeButton.addEventListener('click', (e) => {
             this.closeOtherToolbarMenus('chartType');
             this.chartTypeDropdown.classList.toggle('active');
             this.chartTypeButton.classList.toggle('active');
@@ -5043,7 +5568,7 @@ class StockChart {
         this.drawFibonacciRetracements(ctx);
         this.drawTradeMarkers(ctx);
         if (this.pixelOffset !== 0) { ctx.restore(); }
-        if (this.indicators.keyLevels && this.indicators.keyLevels.enabled) this.drawKeyLevels(ctx);
+        if (this.indicators.keyLevels && this.indicators.keyLevels.enabled && !this.indicators.keyLevels.hidden) this.drawKeyLevels(ctx);
         this.drawAIPriceLevels(ctx);
         this.drawPositionLine(ctx, 'line');
         this.drawLimitOrders(ctx);
@@ -5071,7 +5596,7 @@ class StockChart {
         this._layoutKey = key;
         this.container.dispatchEvent(new CustomEvent('sc-layout', { detail: { chart: this, floorY: floorY, priceBottomY: priceBottomY, height: height }, bubbles: !0 }));
     }
-    drawVolumeBars(ctx, visibleData, volumeHeight) { let maxVolume = 0; visibleData.forEach(candle => maxVolume = Math.max(maxVolume, candle.volume)); const cW = this.calculateCandleWidth(); const volumeBottomY = this.getCanvasHeight() - this.config.padding.bottom; const lead = this.getLeadSlots(); visibleData.forEach((candle, i) => { const x = this.config.padding.left + (i + lead) * (cW + this.config.spacing); const barHeight = (candle.volume / maxVolume) * volumeHeight; const isUp = candle.close >= candle.open; const baseColorHex = isUp ? this.config.currentBullColor : this.config.currentBearColor; const r = parseInt(baseColorHex.slice(1, 3), 16); const g = parseInt(baseColorHex.slice(3, 5), 16); const b = parseInt(baseColorHex.slice(5, 7), 16); ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.3)`; ctx.fillRect(x, volumeBottomY - barHeight, cW, barHeight) }); if (this.indicators.volumeMA.enabled && this.indicators.volumeMA.data.length) { this.drawVolumeMA(ctx, volumeHeight, maxVolume) } }
+    drawVolumeBars(ctx, visibleData, volumeHeight) { let maxVolume = 0; visibleData.forEach(candle => maxVolume = Math.max(maxVolume, candle.volume)); const cW = this.calculateCandleWidth(); const volumeBottomY = this.getCanvasHeight() - this.config.padding.bottom; const lead = this.getLeadSlots(); visibleData.forEach((candle, i) => { const x = this.config.padding.left + (i + lead) * (cW + this.config.spacing); const barHeight = (candle.volume / maxVolume) * volumeHeight; const isUp = candle.close >= candle.open; const baseColorHex = isUp ? this.config.currentBullColor : this.config.currentBearColor; const r = parseInt(baseColorHex.slice(1, 3), 16); const g = parseInt(baseColorHex.slice(3, 5), 16); const b = parseInt(baseColorHex.slice(5, 7), 16); ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.3)`; ctx.fillRect(x, volumeBottomY - barHeight, cW, barHeight) }); if (this.indicators.volumeMA.enabled && !this.indicators.volumeMA.hidden && this.indicators.volumeMA.data.length) { this.drawVolumeMA(ctx, volumeHeight, maxVolume) } }
     drawVolumeMA(ctx, volumeHeight, maxVolume) {
         const volumeMAData = this.indicators.volumeMA.data; const cW = this.calculateCandleWidth(); const volumeBottomY = this.getCanvasHeight() - this.config.padding.bottom; ctx.strokeStyle = this.indicators.volumeMA.color; ctx.lineWidth = 1; ctx.beginPath(); let started = !1; for (let i = 0; i < this.config.visibleCandles; i++) { const dataIndex = i + this.config.dataOffset; if (dataIndex >= 0 && dataIndex < volumeMAData.length && volumeMAData[dataIndex] !== null) { const x = this.config.padding.left + i * (cW + this.config.spacing) + cW * 0.5; const normalizedVolume = volumeMAData[dataIndex] / maxVolume; const y = volumeBottomY - (normalizedVolume * volumeHeight); if (!started) { ctx.moveTo(x, y); started = !0 } else { ctx.lineTo(x, y) } } }
         ctx.stroke(); if (started && volumeMAData.length > 0) { const currentVolumeMA = volumeMAData[volumeMAData.length - 1]; if (currentVolumeMA !== null && currentVolumeMA !== undefined) { const normalizedVolume = currentVolumeMA / maxVolume; const labelY = volumeBottomY - (normalizedVolume * volumeHeight); const labelXPosition = this.getCanvasWidth() - this.config.padding.right; const labelText = this.formatVolume(currentVolumeMA); const labelHeight = 16; const labelPadding = 4; const borderRadius = 2; ctx.font = '11px Arial'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; const textWidth = ctx.measureText(labelText).width; const labelWidth = textWidth + 2 * labelPadding; const rectX = labelXPosition; const rectY = labelY - labelHeight / 2; const clampedY = Math.max(volumeBottomY - volumeHeight + labelHeight / 2, Math.min(labelY, volumeBottomY - labelHeight / 2)); const clampedRectY = clampedY - labelHeight / 2; ctx.fillStyle = this.indicators.volumeMA.color; ctx.beginPath(); ctx.moveTo(rectX + borderRadius, clampedRectY); ctx.lineTo(rectX + labelWidth - borderRadius, clampedRectY); ctx.arcTo(rectX + labelWidth, clampedRectY, rectX + labelWidth, clampedRectY + borderRadius, borderRadius); ctx.lineTo(rectX + labelWidth, clampedRectY + labelHeight - borderRadius); ctx.arcTo(rectX + labelWidth, clampedRectY + labelHeight, rectX + labelWidth - borderRadius, clampedRectY + labelHeight, borderRadius); ctx.lineTo(rectX + borderRadius, clampedRectY + labelHeight); ctx.arcTo(rectX, clampedRectY + labelHeight, rectX, clampedRectY + labelHeight - borderRadius, borderRadius); ctx.lineTo(rectX, clampedRectY + borderRadius); ctx.arcTo(rectX, clampedRectY, rectX + borderRadius, clampedRectY, borderRadius); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#FFFFFF'; ctx.fillText(labelText, rectX + labelPadding, clampedY) } }
@@ -5172,7 +5697,7 @@ class StockChart {
         }
 
         // Draw price overlays (EMA, BB, VWAP, SAR)
-        this.drawIndicators(ctx);
+        this._hideOverlaysWhile(() => this.drawIndicators(ctx));
         this.drawVisibleExtremesMarkers(ctx, min, max, priceChartH);
         ctx.restore();
 
@@ -5183,6 +5708,8 @@ class StockChart {
         const panelRightX = w - this.config.padding.right;
         const drawPanelIfEnabled = (key, drawFn) => {
             if (this.indicators[key] && this.indicators[key].enabled && this.indicatorPanels[key]) {
+                // Hidden (legend eye): the panel keeps its place but only shows its name
+                if (this.indicators[key].hidden) drawFn = function (c, t, h) { this.drawHiddenPanel(c, t, h, key) };
                 const pH = this.indicatorPanels[key].height;
                 if (this.pixelOffset !== 0) {
                     // Pass 1: clip to chart data area + translate (data shifts smoothly, right labels clipped)
@@ -5227,13 +5754,15 @@ class StockChart {
         drawPanelIfEnabled('adl', this.drawADLPanel);
         drawPanelIfEnabled('forceIndex', this.drawForceIndexPanel);
         drawPanelIfEnabled('kst', this.drawKSTPanel);
+        // Panel studies (StockChart.STUDIES), in the order they're defined
+        for (const k in StockChart.STUDIES) if (StockChart.STUDIES[k].pane) drawPanelIfEnabled(k, function (c, t, h) { this.drawStudyPanel(c, t, h, k) });
 
         // Draw resize grip handles on panel separators
         this.drawPanelResizeHandles(ctx);
 
         // Draw other elements
         this.drawPriceScale(ctx, min, max, nMin, nMax, tickSpacing);
-        this.drawIndicatorPriceLabels(ctx, min, max);
+        this._hideOverlaysWhile(() => this.drawIndicatorPriceLabels(ctx, min, max));
         if (this.pixelOffset !== 0) { ctx.save(); ctx.translate(this.pixelOffset, 0); }
         this.drawDateLabels(ctx);
         if (this.pixelOffset !== 0) { ctx.restore(); }
@@ -5297,7 +5826,7 @@ class StockChart {
         });
 
         // Draw Volume MA if enabled
-        if (this.indicators.volumeMA.enabled && this.indicators.volumeMA.data.length) {
+        if (this.indicators.volumeMA.enabled && !this.indicators.volumeMA.hidden && this.indicators.volumeMA.data.length) {
             this.drawVolumeMAInRegion(ctx, topY, height, maxVolume);
         }
     }
@@ -6277,6 +6806,13 @@ class StockChart {
         ctx.fillText('KST', kstLabelX, topY + 4);
     }
 
+    // The legend rows (ticker, OHLC, indicators) as boxes in canvas coordinates
+    _legendBoxes() {
+        const el = this.chartInfoOverlayEl; if (!el || !this.priceCanvas) return [];
+        const c = this.priceCanvas.getBoundingClientRect(), out = [];
+        for (const row of el.children) { const r = row.getBoundingClientRect(); if (r.width && r.height) out.push({ l: r.left - c.left, t: r.top - c.top, r: r.right - c.left, b: r.bottom - c.top }) }
+        return out;
+    }
     drawVisibleExtremesMarkers(ctx, priceScaleMin, priceScaleMax, chartHeight) {
         if (!this.stockData || !this.stockData.length) return;
         // Skip high/low markers for line charts (they only make sense for candlesticks)
@@ -6309,55 +6845,36 @@ class StockChart {
         ctx.save();
         ctx.font = '12px Arial';
 
-        // Draw high marker only if it's in the visible price+volume area (above panels)
-        if (highestHighCandle) {
-            const x = this.config.padding.left + (highestHighIndexInVisible + this.getLeadSlots()) * (cW + this.config.spacing) + cW * 0.5;
-            const y = this.priceToY(highestHigh, priceScaleMin, priceScaleMax, chartHeight, this.getCanvasHeight());
+        // The legend floats over the chart (see-through), so a marker label under it would show
+        // through the text. Labels flip to the dot's other side to clear it, or are skipped.
+        const legend = this._legendBoxes(), hitsLegend = (l, t, r, b) => legend.some(q => l < q.r && r > q.l && t < q.b && b > q.t);
+        const drawMarker = (price, index) => {
+            const x = this.config.padding.left + (index + this.getLeadSlots()) * (cW + this.config.spacing) + cW * 0.5;
+            const y = this.priceToY(price, priceScaleMin, priceScaleMax, chartHeight, this.getCanvasHeight());
             // Only draw if Y is within the price chart area (not in indicator panels)
-            if (y >= chartTop && y < panelsTopY && !coveredByPriceLine(y)) {
-                ctx.beginPath();
-                ctx.arc(x, y, circleRadius, 0, Math.PI * 2);
-                ctx.fillStyle = markerColor;
-                ctx.fill();
-                const isNearRightEdge = (numVisibleCandles - 1 - highestHighIndexInVisible) <= 3;
-                const highText = s8FormatChartPrice(highestHigh);
-                ctx.beginPath();
-                ctx.moveTo(x + (isNearRightEdge ? -circleRadius : circleRadius), y);
-                ctx.lineTo(x + (isNearRightEdge ? -circleRadius - lineLength : circleRadius + lineLength), y);
-                ctx.strokeStyle = markerColor;
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                ctx.fillStyle = textColor;
-                ctx.textAlign = isNearRightEdge ? 'right' : 'left';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(highText, x + (isNearRightEdge ? -circleRadius - lineLength - textPadding : circleRadius + lineLength + textPadding), y);
-            }
-        }
-
-        // Draw low marker only if it's in the visible price+volume area (above panels)
-        if (lowestLowCandle) {
-            const x = this.config.padding.left + (lowestLowIndexInVisible + this.getLeadSlots()) * (cW + this.config.spacing) + cW * 0.5;
-            const y = this.priceToY(lowestLow, priceScaleMin, priceScaleMax, chartHeight, this.getCanvasHeight());
-            // Only draw if Y is within the price chart area (not in indicator panels)
-            if (y >= chartTop && y < panelsTopY && !coveredByPriceLine(y)) {
-                ctx.beginPath();
-                ctx.arc(x, y, circleRadius, 0, Math.PI * 2);
-                ctx.fillStyle = markerColor;
-                ctx.fill();
-                const isNearRightEdge = (numVisibleCandles - 1 - lowestLowIndexInVisible) <= 3;
-                const lowText = s8FormatChartPrice(lowestLow);
-                ctx.beginPath();
-                ctx.moveTo(x + (isNearRightEdge ? -circleRadius : circleRadius), y);
-                ctx.lineTo(x + (isNearRightEdge ? -circleRadius - lineLength : circleRadius + lineLength), y);
-                ctx.strokeStyle = markerColor;
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                ctx.fillStyle = textColor;
-                ctx.textAlign = isNearRightEdge ? 'right' : 'left';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(lowText, x + (isNearRightEdge ? -circleRadius - lineLength - textPadding : circleRadius + lineLength + textPadding), y);
-            }
-        }
+            if (y < chartTop || y >= panelsTopY || coveredByPriceLine(y)) return;
+            const text = s8FormatChartPrice(price), tw = ctx.measureText(text).width, sx = x + this.pixelOffset, reach = circleRadius + lineLength + textPadding + tw;
+            const fitsRight = !hitsLegend(sx, y - 8, sx + reach, y + 8), fitsLeft = !hitsLegend(sx - reach, y - 8, sx, y + 8);
+            const nearRight = (numVisibleCandles - 1 - index) <= 3;
+            let dir = nearRight ? -1 : 1;
+            if (dir > 0 ? !fitsRight : !fitsLeft) { if (dir > 0 ? fitsLeft : fitsRight) dir = -dir; else return; }
+            ctx.beginPath();
+            ctx.arc(x, y, circleRadius, 0, Math.PI * 2);
+            ctx.fillStyle = markerColor;
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x + dir * circleRadius, y);
+            ctx.lineTo(x + dir * (circleRadius + lineLength), y);
+            ctx.strokeStyle = markerColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = textColor;
+            ctx.textAlign = dir < 0 ? 'right' : 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x + dir * (circleRadius + lineLength + textPadding), y);
+        };
+        if (highestHighCandle) drawMarker(highestHigh, highestHighIndexInVisible);
+        if (lowestLowCandle) drawMarker(lowestLow, lowestLowIndexInVisible);
         ctx.restore();
     }
     normalizeTimeframeAlias(tf) { switch (tf) { case 'hour': case '60min': case '1h': return '1hour'; case 'day': case '1d': return '1day'; case 'week': case '1week': case '1w': case '1W': return '1week'; case 'month': case '1month': case '1mo': case '1M': return '1month'; default: return tf } }
@@ -7462,6 +7979,9 @@ class StockChart {
             }
         }
 
+        // Studies defined as data (StockChart.STUDIES)
+        for (const k in StockChart.STUDIES) { const ind = this.indicators[k]; if (ind && ind.enabled && this.stockData && this.stockData.length) { try { ind.data = StockChart.STUDIES[k].calc(this.stockData, ind) || {} } catch (e) { ind.data = {}; console.error('Study ' + k + ' failed', e) } } }
+
         // Candlestick patterns
         if (CP && this.stockData && this.stockData.length > 0 && this.indicators.patterns && this.indicators.patterns.enabled) {
             this.indicators.patterns.data = CP.scanAll(this.stockData);
@@ -7544,6 +8064,8 @@ class StockChart {
                 ctx.restore();
             }
         }
+
+        this.drawStudyOverlays(ctx, min, max, chartH, cW);
 
         // Draw candlestick patterns if enabled
         if (this.indicators.patterns && this.indicators.patterns.enabled && this.indicators.patterns.data && this.indicators.patterns.data.length) {
@@ -8381,29 +8903,62 @@ class StockChart {
         })
     }
     getIndicatorConfig(key) {
+        if (StockChart.STUDIES[key]) return { name: this.studyLabel(key), color: this.studyColor(key, 0) };
         const toggle = this.indicatorsDropdown.querySelector(`input[type="checkbox"][value="${key}"]`); if (toggle && toggle.parentElement) { const nameEl = toggle.parentElement.querySelector('.sc-indicator-name'); const dotEl = toggle.parentElement.querySelector('.sc-indicator-dot'); return { name: nameEl ? nameEl.textContent.trim() : key, color: dotEl ? dotEl.style.backgroundColor : (this.indicators[key]?.color || '#ccc') } }
         return { name: key, color: (this.indicators[key]?.color || '#ccc') }
     }
+    // Builds the rows off-screen, then patches them into the legend in place. The legend
+    // refreshes on every tick and crosshair move; replacing the rows would throw away the
+    // hovered row and its gear/x buttons mid-click.
     updateIndicatorValuesDisplay(dataIndex) {
+        const real = this.indicatorValuesDisplay; if (!real) return;
+        this.setupLegendActions();
+        const tmp = document.createElement('div'); this.indicatorValuesDisplay = tmp;
+        try { this._buildIndicatorLegend(dataIndex) } finally { this.indicatorValuesDisplay = real }
+        const old = new Map();
+        [...real.children].forEach(el => { if (el.dataset.lgKey) old.set(el.dataset.lgKey, el); else el.remove() });
+        [...tmp.children].forEach((el, i) => {
+            let node = el; const prev = el.dataset.lgKey && old.get(el.dataset.lgKey);
+            if (prev) {
+                old.delete(el.dataset.lgKey);
+                // Swap the dot/name/value but never detach the buttons: a click whose
+                // mousedown and mouseup straddle a detach is dropped by the browser.
+                const acts = prev.querySelector('.sc-lg-acts'), fresh = el.querySelector('.sc-lg-acts');
+                if (acts && fresh && acts.dataset.state === fresh.dataset.state) fresh.remove(); else if (acts) acts.remove();
+                prev.style.cssText = el.style.cssText;
+                const keep = acts && acts.parentNode === prev ? acts : null;
+                [...prev.childNodes].forEach(n => { if (n !== keep) n.remove() });
+                [...el.childNodes].forEach(n => prev.insertBefore(n, keep));
+                prev.classList.toggle('sc-lg-hidden', el.classList.contains('sc-lg-hidden'));
+                node = prev;
+            }
+            if (real.children[i] !== node) real.insertBefore(node, real.children[i] || null);
+        });
+        old.forEach(el => el.remove());
+    }
+    _buildIndicatorLegend(dataIndex) {
         if (!this.indicatorValuesDisplay || dataIndex < 0 || dataIndex >= this.stockData.length) { if (this.indicatorValuesDisplay) this.indicatorValuesDisplay.innerHTML = ''; return }
-        this.indicatorValuesDisplay.innerHTML = ''; const formatValue = val => (val === null || val === undefined) ? 'N/A' : (typeof val === 'number' ? (Math.abs(val) < 0.001 && val !== 0 ? val.toExponential(2) : val.toFixed(2)) : String(val)); const textColor = this.config.darkMode ? this.config.darkModeColors.textColor : this.config.textColor; this.movingAverages.forEach(ma => { if (ma.enabled && ma.data && dataIndex < ma.data.length && ma.data[dataIndex] !== null) { const item = document.createElement('div'); item.style.cssText = `display:flex;align-items:center;margin-right:10px;margin-bottom:2px;color:${textColor};font-size:12px;font-family:'Open Sans',Arial,sans-serif;font-weight:500;`; const dot = document.createElement('span'); dot.style.cssText = `background-color:${ma.color};width:8px;height:8px;border-radius:50%;margin-right:4px;display:inline-block;`; item.appendChild(dot); const name = document.createElement('span'); name.textContent = `${ma.type.toUpperCase()}${ma.period}: `; name.style.marginRight = '3px'; item.appendChild(name); const valSpan = document.createElement('span'); valSpan.textContent = s8FormatChartPrice(ma.data[dataIndex]); item.appendChild(valSpan); this.indicatorValuesDisplay.appendChild(item) } }); for (const key in this.indicators) {
+        this.indicatorValuesDisplay.innerHTML = ''; const formatValue = val => (val === null || val === undefined) ? 'N/A' : (typeof val === 'number' ? (Math.abs(val) < 0.001 && val !== 0 ? val.toExponential(2) : val.toFixed(2)) : String(val)); const textColor = this.config.darkMode ? this.config.darkModeColors.textColor : this.config.textColor; this.movingAverages.forEach(ma => { if (ma.enabled && ma.data && dataIndex < ma.data.length && ma.data[dataIndex] !== null) { const item = document.createElement('div'); item.style.cssText = `display:flex;align-items:center;margin-right:10px;margin-bottom:2px;color:${textColor};font-size:12px;font-family:'Open Sans',Arial,sans-serif;font-weight:500;`; const dot = document.createElement('span'); dot.style.cssText = `background-color:${ma.color};width:8px;height:8px;border-radius:50%;margin-right:4px;display:inline-block;`; item.appendChild(dot); const name = document.createElement('span'); name.textContent = `${ma.type.toUpperCase()}${ma.period}: `; name.style.marginRight = '3px'; item.appendChild(name); const valSpan = document.createElement('span'); valSpan.textContent = s8FormatChartPrice(ma.data[dataIndex]); item.appendChild(valSpan); this._legendActions(item, 'ma:' + ma.id); this.indicatorValuesDisplay.appendChild(item) } }); for (const key in this.indicators) {
             if (this.indicators[key].enabled && key !== 'atr') {
                 const config = this.getIndicatorConfig(key), data = this.indicators[key].data; let values = [];
                 // Special handling for candlestick patterns
-                if (key === 'patterns' && Array.isArray(data)) {
+                if (StockChart.STUDIES[key]) {
+                    const sd = StockChart.STUDIES[key];
+                    if (sd.legend) values.push(...sd.legend.call(this, key, dataIndex)); else sd.lines.forEach(([f]) => { const v = data && data[f] ? data[f][dataIndex] : null; if (v != null) values.push(sd.pane ? formatValue(v) : s8FormatChartPrice(v)) });
+                } else if (key === 'patterns' && Array.isArray(data)) {
                     const patternsAtIndex = data.filter(p => p.index === dataIndex);
                     if (patternsAtIndex.length > 0) {
                         values.push(patternsAtIndex.map(p => p.name).join(', '));
                     }
                 } else if (key === 'bollinger' && data.middle && data.upper && data.lower && dataIndex < data.middle.length) { values.push(`U: ${formatValue(data.upper[dataIndex])}`, `M: ${formatValue(data.middle[dataIndex])}`, `L: ${formatValue(data.lower[dataIndex])}`) } else if (key === 'macd' && data.macdLine && data.signalLine && data.histogram && dataIndex < data.macdLine.length) { values.push(`M: ${formatValue(data.macdLine[dataIndex])}`, `S: ${formatValue(data.signalLine[dataIndex])}`, `H: ${formatValue(data.histogram[dataIndex])}`) } else if (data && dataIndex < data.length && data[dataIndex] !== null) { values.push(formatValue(data[dataIndex])) }
-                if (values.length > 0) { const item = document.createElement('div'); item.style.cssText = `display:flex;align-items:center;margin-right:10px;margin-bottom:2px;color:${textColor};font-size:12px;font-family:'Open Sans',Arial,sans-serif;font-weight:500;`; const dot = document.createElement('span'); dot.style.cssText = `background-color:${config.color};width:8px;height:8px;border-radius:50%;margin-right:4px;display:inline-block;`; item.appendChild(dot); const name = document.createElement('span'); name.textContent = `${config.name}: `; name.style.marginRight = '3px'; item.appendChild(name); const valSpan = document.createElement('span'); valSpan.textContent = values.join(', '); item.appendChild(valSpan); this.indicatorValuesDisplay.appendChild(item) }
+                if (values.length > 0) { const item = document.createElement('div'); item.style.cssText = `display:flex;align-items:center;margin-right:10px;margin-bottom:2px;color:${textColor};font-size:12px;font-family:'Open Sans',Arial,sans-serif;font-weight:500;`; const dot = document.createElement('span'); dot.style.cssText = `background-color:${config.color};width:8px;height:8px;border-radius:50%;margin-right:4px;display:inline-block;`; item.appendChild(dot); const name = document.createElement('span'); name.textContent = `${config.name}: `; name.style.marginRight = '3px'; item.appendChild(name); const valSpan = document.createElement('span'); valSpan.textContent = values.join(', '); item.appendChild(valSpan); this._legendActions(item, key); this.indicatorValuesDisplay.appendChild(item) }
             }
         }
     }
     saveSettings() {
         // Skip saving if indicators were provided via constructor options (programmatic configuration)
         if (this.options.indicators) { return; }
-        const settings = { timeframe: this.timeframe, chartType: this.config.chartType, indicators: {}, movingAverages: this.movingAverages.map(ma => ({ type: ma.type, period: ma.period, enabled: ma.enabled, id: ma.id, color: ma.color })) }; for (const key in this.indicators) settings.indicators[key] = this.indicators[key].enabled; try { localStorage.setItem('stockChartSettings', JSON.stringify(settings)) } catch (e) { console.error('Failed to save chart settings:', e) }
+        const settings = { timeframe: this.timeframe, chartType: this.config.chartType, indicators: {}, movingAverages: this.movingAverages.map(ma => ({ type: ma.type, period: ma.period, enabled: ma.enabled, id: ma.id, color: ma.color, hidden: !!ma.hidden })) }; for (const key in this.indicators) settings.indicators[key] = this.indicators[key].enabled; settings.hidden = Object.keys(this.indicators).filter(k => this.indicators[k].enabled && this.indicators[k].hidden); try { localStorage.setItem('stockChartSettings', JSON.stringify(settings)) } catch (e) { console.error('Failed to save chart settings:', e) }
     }
     loadSettings() {
         try {
@@ -8428,6 +8983,7 @@ class StockChart {
                     // Still settable in code: chart.indicators.patterns.enabled = true
                     if (this.indicators.patterns) this.indicators.patterns.enabled = false;
                 }
+                (settings.hidden || []).forEach(k => { if (this.indicators[k]) this.indicators[k].hidden = true });
                 this.populateMovingAveragesUI(); this.setupMovingAverageToggleHandlers(); this.updateTimeframeDropdownVisualState(); this.calculateIndicators(); this.drawCharts(); this.updateWatermark()
             } else { this.indicatorsDropdown.querySelectorAll('input[type="checkbox"]:not([value^="ema_"]):not([value^="sma_"])').forEach(toggle => { if (this.indicators[toggle.value]) { this.indicators[toggle.value].enabled = toggle.checked } }); this.calculateIndicators(); this.updateTimeframeDropdownVisualState() }
         } catch (e) { console.error('Failed to load chart settings:', e); this.indicatorsDropdown.querySelectorAll('input[type="checkbox"]').forEach(t => { if (this.indicators[t.value]) this.indicators[t.value].enabled = t.checked }); this.calculateIndicators(); this.updateTimeframeDropdownVisualState() }
@@ -8630,6 +9186,314 @@ function s8OrderFillPnlText(order, price) {
     if (!(qty > 0)) return '';
     return s8PnlTagText(held.pnl(price, qty));
 }
+
+// ── Studies: indicators defined as data ─────────────────────────────────────
+// Each entry is one indicator. The chart turns it into a this.indicators[key] slot (so
+// saving, the Indicators dialog, legend, gear settings, colors and pane resizing all work
+// with no other code), runs calc() when it's on, and draws the result generically.
+//   params: [field, label, default, step]     (step under 1 = decimal input)
+//   lines:  [field, label, color, style, negColor]   style: line | hist | dots | levels
+//           levels = horizontal segments that break where the value changes (pivots)
+//   fills:  [upperField, lowerField, rgba]    pane: own panel   range: fixed [min, max]
+//   bands:  dashed reference lines in the panel
+// calc(bars, p) returns { field: number[] } with nulls where there is no value yet.
+StockChart.STUDY_MATH = (() => {
+    const N = (n) => new Array(n).fill(null);
+    const M = {
+        src: (d, s) => d.map(b => s === 'hl2' ? (b.high + b.low) / 2 : s === 'hlc3' ? (b.high + b.low + b.close) / 3 : s === 'ohlc4' ? (b.open + b.high + b.low + b.close) / 4 : b[s || 'close']),
+        sma(a, n) { const r = N(a.length); let s = 0, c = 0; for (let i = 0; i < a.length; i++) { const v = a[i]; if (v == null || !isFinite(v)) { s = 0; c = 0; continue } s += v; c++; if (c > n) { s -= a[i - n]; c = n } if (c === n) r[i] = s / n } return r },
+        // Seeded with the SMA of the first n values, like TradingView
+        ema(a, n, k) { k = k || 2 / (n + 1); const r = N(a.length); let prev = null, s = 0, c = 0; for (let i = 0; i < a.length; i++) { const v = a[i]; if (v == null || !isFinite(v)) continue; if (prev === null) { s += v; if (++c === n) r[i] = prev = s / n } else r[i] = prev = prev + k * (v - prev) } return r },
+        rma(a, n) { return M.ema(a, n, 1 / n) },
+        wma(a, n) { const r = N(a.length), den = n * (n + 1) / 2; for (let i = n - 1; i < a.length; i++) { let s = 0, ok = true; for (let j = 0; j < n; j++) { const v = a[i - j]; if (v == null) { ok = false; break } s += v * (n - j) } if (ok) r[i] = s / den } return r },
+        stdev(a, n) { const m = M.sma(a, n), r = N(a.length); for (let i = 0; i < a.length; i++) { if (m[i] == null) continue; let s = 0; for (let j = 0; j < n; j++) s += (a[i - j] - m[i]) ** 2; r[i] = Math.sqrt(s / n) } return r },
+        sum(a, n) { const m = M.sma(a, n); return m.map(v => v == null ? null : v * n) },
+        win(a, n, f) { const r = N(a.length); for (let i = n - 1; i < a.length; i++) { let x = null; for (let j = 0; j < n; j++) { const v = a[i - j]; if (v == null) { x = null; break } x = x === null ? v : f(x, v) } r[i] = x } return r },
+        highest(a, n) { return M.win(a, n, Math.max) }, lowest(a, n) { return M.win(a, n, Math.min) },
+        change(a, n) { return a.map((v, i) => i >= n && v != null && a[i - n] != null ? v - a[i - n] : null) },
+        roc(a, n) { return a.map((v, i) => i >= n && v != null && a[i - n] ? 100 * (v - a[i - n]) / a[i - n] : null) },
+        tr(d) { return d.map((b, i) => i ? Math.max(b.high - b.low, Math.abs(b.high - d[i - 1].close), Math.abs(b.low - d[i - 1].close)) : b.high - b.low) },
+        atr(d, n) { return M.rma(M.tr(d), n) },
+        rsi(a, n) { const ch = M.change(a, 1), up = M.rma(ch.map(v => v == null ? null : Math.max(v, 0)), n), dn = M.rma(ch.map(v => v == null ? null : Math.max(-v, 0)), n); return up.map((u, i) => u == null || dn[i] == null ? null : dn[i] === 0 ? 100 : 100 - 100 / (1 + u / dn[i])) },
+        sub: (a, b) => a.map((v, i) => v == null || b[i] == null ? null : v - b[i]),
+        // Bars since the window's highest (or lowest) value, 0 = this bar
+        since(a, n, hi) { const r = N(a.length); for (let i = n; i < a.length; i++) { let k = 0; for (let j = 1; j <= n; j++) if (hi ? a[i - j] > a[i - k] : a[i - j] < a[i - k]) k = j; r[i] = k } return r },
+        adl(d) { let s = 0; return d.map(b => { const rg = b.high - b.low; s += rg ? ((b.close - b.low) - (b.high - b.close)) / rg * b.volume : 0; return s }) },
+        intraday(d) { const n = Math.min(d.length - 1, 20); if (n < 1) return true; return (d[n].t - d[0].t) / n < 20 * 3600e3 }
+    };
+    return M;
+})();
+StockChart.STUDIES = (() => {
+    const M = StockChart.STUDY_MATH;
+    const C = (d) => d.map(b => b.close), H = (d) => d.map(b => b.high), L = (d) => d.map(b => b.low), V = (d) => d.map(b => b.volume);
+    const band = (basis, off, mUp, mDn) => ({ upper: basis.map((v, i) => v == null || off[i] == null ? null : v + off[i] * mUp), basis, lower: basis.map((v, i) => v == null || off[i] == null ? null : v - off[i] * (mDn == null ? mUp : mDn)) });
+    const BAND_LINES = (c) => [['upper', 'Upper', c], ['basis', 'Basis', '#FF6D00'], ['lower', 'Lower', c]];
+    const len = (d, label) => [['length', label || 'Length', d, 1]];
+    return {
+        // ---- on the price chart ----
+        supertrend: {
+            name: 'Supertrend', cat: 'trend', alias: 'super trend atr stop',
+            params: [['atrLen', 'ATR length', 10, 1], ['factor', 'Factor', 3, 0.1]],
+            lines: [['up', 'Up trend', '#26A69A'], ['dn', 'Down trend', '#EF5350']],
+            calc(d, p) {
+                const atr = M.atr(d, p.atrLen), up = [], dn = []; let ub = null, lb = null, dir = 1;
+                d.forEach((b, i) => {
+                    if (atr[i] == null) { up.push(null); dn.push(null); return }
+                    const mid = (b.high + b.low) / 2, prevC = i ? d[i - 1].close : b.close;
+                    let u = mid + p.factor * atr[i], l = mid - p.factor * atr[i];
+                    if (lb !== null && !(l > lb || prevC < lb)) l = lb;
+                    if (ub !== null && !(u < ub || prevC > ub)) u = ub;
+                    if (ub !== null) dir = dir === -1 ? (b.close > u ? 1 : -1) : (b.close < l ? -1 : 1);
+                    ub = u; lb = l;
+                    up.push(dir === 1 ? l : null); dn.push(dir === -1 ? u : null);
+                });
+                return { up, dn };
+            }
+        },
+        keltner: {
+            name: 'Keltner Channels', short: 'KC', cat: 'volatility', alias: 'kc keltner bands',
+            params: [['length', 'Length', 20, 1], ['mult', 'Multiplier', 2, 0.1], ['atrLen', 'ATR length', 10, 1]],
+            lines: BAND_LINES('#2962FF'), fills: [['upper', 'lower', 'rgba(41,98,255,0.06)']],
+            calc: (d, p) => band(M.ema(C(d), p.length), M.atr(d, p.atrLen), p.mult)
+        },
+        donchian: {
+            name: 'Donchian Channels', short: 'DC', cat: 'volatility', alias: 'dc donchian breakout turtle',
+            params: len(20), lines: BAND_LINES('#2962FF'), fills: [['upper', 'lower', 'rgba(41,98,255,0.06)']],
+            calc(d, p) { const upper = M.highest(H(d), p.length), lower = M.lowest(L(d), p.length); return { upper, lower, basis: upper.map((v, i) => v == null ? null : (v + lower[i]) / 2) } }
+        },
+        envelopes: {
+            name: 'Envelope', short: 'Env', cat: 'ma', alias: 'envelopes moving average envelope',
+            params: [['length', 'Length', 20, 1], ['percent', 'Percent', 10, 0.5]],
+            lines: BAND_LINES('#2962FF'), fills: [['upper', 'lower', 'rgba(41,98,255,0.05)']],
+            calc(d, p) { const b = M.sma(C(d), p.length); return band(b, b.map(v => v == null ? null : v * p.percent / 100), 1) }
+        },
+        pivots: {
+            name: 'Pivot points standard', short: 'Pivots', cat: 'levels', alias: 'pivot points traditional support resistance',
+            params: [],
+            lines: [['r3', 'R3', '#EF5350', 'levels'], ['r2', 'R2', '#EF5350', 'levels'], ['r1', 'R1', '#EF5350', 'levels'], ['p', 'P', '#FF9800', 'levels'], ['s1', 'S1', '#26A69A', 'levels'], ['s2', 'S2', '#26A69A', 'levels'], ['s3', 'S3', '#26A69A', 'levels']],
+            // Intraday: yesterday's high/low/close per UTC day. Daily and up: last month's.
+            calc(d) {
+                const intra = M.intraday(d), key = (t) => { const x = new Date(t); return intra ? x.toISOString().slice(0, 10) : x.toISOString().slice(0, 7) };
+                const out = { r3: [], r2: [], r1: [], p: [], s1: [], s2: [], s3: [] }; let cur = null, prev = null, curKey = null;
+                d.forEach(b => {
+                    const k = key(b.t);
+                    if (k !== curKey) { if (cur) prev = cur; cur = { h: b.high, l: b.low, c: b.close }; curKey = k }
+                    else { cur.h = Math.max(cur.h, b.high); cur.l = Math.min(cur.l, b.low); cur.c = b.close }
+                    if (!prev) { Object.keys(out).forEach(f => out[f].push(null)); return }
+                    const P = (prev.h + prev.l + prev.c) / 3, R = prev.h - prev.l;
+                    out.p.push(P); out.r1.push(2 * P - prev.l); out.s1.push(2 * P - prev.h); out.r2.push(P + R); out.s2.push(P - R);
+                    out.r3.push(prev.h + 2 * (P - prev.l)); out.s3.push(prev.l - 2 * (prev.h - P));
+                });
+                return out;
+            }
+        },
+        vwma: { name: 'Volume weighted moving average', short: 'VWMA', cat: 'ma', alias: 'vwma', params: len(20), lines: [['v', 'VWMA', '#2962FF']], calc(d, p) { const pv = M.sum(d.map(b => b.close * b.volume), p.length), vv = M.sum(V(d), p.length); return { v: pv.map((x, i) => x == null || !vv[i] ? null : x / vv[i]) } } },
+        hma: { name: 'Hull moving average', short: 'HMA', cat: 'ma', alias: 'hma hull', params: len(9), lines: [['v', 'HMA', '#00BCD4']], calc(d, p) { const c = C(d), a = M.wma(c, Math.max(1, Math.floor(p.length / 2))), b = M.wma(c, p.length); return { v: M.wma(a.map((x, i) => x == null || b[i] == null ? null : 2 * x - b[i]), Math.max(1, Math.round(Math.sqrt(p.length)))) } } },
+        dema: { name: 'Double EMA', short: 'DEMA', cat: 'ma', alias: 'dema double exponential', params: len(9), lines: [['v', 'DEMA', '#43A047']], calc(d, p) { const e1 = M.ema(C(d), p.length), e2 = M.ema(e1, p.length); return { v: e1.map((x, i) => x == null || e2[i] == null ? null : 2 * x - e2[i]) } } },
+        tema: { name: 'Triple EMA', short: 'TEMA', cat: 'ma', alias: 'tema triple exponential', params: len(9), lines: [['v', 'TEMA', '#AB47BC']], calc(d, p) { const e1 = M.ema(C(d), p.length), e2 = M.ema(e1, p.length), e3 = M.ema(e2, p.length); return { v: e1.map((x, i) => x == null || e3[i] == null ? null : 3 * x - 3 * e2[i] + e3[i]) } } },
+        lsma: {
+            name: 'Least squares moving average', short: 'LSMA', cat: 'ma', alias: 'lsma linear regression curve linreg', params: len(25), lines: [['v', 'LSMA', '#FF9800']],
+            calc(d, p) { const c = C(d), n = p.length, v = new Array(c.length).fill(null), sx = n * (n - 1) / 2, sxx = (n - 1) * n * (2 * n - 1) / 6; for (let i = n - 1; i < c.length; i++) { let sy = 0, sxy = 0; for (let j = 0; j < n; j++) { const y = c[i - n + 1 + j]; sy += y; sxy += j * y } const m = (n * sxy - sx * sy) / (n * sxx - sx * sx); v[i] = (sy - m * sx) / n + m * (n - 1) } return { v } }
+        },
+        chandelier: {
+            name: 'Chandelier exit', short: 'CE', cat: 'trend', alias: 'chandelier atr trailing stop exit',
+            params: [['length', 'ATR period', 22, 1], ['mult', 'ATR multiplier', 3, 0.1]],
+            lines: [['long', 'Long stop', '#26A69A', 'dots'], ['short', 'Short stop', '#EF5350', 'dots']],
+            calc(d, p) {
+                const c = C(d), atr = M.atr(d, p.length), hh = M.highest(c, p.length), ll = M.lowest(c, p.length), long = [], short = [];
+                let lsP = null, ssP = null, dir = 1;
+                d.forEach((b, i) => {
+                    if (atr[i] == null || hh[i] == null) { long.push(null); short.push(null); return }
+                    let ls = hh[i] - atr[i] * p.mult, ss = ll[i] + atr[i] * p.mult; const pc = i ? c[i - 1] : c[i];
+                    if (lsP !== null && pc > lsP) ls = Math.max(ls, lsP);
+                    if (ssP !== null && pc < ssP) ss = Math.min(ss, ssP);
+                    if (ssP !== null) dir = c[i] > ssP ? 1 : c[i] < lsP ? -1 : dir;
+                    lsP = ls; ssP = ss; long.push(dir === 1 ? ls : null); short.push(dir === -1 ? ss : null);
+                });
+                return { long, short };
+            }
+        },
+        // ---- own panel ----
+        cmf: { name: 'Chaikin money flow', short: 'CMF', cat: 'volume', alias: 'cmf chaikin', pane: true, bands: [0], params: len(20), lines: [['v', 'CMF', '#43A047']], calc(d, p) { const mfv = d.map(b => { const r = b.high - b.low; return r ? ((b.close - b.low) - (b.high - b.close)) / r * b.volume : 0 }), a = M.sum(mfv, p.length), v = M.sum(V(d), p.length); return { v: a.map((x, i) => x == null || !v[i] ? null : x / v[i]) } } },
+        chaikinOsc: { name: 'Chaikin oscillator', short: 'Chaikin Osc', cat: 'volume', alias: 'chaikin oscillator adl', pane: true, bands: [0], params: [['fast', 'Fast', 3, 1], ['slow', 'Slow', 10, 1]], lines: [['v', 'Chaikin Osc', '#EC407A']], calc(d, p) { const a = M.adl(d); return { v: M.sub(M.ema(a, p.fast), M.ema(a, p.slow)) } } },
+        aroon: { name: 'Aroon', cat: 'trend', alias: 'aroon up down', pane: true, range: [0, 100], bands: [70, 30], params: len(14), lines: [['up', 'Aroon up', '#FF6D00'], ['down', 'Aroon down', '#2962FF']], calc(d, p) { const n = p.length, h = M.since(H(d), n, true), l = M.since(L(d), n, false); return { up: h.map(k => k == null ? null : 100 * (n - k) / n), down: l.map(k => k == null ? null : 100 * (n - k) / n) } } },
+        bop: { name: 'Balance of power', short: 'BOP', cat: 'osc', alias: 'bop', pane: true, range: [-1, 1], bands: [0], params: [], lines: [['v', 'BOP', '#26A69A', 'hist', '#EF5350']], calc: (d) => ({ v: d.map(b => b.high === b.low ? 0 : (b.close - b.open) / (b.high - b.low)) }) },
+        uo: {
+            name: 'Ultimate oscillator', short: 'UO', cat: 'osc', alias: 'uo ultimate', pane: true, range: [0, 100], bands: [70, 30], params: [['fast', 'Fast', 7, 1], ['mid', 'Middle', 14, 1], ['slow', 'Slow', 28, 1]], lines: [['v', 'UO', '#F44336']],
+            calc(d, p) { const bp = d.map((b, i) => b.close - Math.min(b.low, i ? d[i - 1].close : b.low)), tr = M.tr(d), avg = (n) => { const a = M.sum(bp, n), t = M.sum(tr, n); return a.map((x, i) => x == null || !t[i] ? null : x / t[i]) }; const a = avg(p.fast), b = avg(p.mid), c = avg(p.slow); return { v: a.map((x, i) => x == null || b[i] == null || c[i] == null ? null : 100 * (4 * x + 2 * b[i] + c[i]) / 7) } }
+        },
+        momentum: { name: 'Momentum', short: 'Mom', cat: 'osc', alias: 'mom momentum', pane: true, bands: [0], params: len(10), lines: [['v', 'Momentum', '#2962FF']], calc: (d, p) => ({ v: M.change(C(d), p.length) }) },
+        chop: { name: 'Choppiness index', short: 'CHOP', cat: 'volatility', alias: 'chop choppiness', pane: true, range: [0, 100], bands: [61.8, 38.2], params: len(14), lines: [['v', 'CHOP', '#2962FF']], calc(d, p) { const n = p.length, s = M.sum(M.tr(d), n), h = M.highest(H(d), n), l = M.lowest(L(d), n); return { v: s.map((x, i) => x == null || h[i] == null || h[i] === l[i] ? null : 100 * Math.log10(x / (h[i] - l[i])) / Math.log10(n)) } } },
+        bbPercentB: { name: 'Bollinger Bands %B', short: '%B', cat: 'volatility', alias: 'bb percent b %b', pane: true, bands: [1, 0.5, 0], params: [['length', 'Length', 20, 1], ['mult', 'Std dev', 2, 0.1]], lines: [['v', '%B', '#26A69A']], calc(d, p) { const c = C(d), m = M.sma(c, p.length), s = M.stdev(c, p.length); return { v: c.map((x, i) => m[i] == null || !s[i] ? null : (x - (m[i] - p.mult * s[i])) / (2 * p.mult * s[i])) } } },
+        bbWidth: { name: 'Bollinger BandWidth', short: 'BBW', cat: 'volatility', alias: 'bb width bandwidth squeeze', pane: true, params: [['length', 'Length', 20, 1], ['mult', 'Std dev', 2, 0.1]], lines: [['v', 'BBW', '#2962FF']], calc(d, p) { const c = C(d), m = M.sma(c, p.length), s = M.stdev(c, p.length); return { v: m.map((x, i) => x == null || !x ? null : 2 * p.mult * s[i] / x) } } },
+        hv: { name: 'Historical volatility', short: 'HV', cat: 'volatility', alias: 'hv historical volatility', pane: true, params: len(10), lines: [['v', 'HV', '#2962FF']], calc(d, p) { const c = C(d), r = c.map((x, i) => i && c[i - 1] ? Math.log(x / c[i - 1]) : null); return { v: M.stdev(r, p.length).map(s => s == null ? null : 100 * s * Math.sqrt(365)) } } },
+        rvol: { name: 'Relative volume', short: 'RVOL', cat: 'volume', alias: 'rvol relative volume', pane: true, bands: [1], params: len(20), lines: [['v', 'RVOL', '#26A69A', 'hist']], calc(d, p) { const v = V(d), a = M.sma(v, p.length); return { v: v.map((x, i) => a[i] ? x / a[i] : null) } } },
+        volOsc: { name: 'Volume oscillator', short: 'Vol Osc', cat: 'volume', alias: 'volume oscillator', pane: true, bands: [0], params: [['fast', 'Short length', 5, 1], ['slow', 'Long length', 10, 1]], lines: [['v', 'Vol Osc', '#2962FF']], calc(d, p) { const v = V(d), f = M.ema(v, p.fast), s = M.ema(v, p.slow); return { v: f.map((x, i) => x == null || !s[i] ? null : 100 * (x - s[i]) / s[i]) } } },
+        crsi: {
+            name: 'Connors RSI', short: 'CRSI', cat: 'osc', alias: 'crsi connors', pane: true, range: [0, 100], bands: [70, 30], params: [['rsiLen', 'RSI length', 3, 1], ['streakLen', 'Up/down length', 2, 1], ['rankLen', 'ROC length', 100, 1]], lines: [['v', 'CRSI', '#2962FF']],
+            calc(d, p) {
+                const c = C(d), streak = []; c.forEach((x, i) => { const s = i ? streak[i - 1] : 0; streak.push(!i || x === c[i - 1] ? 0 : x > c[i - 1] ? (s > 0 ? s + 1 : 1) : (s < 0 ? s - 1 : -1)) });
+                const r1 = M.rsi(c, p.rsiLen), r2 = M.rsi(streak, p.streakLen), roc = M.roc(c, 1), n = p.rankLen;
+                return { v: c.map((x, i) => { if (r1[i] == null || r2[i] == null || i < n || roc[i] == null) return null; let k = 0; for (let j = 1; j <= n; j++) if (roc[i - j] != null && roc[i - j] < roc[i]) k++; return (r1[i] + r2[i] + 100 * k / n) / 3 }) };
+            }
+        },
+        fisher: {
+            name: 'Fisher transform', short: 'Fisher', cat: 'osc', alias: 'fisher transform', pane: true, bands: [1.5, 0.75, 0, -0.75, -1.5], params: len(9), lines: [['fish', 'Fisher', '#2962FF'], ['trigger', 'Trigger', '#FF6D00']],
+            calc(d, p) {
+                const hl = M.src(d, 'hl2'), h = M.highest(hl, p.length), l = M.lowest(hl, p.length), fish = [], trigger = []; let val = 0, f = 0;
+                hl.forEach((x, i) => {
+                    if (h[i] == null) { fish.push(null); trigger.push(null); return }
+                    val = Math.max(-0.999, Math.min(0.999, 0.66 * ((x - l[i]) / Math.max(h[i] - l[i], 0.001) - 0.5) + 0.67 * val));
+                    const prev = f; f = 0.5 * Math.log((1 + val) / Math.max(1 - val, 0.001)) + 0.5 * f; fish.push(f); trigger.push(prev);
+                });
+                return { fish, trigger };
+            }
+        },
+        coppock: { name: 'Coppock curve', short: 'Coppock', cat: 'osc', alias: 'coppock', pane: true, bands: [0], params: [['wmaLen', 'WMA length', 10, 1], ['longRoc', 'Long RoC', 14, 1], ['shortRoc', 'Short RoC', 11, 1]], lines: [['v', 'Coppock', '#2962FF']], calc(d, p) { const c = C(d), a = M.roc(c, p.longRoc), b = M.roc(c, p.shortRoc); return { v: M.wma(a.map((x, i) => x == null || b[i] == null ? null : x + b[i]), p.wmaLen) } } },
+        // ---- batch 3: on the price chart ----
+        alma: {
+            name: 'Arnaud Legoux moving average', short: 'ALMA', cat: 'ma', alias: 'alma arnaud legoux', params: [['length', 'Length', 9, 1], ['offset', 'Offset', 0.85, 0.05], ['sigma', 'Sigma', 6, 0.5]], lines: [['v', 'ALMA', '#2962FF']],
+            calc(d, p) { const c = C(d), n = p.length, m = p.offset * (n - 1), s = n / p.sigma, w = []; let norm = 0; for (let i = 0; i < n; i++) { w.push(Math.exp(-((i - m) ** 2) / (2 * s * s))); norm += w[i] } return { v: c.map((x, k) => { if (k < n - 1) return null; let sum = 0; for (let i = 0; i < n; i++) sum += c[k - n + 1 + i] * w[i]; return sum / norm }) } }
+        },
+        mcginley: {
+            name: 'McGinley dynamic', short: 'McGinley', cat: 'ma', alias: 'mcginley dynamic', params: len(14), lines: [['v', 'McGinley', '#2962FF']],
+            calc(d, p) { const c = C(d), e = M.ema(c, p.length), v = []; let md = null; c.forEach((x, i) => { if (md === null) md = e[i]; else md = md + (x - md) / (p.length * Math.pow(x / md, 4)); v.push(md) }); return { v } }
+        },
+        alligator: {
+            name: 'Williams Alligator', short: 'Alligator', cat: 'trend', alias: 'alligator williams jaw teeth lips',
+            params: [['jawLen', 'Jaw length', 13, 1], ['jawOff', 'Jaw offset', 8, 1], ['teethLen', 'Teeth length', 8, 1], ['teethOff', 'Teeth offset', 5, 1], ['lipsLen', 'Lips length', 5, 1], ['lipsOff', 'Lips offset', 3, 1]],
+            lines: [['jaw', 'Jaw', '#2962FF'], ['teeth', 'Teeth', '#E91E63'], ['lips', 'Lips', '#66BB6A']],
+            // Each line is a smoothed average pushed forward by its offset (the part past the last bar isn't shown)
+            calc(d, p) { const hl = M.src(d, 'hl2'), sh = (a, k) => a.map((_, i) => i >= k ? a[i - k] : null); return { jaw: sh(M.rma(hl, p.jawLen), p.jawOff), teeth: sh(M.rma(hl, p.teethLen), p.teethOff), lips: sh(M.rma(hl, p.lipsLen), p.lipsOff) } }
+        },
+        fractals: {
+            name: 'Williams Fractals', short: 'Fractals', cat: 'trend', alias: 'fractals williams', params: [['periods', 'Periods', 2, 1]],
+            lines: [['up', 'Up fractal', '#F23645', 'markAbove'], ['down', 'Down fractal', '#089981', 'markBelow']],
+            calc(d, p) {
+                const n = p.periods, up = new Array(d.length).fill(null), down = new Array(d.length).fill(null);
+                for (let i = n; i < d.length - n; i++) {
+                    let hi = true, lo = true;
+                    for (let j = 1; j <= n; j++) { if (!(d[i].high > d[i - j].high && d[i].high >= d[i + j].high)) hi = false; if (!(d[i].low < d[i - j].low && d[i].low <= d[i + j].low)) lo = false }
+                    if (hi) up[i] = d[i].high; if (lo) down[i] = d[i].low;
+                }
+                return { up, down };
+            }
+        },
+        zigzag: {
+            name: 'Zig Zag', short: 'ZigZag', cat: 'trend', alias: 'zigzag zig zag swings', params: [['dev', 'Deviation %', 1, 0.1]], lines: [['v', 'Zig Zag', '#FF9800']],
+            // A swing is confirmed once price reverses dev% from its extreme; straight lines join the swings
+            calc(d, p) {
+                const piv = []; if (!d.length) return { v: [] };
+                let dir = 0, ext = 0, k = p.dev / 100;
+                for (let i = 1; i < d.length; i++) {
+                    const b = d[i];
+                    if (dir >= 0) { if (b.high >= d[ext].high) ext = i; if (b.low < d[ext].high * (1 - k)) { piv.push([ext, d[ext].high]); dir = -1; ext = i } }
+                    else { if (b.low <= d[ext].low) ext = i; if (b.high > d[ext].low * (1 + k)) { piv.push([ext, d[ext].low]); dir = 1; ext = i } }
+                }
+                if (dir) piv.push([ext, dir > 0 ? d[ext].high : d[ext].low]);
+                const v = new Array(d.length).fill(null);
+                for (let j = 1; j < piv.length; j++) { const [a, pa] = piv[j - 1], [b, pb] = piv[j]; for (let i = a; i <= b; i++) v[i] = pa + (pb - pa) * (i - a) / Math.max(1, b - a) }
+                return { v };
+            }
+        },
+        volStop: {
+            name: 'Volatility stop', short: 'VStop', cat: 'trend', alias: 'volatility stop vstop atr trailing', params: [['length', 'Length', 20, 1], ['mult', 'Multiplier', 2, 0.1]],
+            lines: [['up', 'Uptrend stop', '#26A69A', 'dots'], ['dn', 'Downtrend stop', '#EF5350', 'dots']],
+            calc(d, p) {
+                const atr = M.atr(d, p.length), up = [], dn = []; let hi = null, lo = null, stop = 0, uptrend = true;
+                d.forEach((b, i) => {
+                    const src = b.close; if (atr[i] == null) { up.push(null); dn.push(null); return }
+                    const a = atr[i] * p.mult; hi = hi === null ? src : Math.max(hi, src); lo = lo === null ? src : Math.min(lo, src);
+                    stop = uptrend ? Math.max(stop, hi - a) : Math.min(stop || Infinity, lo + a);
+                    const was = uptrend; uptrend = src - stop >= 0;
+                    if (uptrend !== was) { hi = lo = src; stop = uptrend ? hi - a : lo + a }
+                    up.push(uptrend ? stop : null); dn.push(uptrend ? null : stop);
+                });
+                return { up, dn };
+            }
+        },
+        chandeKroll: {
+            name: 'Chande Kroll stop', short: 'CKS', cat: 'trend', alias: 'chande kroll stop', params: [['p', 'ATR length', 10, 1], ['x', 'ATR coefficient', 1, 0.1], ['q', 'Stop length', 9, 1]],
+            lines: [['short', 'Stop short', '#EF5350'], ['long', 'Stop long', '#26A69A']],
+            calc(d, p) { const atr = M.atr(d, p.p), hs = M.highest(H(d), p.p).map((v, i) => v == null || atr[i] == null ? null : v - p.x * atr[i]), ls = M.lowest(L(d), p.p).map((v, i) => v == null || atr[i] == null ? null : v + p.x * atr[i]); return { short: M.highest(hs, p.q), long: M.lowest(ls, p.q) } }
+        },
+        // ---- batch 3: own panel ----
+        dpo: { name: 'Detrended price oscillator', short: 'DPO', cat: 'osc', alias: 'dpo detrended', pane: true, bands: [0], params: len(21), lines: [['v', 'DPO', '#43A047']], calc(d, p) { const c = C(d), m = M.sma(c, p.length), back = Math.floor(p.length / 2) + 1; return { v: c.map((x, i) => i >= back && m[i - back] != null ? x - m[i - back] : null) } } },
+        eom: { name: 'Ease of movement', short: 'EOM', cat: 'volume', alias: 'eom ease of movement', pane: true, bands: [0], params: [['length', 'Length', 14, 1], ['div', 'Divisor', 10000, 1, 1, 1000000]], lines: [['v', 'EOM', '#43A047']], calc(d, p) { const hl = M.src(d, 'hl2'); return { v: M.sma(d.map((b, i) => i && b.volume ? p.div * (hl[i] - hl[i - 1]) * (b.high - b.low) / b.volume : null), p.length) } } },
+        massIndex: { name: 'Mass index', short: 'Mass', cat: 'volatility', alias: 'mass index reversal bulge', pane: true, bands: [27, 26.5], params: len(10), lines: [['v', 'Mass', '#2962FF']], calc(d, p) { const e1 = M.ema(d.map(b => b.high - b.low), 9), e2 = M.ema(e1, 9); return { v: M.sum(e1.map((x, i) => x == null || !e2[i] ? null : x / e2[i]), p.length) } } },
+        ppo: { name: 'Price oscillator', short: 'PPO', cat: 'osc', alias: 'ppo price percentage oscillator', pane: true, bands: [0], params: [['fast', 'Short length', 10, 1], ['slow', 'Long length', 21, 1]], lines: [['v', 'PPO', '#089981']], calc(d, p) { const c = C(d), f = M.ema(c, p.fast), s = M.ema(c, p.slow); return { v: f.map((x, i) => x == null || !s[i] ? null : 100 * (x - s[i]) / s[i]) } } },
+        pvt: { name: 'Price volume trend', short: 'PVT', cat: 'volume', alias: 'pvt price volume trend', pane: true, params: [], lines: [['v', 'PVT', '#2962FF']], calc(d) { let s = 0; return { v: d.map((b, i) => { if (i && d[i - 1].close) s += (b.close - d[i - 1].close) / d[i - 1].close * b.volume; return s }) } } },
+        rvgi: {
+            name: 'Relative vigor index', short: 'RVGI', cat: 'osc', alias: 'rvgi rvi relative vigor', pane: true, bands: [0], params: len(10), lines: [['v', 'RVGI', '#089981'], ['sig', 'Signal', '#F23645']],
+            calc(d, p) { const sw = (a) => a.map((_, i) => i < 3 ? null : (a[i - 3] + 2 * a[i - 2] + 2 * a[i - 1] + a[i]) / 6), num = M.sum(sw(d.map(b => b.close - b.open)), p.length), den = M.sum(sw(d.map(b => b.high - b.low)), p.length), v = num.map((x, i) => x == null || !den[i] ? null : x / den[i]); return { v, sig: v.map((_, i) => i < 3 || v[i - 3] == null ? null : (v[i - 3] + 2 * v[i - 2] + 2 * v[i - 1] + v[i]) / 6) } }
+        },
+        rvi: {
+            name: 'Relative volatility index', short: 'RVI', cat: 'volatility', alias: 'rvi relative volatility', pane: true, range: [0, 100], bands: [80, 50, 20], params: [['length', 'Std dev length', 10, 1], ['smooth', 'Smoothing', 14, 1]], lines: [['v', 'RVI', '#7E57C2']],
+            calc(d, p) { const c = C(d), sd = M.stdev(c, p.length), ch = M.change(c, 1), u = M.ema(sd.map((s, i) => s == null || ch[i] == null ? null : ch[i] <= 0 ? 0 : s), p.smooth), l = M.ema(sd.map((s, i) => s == null || ch[i] == null ? null : ch[i] > 0 ? 0 : s), p.smooth); return { v: u.map((x, i) => x == null || l[i] == null || x + l[i] === 0 ? null : 100 * x / (x + l[i])) } }
+        },
+        smiErgodic: {
+            name: 'SMI ergodic indicator', short: 'SMII', cat: 'osc', alias: 'smi ergodic stochastic momentum', pane: true, bands: [0], params: [['short', 'Short length', 5, 1], ['long', 'Long length', 20, 1], ['sig', 'Signal length', 5, 1]], lines: [['v', 'SMI', '#2962FF'], ['sig', 'Signal', '#FF6D00']],
+            calc(d, p) { const ch = M.change(C(d), 1), ds = (a) => M.ema(M.ema(a, p.long), p.short), n = ds(ch), m = ds(ch.map(x => x == null ? null : Math.abs(x))), v = n.map((x, i) => x == null || !m[i] ? null : x / m[i]); return { v, sig: M.ema(v, p.sig) } }
+        },
+        tsi: {
+            name: 'True strength index', short: 'TSI', cat: 'osc', alias: 'tsi true strength', pane: true, bands: [0], params: [['long', 'Long length', 25, 1], ['short', 'Short length', 13, 1], ['sig', 'Signal length', 13, 1]], lines: [['v', 'TSI', '#2962FF'], ['sig', 'Signal', '#E91E63']],
+            calc(d, p) { const ch = M.change(C(d), 1), ds = (a) => M.ema(M.ema(a, p.long), p.short), n = ds(ch), m = ds(ch.map(x => x == null ? null : Math.abs(x))), v = n.map((x, i) => x == null || !m[i] ? null : 100 * x / m[i]); return { v, sig: M.ema(v, p.sig) } }
+        },
+        vortex: {
+            name: 'Vortex indicator', short: 'VI', cat: 'trend', alias: 'vortex vi', pane: true, bands: [1], params: len(14), lines: [['plus', 'VI +', '#2962FF'], ['minus', 'VI -', '#E91E63']],
+            calc(d, p) { const vp = M.sum(d.map((b, i) => i ? Math.abs(b.high - d[i - 1].low) : null), p.length), vm = M.sum(d.map((b, i) => i ? Math.abs(b.low - d[i - 1].high) : null), p.length), tr = M.sum(M.tr(d).map((x, i) => i ? x : null), p.length); return { plus: vp.map((x, i) => x == null || !tr[i] ? null : x / tr[i]), minus: vm.map((x, i) => x == null || !tr[i] ? null : x / tr[i]) } }
+        },
+        klinger: {
+            name: 'Klinger oscillator', short: 'KO', cat: 'volume', alias: 'klinger kvo volume oscillator', pane: true, bands: [0], params: [['fast', 'Fast', 34, 1], ['slow', 'Slow', 55, 1], ['sig', 'Signal', 13, 1]], lines: [['v', 'Klinger', '#2962FF'], ['sig', 'Signal', '#43A047']],
+            calc(d, p) { const h = M.src(d, 'hlc3'), sv = d.map((b, i) => !i ? null : h[i] - h[i - 1] >= 0 ? b.volume : -b.volume), v = M.sub(M.ema(sv, p.fast), M.ema(sv, p.slow)); return { v, sig: M.ema(v, p.sig) } }
+        },
+        cmo: { name: 'Chande momentum oscillator', short: 'ChandeMO', cat: 'osc', alias: 'cmo chande momentum', pane: true, range: [-100, 100], bands: [50, 0, -50], params: len(9), lines: [['v', 'CMO', '#2962FF']], calc(d, p) { const m = M.change(C(d), 1), a = M.sum(m.map(x => x == null ? null : Math.max(x, 0)), p.length), b = M.sum(m.map(x => x == null ? null : Math.max(-x, 0)), p.length); return { v: a.map((x, i) => x == null || x + b[i] === 0 ? null : 100 * (x - b[i]) / (x + b[i])) } } },
+        bullBear: { name: 'Bull bear power', short: 'BBPower', cat: 'osc', alias: 'bull bear power elder ray', pane: true, bands: [0], params: len(13), lines: [['v', 'BBPower', '#26A69A', 'hist', '#EF5350']], calc(d, p) { const e = M.ema(C(d), p.length); return { v: d.map((b, i) => e[i] == null ? null : b.high + b.low - 2 * e[i]) } } },
+        netVolume: { name: 'Net volume', short: 'Net Vol', cat: 'volume', alias: 'net volume', pane: true, bands: [0], params: [], lines: [['v', 'Net volume', '#26A69A', 'hist', '#EF5350']], calc: (d) => ({ v: d.map((b, i) => !i ? null : b.close > d[i - 1].close ? b.volume : b.close < d[i - 1].close ? -b.volume : 0) }) },
+        adr: { name: 'Average day range', short: 'ADR', cat: 'volatility', alias: 'adr average daily range', pane: true, params: len(14), lines: [['v', 'ADR', '#2962FF']], calc: (d, p) => ({ v: M.sma(d.map(b => b.high - b.low), p.length) }) },
+        vrvp: {
+            name: 'Visible range volume profile', short: 'VRVP', cat: 'volume', alias: 'vrvp vpvr volume profile visible range poc value area',
+            params: [['rows', 'Rows', 24, 1, 4, 200], ['va', 'Value area %', 70, 1, 10, 100], ['width', 'Width %', 30, 1, 5, 100]],
+            lines: [['up', 'Up volume', '#2962FF', 'none'], ['down', 'Down volume', '#FBC02D', 'none'], ['poc', 'POC', '#F23645', 'none']],
+            calc: () => ({}),
+            // Profile of the bars on screen, pinned to the chart's right edge (undoes the smooth-pan shift)
+            draw(ctx, key, v) {
+                const d = this.stockData, ind = this.indicators[key], off = this.config.dataOffset;
+                const i0 = Math.max(0, off), i1 = Math.min(d.length - 1, off + this.config.visibleCandles - 1); if (i1 < i0) return;
+                const P = StockChart.volumeProfile(d, i0, i1, ind.rows, ind.va / 100); ind._poc = P.pocPrice;
+                const left = this.config.padding.left - this.pixelOffset, right = this.getCanvasWidth() - this.config.padding.right - this.pixelOffset;
+                this._drawProfile(ctx, P, right, (right - left) * ind.width / 100, -1, v.toY, key);
+                this._drawPocLine(ctx, key, left, right, v.toY(P.pocPrice));
+            },
+            legend(key) { const p = this.indicators[key]._poc; return p == null ? [] : ['POC ' + s8FormatChartPrice(p)] }
+        },
+        svp: {
+            name: 'Session volume profile', short: 'SVP', cat: 'volume', alias: 'svp session volume profile daily poc value area',
+            params: [['rows', 'Rows', 24, 1, 4, 200], ['va', 'Value area %', 70, 1, 10, 100], ['width', 'Width %', 70, 1, 5, 100]],
+            lines: [['up', 'Up volume', '#2962FF', 'none'], ['down', 'Down volume', '#FBC02D', 'none'], ['poc', 'POC', '#F23645', 'none']],
+            // Sessions are UTC days on intraday charts and months on daily and up (same as the pivots)
+            calc(d) { const intra = M.intraday(d), starts = []; let prev = null; d.forEach((b, i) => { const k = new Date(b.t).toISOString().slice(0, intra ? 10 : 7); if (k !== prev) { starts.push(i); prev = k } }); return { starts } },
+            // Each session's profile grows right from its first bar, POC across the session
+            draw(ctx, key, v) {
+                const d = this.stockData, ind = this.indicators[key], st = ind.data.starts || [], off = this.config.dataOffset;
+                const v0 = Math.max(0, off), v1 = Math.min(d.length - 1, off + this.config.visibleCandles - 1), step = v.cW + this.config.spacing;
+                const xAt = (i) => this.config.padding.left + (i - off) * step;
+                for (let s = 0; s < st.length; s++) {
+                    const a = st[s], b = s + 1 < st.length ? st[s + 1] - 1 : d.length - 1; if (b < v0 || a > v1) continue;
+                    const P = this._sessionProfile(key, a, b), x0 = xAt(a), x1 = xAt(b) + v.cW;
+                    this._drawProfile(ctx, P, x0, (x1 - x0) * ind.width / 100, 1, v.toY, key);
+                    this._drawPocLine(ctx, key, x0, x1, v.toY(P.pocPrice));
+                }
+            },
+            legend(key, i) { const r = this._sessionAt(key, i); return r ? ['POC ' + s8FormatChartPrice(this._sessionProfile(key, r[0], r[1]).pocPrice)] : [] }
+        },
+        trendStrength: {
+            name: 'Trend strength index', short: 'TSI trend', cat: 'trend', alias: 'trend strength index correlation', pane: true, range: [-1, 1], bands: [0.5, 0, -0.5], params: len(14), lines: [['v', 'Trend strength', '#2962FF']],
+            // Correlation of price with time over the window: +1 = clean uptrend, -1 = clean downtrend
+            calc(d, p) { const c = C(d), n = p.length, mx = (n - 1) / 2, vx = n * (n * n - 1) / 12; return { v: c.map((_, i) => { if (i < n - 1) return null; let my = 0; for (let j = 0; j < n; j++) my += c[i - n + 1 + j]; my /= n; let sxy = 0, syy = 0; for (let j = 0; j < n; j++) { const dy = c[i - n + 1 + j] - my; sxy += (j - mx) * dy; syy += dy * dy } return syy ? sxy / Math.sqrt(vx * syy) : 0 }) } }
+        }
+    };
+})();
 
 // Files that ship next to stockchart.js (the simul8or logo) load from the script's own folder.
 StockChart.ASSET_BASE = (function () { var s = document.currentScript; return s && s.src ? s.src.replace(/[^\/?#]*([?#].*)?$/, '') : ''; })();

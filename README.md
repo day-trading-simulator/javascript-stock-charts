@@ -6,6 +6,17 @@
 
 A lightweight, zero-dependency JavaScript stock chart library for financial data visualization. Built on HTML5 Canvas with HiDPI support, technical indicators, candlestick pattern detection, and real-time interactivity.
 
+## What's new in v4.1
+
+- **Indicator picker** - The Indicators button opens a searchable list with categories and favorites
+- **79 indicators** - 51 new, including Supertrend, Keltner and Donchian channels, pivot points, Hull/DEMA/TEMA/ALMA/McGinley averages, Chandelier exit, Williams Alligator and Fractals, Zig Zag, Aroon, Vortex, TSI, Klinger, Connors RSI and Fisher transform
+- **Volume profile** - Visible range and session profiles with the point of control and value area
+- **Legend controls** - One line per indicator; hover it to hide it, open its settings (inputs, colors, thickness) or remove it
+- **Moving averages** - Add EMAs and SMAs as many times as you like, picking type, length and color in one step
+- **New methods**: `setIndicatorEnabled`, `setIndicatorHidden`, `addMovingAverageInstance` (see [API Methods](#api-methods))
+
+Upgrading from v4.0? Swap in the new `stock-chart.js`. The files and API are the same.
+
 ## What's new in v4.0
 
 - **New toolbar layout** - Chart settings sit in a top bar and the drawing tools in a strip down the left side
@@ -33,20 +44,16 @@ Upgrading from v3? The API is the same. Add `emoji-data.js` before `stock-chart.
   ![Chart Types and Dark Mode](javascript-stock-chart2.png)
 
 ### Technical Indicators
-Built-in support for popular indicators via the included `indicators.js` module:
+79 indicators in a searchable picker. A sample:
 
-- **RSI** - Relative Strength Index
-- **MACD** - Moving Average Convergence Divergence
-- **Bollinger Bands** - Volatility bands around a moving average
-- **Stochastic** - Momentum oscillator
-- **ATR** - Average True Range
-- **OBV** - On-Balance Volume
-- **ADX** - Average Directional Index
-- **CCI** - Commodity Channel Index
-- **Williams %R** - Momentum indicator
-- **MFI** - Money Flow Index
-- **Moving Averages** - Customizable SMA/EMA with color picker
-- And more
+- **Moving averages** - SMA, EMA (add as many as you like), WMA, Wilder's, Hull, DEMA, TEMA, ALMA, VWMA, McGinley, least squares
+- **Trend** - Supertrend, Parabolic SAR, Ichimoku, ADX, Aroon, Vortex, Chandelier exit, Volatility stop, Williams Alligator and Fractals, Zig Zag
+- **Oscillators** - RSI, MACD, Stochastic, Stochastic RSI, CCI, Williams %R, Awesome, TSI, Connors RSI, Fisher transform, Ultimate, Coppock
+- **Volatility** - Bollinger Bands, %B and BandWidth, Keltner and Donchian channels, ATR, Historical volatility, Choppiness
+- **Volume** - VWAP, OBV, Accumulation/distribution, Chaikin money flow, Klinger, Relative volume, visible range and session volume profile
+- **Levels** - Pivot points, key levels (day high/low, premarket high/low, prior close)
+
+Turn them on from code with the `indicators` option or `chart.setIndicatorEnabled(key, true)`. `StockChart.STUDIES` lists the keys, inputs and lines of the newer ones.
 
 ### Pattern Detection
 Automatic candlestick pattern recognition via the included `patterns.js` module:
@@ -81,11 +88,11 @@ Include the source files in your HTML. Keep `simul8or-logo.svg` and `s8-logo.svg
 Or load it from the jsDelivr CDN. Pin a version so updates never change your chart unexpectedly:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/stock-chart.css">
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/indicators.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/patterns.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/emoji-data.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.0/stock-chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/stock-chart.css">
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/indicators.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/patterns.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/emoji-data.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/stock-chart.js"></script>
 ```
 
 Screens 860px wide or less show the bare chart, without the top bar and tool strip.
@@ -134,7 +141,8 @@ const chart = new StockChart('container', {
   indicators: {
     rsi: true,
     macd: false,
-    bollingerBands: false
+    bollinger: false,
+    supertrend: true
   },
 
   // Moving averages
@@ -157,6 +165,11 @@ chart.destroy();
 // Update configuration
 chart.config.darkMode = true;
 chart.drawCharts();
+
+// Indicators
+chart.setIndicatorEnabled('vrvp', true);            // visible range volume profile
+chart.setIndicatorHidden('rsi', true);              // keep it on, stop drawing it
+chart.addMovingAverageInstance('ema', 50, '#F5B14A');
 
 // AI price level overlays
 chart.addAIPriceLevel({ label: 'Entry', price: 185.50, color: '#00C851' });
