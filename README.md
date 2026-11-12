@@ -15,7 +15,7 @@ A lightweight, zero-dependency JavaScript stock chart library for financial data
 - **Moving averages** - Add EMAs and SMAs as many times as you like, picking type, length and color in one step
 - **New methods**: `setIndicatorEnabled`, `setIndicatorHidden`, `addMovingAverageInstance` (see [API Methods](#api-methods))
 
-Upgrading from v4.0? Swap in the new `stock-chart.js`. The files and API are the same.
+Upgrading from v4.0? Swap in the new `stock-chart.js`. The files and API are the same. v4.1.1 fixes the picker's search box picking up the host page's input styles.
 
 ## What's new in v4.0
 
@@ -88,11 +88,11 @@ Include the source files in your HTML. Keep `simul8or-logo.svg` and `s8-logo.svg
 Or load it from the jsDelivr CDN. Pin a version so updates never change your chart unexpectedly:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/stock-chart.css">
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/indicators.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/patterns.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/emoji-data.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1/stock-chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1.1/stock-chart.css">
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1.1/indicators.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1.1/patterns.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1.1/emoji-data.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/day-trading-simulator/javascript-stock-charts@v4.1.1/stock-chart.js"></script>
 ```
 
 Screens 860px wide or less show the bare chart, without the top bar and tool strip.
